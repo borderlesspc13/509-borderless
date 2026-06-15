@@ -57,6 +57,12 @@ export const mainNavEntries: NavEntry[] = [
         icon: UserCog,
         permission: PERMISSIONS.PROFESSIONALS_VIEW,
       },
+      {
+        title: "Avaliações",
+        href: "/dashboard/avaliacoes",
+        icon: ClipboardCheck,
+        permission: PERMISSIONS.ASSESSMENTS_VIEW,
+      },
     ],
   },
   {
@@ -69,12 +75,6 @@ export const mainNavEntries: NavEntry[] = [
         href: "/evolucao",
         icon: FileText,
         permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-      },
-      {
-        title: "Avaliações",
-        href: "/dashboard/avaliacoes",
-        icon: ClipboardCheck,
-        permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
     ],
   },

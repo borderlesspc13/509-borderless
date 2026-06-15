@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   Download,
@@ -10,10 +11,14 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
-import { PatientCard, PatientListRow } from "@/components/patients/patient-card";
-import { PatientStatsRow } from "@/components/patients/patient-stats-row";
-import { PatientStatusDialog } from "@/components/patients/patient-status-dialog";
-import { PatientViewDialog } from "@/components/patients/patient-view-dialog";
+import type { TeamMember } from "@/app/actions/team-actions";
+import {
+  ProfessionalCard,
+  ProfessionalListRow,
+} from "@/components/team/professional-card";
+import { ProfessionalStatsRow } from "@/components/team/professional-stats-row";
+import { ProfessionalStatusDialog } from "@/components/team/professional-status-dialog";
+import { ProfessionalViewDialog } from "@/components/team/professional-view-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,20 +38,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { patientStatusLabels } from "@/lib/patient-format";
-import type { PatientRow } from "@/lib/supabase/database.types";
+import { professionalStatusLabels } from "@/lib/professional-format";
 import { cn } from "@/lib/utils";
 
-type PatientListProps = {
-  patients: PatientRow[];
+type ProfessionalListProps = {
+  professionals: TeamMember[];
 };
 
 type ViewMode = "grid" | "list";
-type StatusFilter = "all" | PatientRow["status"];
+type StatusFilter = "all" | TeamMember["status"];
 
 const statusFilterItems = [
   { label: "Todos os status", value: "all" },
-  ...Object.entries(patientStatusLabels).map(([value, label]) => ({
+  ...Object.entries(professionalStatusLabels).map(([value, label]) => ({
     label,
     value,
   })),
@@ -56,17 +60,17 @@ function normalizeSearchValue(value: string) {
   return value.trim().toLowerCase();
 }
 
-function matchesPatientSearch(patient: PatientRow, query: string) {
+function matchesProfessionalSearch(professional: TeamMember, query: string) {
   if (!query) {
     return true;
   }
 
   const haystack = [
-    patient.full_name,
-    patient.diagnosis,
-    patient.guardian_name,
-    patient.guardian_phone,
-    patient.cpf,
+    professional.fullName,
+    professional.cpf,
+    professional.professionalCouncil,
+    professional.professionalRole,
+    professional.profileLabel,
   ]
     .filter(Boolean)
     .join(" ")
@@ -75,25 +79,25 @@ function matchesPatientSearch(patient: PatientRow, query: string) {
   return haystack.includes(query);
 }
 
-function exportPatientsToCsv(patients: PatientRow[]) {
+function exportProfessionalsToCsv(professionals: TeamMember[]) {
   const headers = [
     "Nome",
     "Status",
-    "Data de nascimento",
-    "Responsável",
-    "Telefone",
-    "Diagnóstico",
+    "Cargo",
+    "Perfil",
     "CPF",
+    "Conselho",
+    "Data de nascimento",
   ];
 
-  const rows = patients.map((patient) => [
-    patient.full_name,
-    patientStatusLabels[patient.status],
-    patient.birth_date ?? "",
-    patient.guardian_name ?? "",
-    patient.guardian_phone ?? "",
-    patient.diagnosis ?? "",
-    patient.cpf ?? "",
+  const rows = professionals.map((professional) => [
+    professional.fullName,
+    professionalStatusLabels[professional.status],
+    professional.professionalRole ?? professional.profileLabel,
+    professional.profileLabel,
+    professional.cpf ?? "",
+    professional.professionalCouncil ?? "",
+    professional.birthDate ?? "",
   ]);
 
   const csvContent = [headers, ...rows]
@@ -110,83 +114,92 @@ function exportPatientsToCsv(patients: PatientRow[]) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `aprendizes-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `profissionais-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
 
-export function PatientList({ patients }: PatientListProps) {
-  const [patientItems, setPatientItems] = useState(patients);
+export function ProfessionalList({ professionals }: ProfessionalListProps) {
+  const [professionalItems, setProfessionalItems] = useState(professionals);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [viewingPatient, setViewingPatient] = useState<PatientRow | null>(null);
-  const [statusTogglePatient, setStatusTogglePatient] =
-    useState<PatientRow | null>(null);
+  const [viewingProfessional, setViewingProfessional] =
+    useState<TeamMember | null>(null);
+  const [statusToggleProfessional, setStatusToggleProfessional] =
+    useState<TeamMember | null>(null);
 
-  const filteredPatients = useMemo(() => {
+  const filteredProfessionals = useMemo(() => {
     const normalizedQuery = normalizeSearchValue(searchQuery);
 
-    return patientItems.filter((patient) => {
+    return professionalItems.filter((professional) => {
       const matchesStatus =
-        statusFilter === "all" || patient.status === statusFilter;
+        statusFilter === "all" || professional.status === statusFilter;
 
-      return matchesStatus && matchesPatientSearch(patient, normalizedQuery);
+      return (
+        matchesStatus && matchesProfessionalSearch(professional, normalizedQuery)
+      );
     });
-  }, [patientItems, searchQuery, statusFilter]);
+  }, [professionalItems, searchQuery, statusFilter]);
 
   const hasActiveFilters = statusFilter !== "all";
 
-  function handleViewPatient(patient: PatientRow) {
-    setViewingPatient(patient);
+  function handleViewProfessional(professional: TeamMember) {
+    setViewingProfessional(professional);
   }
 
   function handleViewDialogOpenChange(open: boolean) {
     if (!open) {
-      setViewingPatient(null);
+      setViewingProfessional(null);
     }
   }
 
-  function handleToggleStatusPatient(patient: PatientRow) {
-    setStatusTogglePatient(patient);
+  function handleToggleStatusProfessional(professional: TeamMember) {
+    setStatusToggleProfessional(professional);
   }
 
   function handleStatusDialogOpenChange(open: boolean) {
     if (!open) {
-      setStatusTogglePatient(null);
+      setStatusToggleProfessional(null);
     }
   }
 
-  function handlePatientStatusChanged(updatedPatient: PatientRow) {
-    setPatientItems((current) =>
-      current.map((patient) =>
-        patient.id === updatedPatient.id ? updatedPatient : patient
+  function handleProfessionalStatusChanged(updatedProfessional: TeamMember) {
+    setProfessionalItems((current) =>
+      current.map((professional) =>
+        professional.id === updatedProfessional.id
+          ? updatedProfessional
+          : professional
       )
     );
   }
 
   return (
     <div className="space-y-5">
-      <PatientViewDialog
-        patient={viewingPatient}
-        open={viewingPatient !== null}
+      <ProfessionalViewDialog
+        professional={viewingProfessional}
+        open={viewingProfessional !== null}
         onOpenChange={handleViewDialogOpenChange}
       />
 
-      <PatientStatusDialog
-        patient={statusTogglePatient}
-        open={statusTogglePatient !== null}
+      <ProfessionalStatusDialog
+        professional={statusToggleProfessional}
+        open={statusToggleProfessional !== null}
         onOpenChange={handleStatusDialogOpenChange}
-        onStatusChanged={handlePatientStatusChanged}
+        onStatusChanged={handleProfessionalStatusChanged}
       />
 
-      <PatientStatsRow patients={patientItems} />
+      <ProfessionalStatsRow professionals={professionalItems} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button size="lg" disabled title="Cadastro de aprendiz em breve">
+        <Button
+          size="lg"
+          nativeButton={false}
+          render={<Link href="/dashboard/profissionais/novo" />}
+        >
           <Plus className="size-4" aria-hidden />
-          Novo Aprendiz
+          Novo Profissional
         </Button>
 
         <div className="flex items-center gap-1 self-end sm:self-auto">
@@ -221,7 +234,7 @@ export function PatientList({ patients }: PatientListProps) {
             <Input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Busque por aprendizes..."
+              placeholder="Busque por profissionais..."
               className="h-10 pl-9"
             />
           </div>
@@ -231,8 +244,8 @@ export function PatientList({ patients }: PatientListProps) {
               type="button"
               variant="outline"
               className="border-primary/30 text-primary hover:bg-primary/5 hover:text-primary"
-              onClick={() => exportPatientsToCsv(filteredPatients)}
-              disabled={filteredPatients.length === 0}
+              onClick={() => exportProfessionalsToCsv(filteredProfessionals)}
+              disabled={filteredProfessionals.length === 0}
             >
               <Download className="size-4" aria-hidden />
               Exportar Excel
@@ -258,13 +271,13 @@ export function PatientList({ patients }: PatientListProps) {
                 <SheetHeader>
                   <SheetTitle>Filtros</SheetTitle>
                   <SheetDescription>
-                    Refine a listagem de aprendizes.
+                    Refine a listagem de profissionais.
                   </SheetDescription>
                 </SheetHeader>
 
                 <div className="space-y-4 px-4 pb-6">
                   <div className="space-y-2">
-                    <Label htmlFor="patient-status-filter">Status</Label>
+                    <Label htmlFor="professional-status-filter">Status</Label>
                     <Select
                       value={statusFilter}
                       items={statusFilterItems}
@@ -272,7 +285,10 @@ export function PatientList({ patients }: PatientListProps) {
                         setStatusFilter(value as StatusFilter)
                       }
                     >
-                      <SelectTrigger id="patient-status-filter" className="h-10">
+                      <SelectTrigger
+                        id="professional-status-filter"
+                        className="h-10"
+                      >
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -314,36 +330,36 @@ export function PatientList({ patients }: PatientListProps) {
         </div>
       </section>
 
-      {filteredPatients.length === 0 ? (
+      {filteredProfessionals.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
           <p className="text-sm font-medium text-foreground">
-            Nenhum aprendiz encontrado
+            Nenhum profissional encontrado
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {patientItems.length === 0
-              ? "Ainda não há aprendizes cadastrados."
+            {professionalItems.length === 0
+              ? "Ainda não há profissionais cadastrados."
               : "Ajuste a busca ou os filtros para ver outros resultados."}
           </p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredPatients.map((patient) => (
-            <PatientCard
-              key={patient.id}
-              patient={patient}
-              onView={handleViewPatient}
-              onToggleStatus={handleToggleStatusPatient}
+          {filteredProfessionals.map((professional) => (
+            <ProfessionalCard
+              key={professional.id}
+              professional={professional}
+              onView={handleViewProfessional}
+              onToggleStatus={handleToggleStatusProfessional}
             />
           ))}
         </div>
       ) : (
         <div className="grid gap-3">
-          {filteredPatients.map((patient) => (
-            <PatientListRow
-              key={patient.id}
-              patient={patient}
-              onView={handleViewPatient}
-              onToggleStatus={handleToggleStatusPatient}
+          {filteredProfessionals.map((professional) => (
+            <ProfessionalListRow
+              key={professional.id}
+              professional={professional}
+              onView={handleViewProfessional}
+              onToggleStatus={handleToggleStatusProfessional}
             />
           ))}
         </div>

@@ -42,7 +42,6 @@ export async function listPatientsAction(): Promise<
   const { data, error } = await supabase
     .from("patients")
     .select("*")
-    .eq("status", "active")
     .order("full_name");
 
   if (error) {
@@ -50,6 +49,156 @@ export async function listPatientsAction(): Promise<
   }
 
   return { success: true, data: { patients: data ?? [] } };
+}
+
+export async function getPatientAction(
+  patientId: string
+): Promise<ActionResult<{ patient: PatientRow }>> {
+  await requirePermission(PERMISSIONS.PATIENTS_VIEW);
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data, error } = await supabase
+    .from("patients")
+    .select("*")
+    .eq("id", patientId)
+    .maybeSingle();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  if (!data) {
+    return { success: false, error: "Paciente não encontrado." };
+  }
+
+  return { success: true, data: { patient: data } };
+}
+
+export type UpdatePatientInput = {
+  patientId: string;
+  fullName: string;
+  cpf?: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  guardianEmail?: string;
+  diagnosis?: string;
+  birthDate?: string;
+  notes?: string;
+};
+
+function normalizeOptionalText(value: string | undefined) {
+  const normalized = value?.trim();
+
+  return normalized ? normalized : null;
+}
+
+export async function updatePatientAction(
+  input: UpdatePatientInput
+): Promise<ActionResult<{ patient: PatientRow }>> {
+  await requirePermission(PERMISSIONS.PATIENTS_VIEW);
+
+  const fullName = input.fullName.trim();
+
+  if (!fullName) {
+    return { success: false, error: "Informe o nome do aprendiz." };
+  }
+
+  const guardianEmail = normalizeOptionalText(input.guardianEmail);
+
+  if (guardianEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail)) {
+    return { success: false, error: "Informe um e-mail válido." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data, error } = await supabase
+    .from("patients")
+    .update({
+      full_name: fullName,
+      cpf: normalizeOptionalText(input.cpf),
+      guardian_name: normalizeOptionalText(input.guardianName),
+      guardian_phone: normalizeOptionalText(input.guardianPhone),
+      guardian_email: guardianEmail,
+      diagnosis: normalizeOptionalText(input.diagnosis),
+      birth_date: normalizeOptionalText(input.birthDate),
+      notes: normalizeOptionalText(input.notes),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.patientId)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error:
+        error.code === "42501"
+          ? "Sem permissão para editar aprendizes."
+          : error.message,
+    };
+  }
+
+  return { success: true, data: { patient: data } };
+}
+
+export async function togglePatientStatusAction(
+  patientId: string
+): Promise<ActionResult<{ patient: PatientRow }>> {
+  await requirePermission(PERMISSIONS.PATIENTS_VIEW);
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data: currentPatient, error: fetchError } = await supabase
+    .from("patients")
+    .select("status")
+    .eq("id", patientId)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { success: false, error: fetchError.message };
+  }
+
+  if (!currentPatient) {
+    return { success: false, error: "Paciente não encontrado." };
+  }
+
+  const nextStatus =
+    currentPatient.status === "active" ? "inactive" : "active";
+
+  const { data, error } = await supabase
+    .from("patients")
+    .update({
+      status: nextStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", patientId)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error:
+        error.code === "42501"
+          ? "Sem permissão para alterar o status do aprendiz."
+          : error.message,
+    };
+  }
+
+  return { success: true, data: { patient: data } };
 }
 
 export async function getPatientRecordAction(

@@ -17,6 +17,9 @@ export type Database = {
           is_master: boolean;
           professional_council: string | null;
           professional_role: string | null;
+          birth_date: string | null;
+          cpf: string | null;
+          status: "active" | "inactive";
           created_at: string;
           updated_at: string;
         };
@@ -27,6 +30,9 @@ export type Database = {
           is_master?: boolean;
           professional_council?: string | null;
           professional_role?: string | null;
+          birth_date?: string | null;
+          cpf?: string | null;
+          status?: "active" | "inactive";
           created_at?: string;
           updated_at?: string;
         };
@@ -37,6 +43,9 @@ export type Database = {
           is_master?: boolean;
           professional_council?: string | null;
           professional_role?: string | null;
+          birth_date?: string | null;
+          cpf?: string | null;
+          status?: "active" | "inactive";
           created_at?: string;
           updated_at?: string;
         };
@@ -405,6 +414,150 @@ export type Database = {
         };
         Relationships: [];
       };
+      assessment_templates: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          evaluation_type: "acquisition" | "reduction";
+          status: "active" | "inactive";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          evaluation_type?: "acquisition" | "reduction";
+          status?: "active" | "inactive";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          evaluation_type?: "acquisition" | "reduction";
+          status?: "active" | "inactive";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      assessment_levels: {
+        Row: {
+          id: string;
+          template_id: string;
+          code: string;
+          sort_order: number;
+          description: string;
+          age_range: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          code: string;
+          sort_order: number;
+          description: string;
+          age_range?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          code?: string;
+          sort_order?: number;
+          description?: string;
+          age_range?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      assessment_skills: {
+        Row: {
+          id: string;
+          template_id: string;
+          code: string;
+          sort_order: number;
+          description: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          code: string;
+          sort_order: number;
+          description: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          code?: string;
+          sort_order?: number;
+          description?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      assessment_score_groups: {
+        Row: {
+          id: string;
+          template_id: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      assessment_scores: {
+        Row: {
+          id: string;
+          template_id: string;
+          group_id: string;
+          code: string;
+          sort_order: number;
+          score_type: string | null;
+          description: string;
+          value: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          group_id: string;
+          code: string;
+          sort_order: number;
+          score_type?: string | null;
+          description: string;
+          value?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          group_id?: string;
+          code?: string;
+          sort_order?: number;
+          score_type?: string | null;
+          description?: string;
+          value?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -445,3 +598,18 @@ export type UserPresenceRow =
 
 export type AgendaEventRow =
   Database["public"]["Tables"]["agenda_events"]["Row"];
+
+export type AssessmentTemplateRow =
+  Database["public"]["Tables"]["assessment_templates"]["Row"];
+
+export type AssessmentLevelRow =
+  Database["public"]["Tables"]["assessment_levels"]["Row"];
+
+export type AssessmentSkillRow =
+  Database["public"]["Tables"]["assessment_skills"]["Row"];
+
+export type AssessmentScoreGroupRow =
+  Database["public"]["Tables"]["assessment_score_groups"]["Row"];
+
+export type AssessmentScoreRow =
+  Database["public"]["Tables"]["assessment_scores"]["Row"];

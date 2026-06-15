@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   Download,
@@ -10,10 +11,11 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
-import { PatientCard, PatientListRow } from "@/components/patients/patient-card";
-import { PatientStatsRow } from "@/components/patients/patient-stats-row";
-import { PatientStatusDialog } from "@/components/patients/patient-status-dialog";
-import { PatientViewDialog } from "@/components/patients/patient-view-dialog";
+import {
+  AssessmentCard,
+  AssessmentListRow,
+} from "@/components/assessments/assessment-card";
+import { AssessmentStatusDialog } from "@/components/assessments/assessment-status-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,20 +35,32 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { patientStatusLabels } from "@/lib/patient-format";
-import type { PatientRow } from "@/lib/supabase/database.types";
+import {
+  assessmentStatusLabels,
+  assessmentTypeLabels,
+} from "@/lib/assessment-format";
+import type { AssessmentTemplateRow } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
-type PatientListProps = {
-  patients: PatientRow[];
+type AssessmentListProps = {
+  templates: AssessmentTemplateRow[];
 };
 
 type ViewMode = "grid" | "list";
-type StatusFilter = "all" | PatientRow["status"];
+type StatusFilter = "all" | AssessmentTemplateRow["status"];
+type TypeFilter = "all" | AssessmentTemplateRow["evaluation_type"];
 
 const statusFilterItems = [
   { label: "Todos os status", value: "all" },
-  ...Object.entries(patientStatusLabels).map(([value, label]) => ({
+  ...Object.entries(assessmentStatusLabels).map(([value, label]) => ({
+    label,
+    value,
+  })),
+];
+
+const typeFilterItems = [
+  { label: "Todos os tipos", value: "all" },
+  ...Object.entries(assessmentTypeLabels).map(([value, label]) => ({
     label,
     value,
   })),
@@ -56,17 +70,15 @@ function normalizeSearchValue(value: string) {
   return value.trim().toLowerCase();
 }
 
-function matchesPatientSearch(patient: PatientRow, query: string) {
+function matchesAssessmentSearch(template: AssessmentTemplateRow, query: string) {
   if (!query) {
     return true;
   }
 
   const haystack = [
-    patient.full_name,
-    patient.diagnosis,
-    patient.guardian_name,
-    patient.guardian_phone,
-    patient.cpf,
+    template.name,
+    template.description,
+    assessmentTypeLabels[template.evaluation_type],
   ]
     .filter(Boolean)
     .join(" ")
@@ -75,25 +87,15 @@ function matchesPatientSearch(patient: PatientRow, query: string) {
   return haystack.includes(query);
 }
 
-function exportPatientsToCsv(patients: PatientRow[]) {
-  const headers = [
-    "Nome",
-    "Status",
-    "Data de nascimento",
-    "Responsável",
-    "Telefone",
-    "Diagnóstico",
-    "CPF",
-  ];
+function exportAssessmentsToCsv(templates: AssessmentTemplateRow[]) {
+  const headers = ["Nome", "Status", "Tipo", "Descrição", "Atualizado em"];
 
-  const rows = patients.map((patient) => [
-    patient.full_name,
-    patientStatusLabels[patient.status],
-    patient.birth_date ?? "",
-    patient.guardian_name ?? "",
-    patient.guardian_phone ?? "",
-    patient.diagnosis ?? "",
-    patient.cpf ?? "",
+  const rows = templates.map((template) => [
+    template.name,
+    assessmentStatusLabels[template.status],
+    assessmentTypeLabels[template.evaluation_type],
+    template.description ?? "",
+    template.updated_at,
   ]);
 
   const csvContent = [headers, ...rows]
@@ -110,83 +112,75 @@ function exportPatientsToCsv(patients: PatientRow[]) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `aprendizes-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `avaliacoes-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
 
-export function PatientList({ patients }: PatientListProps) {
-  const [patientItems, setPatientItems] = useState(patients);
+export function AssessmentList({ templates }: AssessmentListProps) {
+  const [templateItems, setTemplateItems] = useState(templates);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [viewingPatient, setViewingPatient] = useState<PatientRow | null>(null);
-  const [statusTogglePatient, setStatusTogglePatient] =
-    useState<PatientRow | null>(null);
+  const [statusToggleTemplate, setStatusToggleTemplate] =
+    useState<AssessmentTemplateRow | null>(null);
 
-  const filteredPatients = useMemo(() => {
+  const filteredTemplates = useMemo(() => {
     const normalizedQuery = normalizeSearchValue(searchQuery);
 
-    return patientItems.filter((patient) => {
+    return templateItems.filter((template) => {
       const matchesStatus =
-        statusFilter === "all" || patient.status === statusFilter;
+        statusFilter === "all" || template.status === statusFilter;
+      const matchesType =
+        typeFilter === "all" || template.evaluation_type === typeFilter;
 
-      return matchesStatus && matchesPatientSearch(patient, normalizedQuery);
+      return (
+        matchesStatus &&
+        matchesType &&
+        matchesAssessmentSearch(template, normalizedQuery)
+      );
     });
-  }, [patientItems, searchQuery, statusFilter]);
+  }, [templateItems, searchQuery, statusFilter, typeFilter]);
 
-  const hasActiveFilters = statusFilter !== "all";
+  const hasActiveFilters = statusFilter !== "all" || typeFilter !== "all";
 
-  function handleViewPatient(patient: PatientRow) {
-    setViewingPatient(patient);
-  }
-
-  function handleViewDialogOpenChange(open: boolean) {
-    if (!open) {
-      setViewingPatient(null);
-    }
-  }
-
-  function handleToggleStatusPatient(patient: PatientRow) {
-    setStatusTogglePatient(patient);
+  function handleToggleStatusTemplate(template: AssessmentTemplateRow) {
+    setStatusToggleTemplate(template);
   }
 
   function handleStatusDialogOpenChange(open: boolean) {
     if (!open) {
-      setStatusTogglePatient(null);
+      setStatusToggleTemplate(null);
     }
   }
 
-  function handlePatientStatusChanged(updatedPatient: PatientRow) {
-    setPatientItems((current) =>
-      current.map((patient) =>
-        patient.id === updatedPatient.id ? updatedPatient : patient
+  function handleTemplateStatusChanged(updatedTemplate: AssessmentTemplateRow) {
+    setTemplateItems((current) =>
+      current.map((template) =>
+        template.id === updatedTemplate.id ? updatedTemplate : template
       )
     );
   }
 
   return (
     <div className="space-y-5">
-      <PatientViewDialog
-        patient={viewingPatient}
-        open={viewingPatient !== null}
-        onOpenChange={handleViewDialogOpenChange}
-      />
-
-      <PatientStatusDialog
-        patient={statusTogglePatient}
-        open={statusTogglePatient !== null}
+      <AssessmentStatusDialog
+        template={statusToggleTemplate}
+        open={statusToggleTemplate !== null}
         onOpenChange={handleStatusDialogOpenChange}
-        onStatusChanged={handlePatientStatusChanged}
+        onStatusChanged={handleTemplateStatusChanged}
       />
-
-      <PatientStatsRow patients={patientItems} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button size="lg" disabled title="Cadastro de aprendiz em breve">
+        <Button
+          size="lg"
+          nativeButton={false}
+          render={<Link href="/dashboard/avaliacoes/novo" />}
+        >
           <Plus className="size-4" aria-hidden />
-          Novo Aprendiz
+          Nova Avaliação
         </Button>
 
         <div className="flex items-center gap-1 self-end sm:self-auto">
@@ -221,7 +215,7 @@ export function PatientList({ patients }: PatientListProps) {
             <Input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Busque por aprendizes..."
+              placeholder="Busque por avaliações..."
               className="h-10 pl-9"
             />
           </div>
@@ -231,8 +225,8 @@ export function PatientList({ patients }: PatientListProps) {
               type="button"
               variant="outline"
               className="border-primary/30 text-primary hover:bg-primary/5 hover:text-primary"
-              onClick={() => exportPatientsToCsv(filteredPatients)}
-              disabled={filteredPatients.length === 0}
+              onClick={() => exportAssessmentsToCsv(filteredTemplates)}
+              disabled={filteredTemplates.length === 0}
             >
               <Download className="size-4" aria-hidden />
               Exportar Excel
@@ -258,13 +252,13 @@ export function PatientList({ patients }: PatientListProps) {
                 <SheetHeader>
                   <SheetTitle>Filtros</SheetTitle>
                   <SheetDescription>
-                    Refine a listagem de aprendizes.
+                    Refine a listagem de avaliações.
                   </SheetDescription>
                 </SheetHeader>
 
                 <div className="space-y-4 px-4 pb-6">
                   <div className="space-y-2">
-                    <Label htmlFor="patient-status-filter">Status</Label>
+                    <Label htmlFor="assessment-status-filter">Status</Label>
                     <Select
                       value={statusFilter}
                       items={statusFilterItems}
@@ -272,12 +266,39 @@ export function PatientList({ patients }: PatientListProps) {
                         setStatusFilter(value as StatusFilter)
                       }
                     >
-                      <SelectTrigger id="patient-status-filter" className="h-10">
+                      <SelectTrigger
+                        id="assessment-status-filter"
+                        className="h-10"
+                      >
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           {statusFilterItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="assessment-type-filter">Tipo</Label>
+                    <Select
+                      value={typeFilter}
+                      items={typeFilterItems}
+                      onValueChange={(value) =>
+                        setTypeFilter(value as TypeFilter)
+                      }
+                    >
+                      <SelectTrigger id="assessment-type-filter" className="h-10">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {typeFilterItems.map((item) => (
                             <SelectItem key={item.value} value={item.value}>
                               {item.label}
                             </SelectItem>
@@ -294,6 +315,7 @@ export function PatientList({ patients }: PatientListProps) {
                       className="flex-1"
                       onClick={() => {
                         setStatusFilter("all");
+                        setTypeFilter("all");
                         setSearchQuery("");
                       }}
                     >
@@ -314,36 +336,34 @@ export function PatientList({ patients }: PatientListProps) {
         </div>
       </section>
 
-      {filteredPatients.length === 0 ? (
+      {filteredTemplates.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
           <p className="text-sm font-medium text-foreground">
-            Nenhum aprendiz encontrado
+            Nenhuma avaliação encontrada
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {patientItems.length === 0
-              ? "Ainda não há aprendizes cadastrados."
+            {templateItems.length === 0
+              ? "Ainda não há avaliações cadastradas."
               : "Ajuste a busca ou os filtros para ver outros resultados."}
           </p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredPatients.map((patient) => (
-            <PatientCard
-              key={patient.id}
-              patient={patient}
-              onView={handleViewPatient}
-              onToggleStatus={handleToggleStatusPatient}
+          {filteredTemplates.map((template) => (
+            <AssessmentCard
+              key={template.id}
+              template={template}
+              onToggleStatus={handleToggleStatusTemplate}
             />
           ))}
         </div>
       ) : (
         <div className="grid gap-3">
-          {filteredPatients.map((patient) => (
-            <PatientListRow
-              key={patient.id}
-              patient={patient}
-              onView={handleViewPatient}
-              onToggleStatus={handleToggleStatusPatient}
+          {filteredTemplates.map((template) => (
+            <AssessmentListRow
+              key={template.id}
+              template={template}
+              onToggleStatus={handleToggleStatusTemplate}
             />
           ))}
         </div>

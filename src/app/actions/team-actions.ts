@@ -21,6 +21,9 @@ export type TeamMember = {
   profileLabel: string;
   professionalRole: string | null;
   professionalCouncil: string | null;
+  birthDate: string | null;
+  cpf: string | null;
+  status: "active" | "inactive";
   isMaster: boolean;
   createdAt: string;
 };
@@ -49,9 +52,18 @@ function mapTeamMember(row: UserProfileRow): TeamMember {
     profileLabel: getProfileLabel(profile),
     professionalRole: row.professional_role,
     professionalCouncil: row.professional_council,
+    birthDate: row.birth_date ?? null,
+    cpf: row.cpf ?? null,
+    status: row.status ?? "active",
     isMaster: row.is_master,
     createdAt: row.created_at,
   };
+}
+
+function normalizeOptionalText(value: string | undefined) {
+  const normalized = value?.trim();
+
+  return normalized ? normalized : null;
 }
 
 export async function listTeamMembersAction(): Promise<
@@ -78,6 +90,177 @@ export async function listTeamMembersAction(): Promise<
     success: true,
     data: { members: (data ?? []).map(mapTeamMember) },
   };
+}
+
+export async function listProfessionalsAction(): Promise<
+  ActionResult<{ professionals: TeamMember[] }>
+> {
+  const result = await listTeamMembersAction();
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  const professionals = (result.data?.members ?? []).filter(
+    (member) => member.profile !== "RECEPCAO"
+  );
+
+  return { success: true, data: { professionals } };
+}
+
+export async function getProfessionalAction(
+  professionalId: string
+): Promise<ActionResult<{ professional: TeamMember }>> {
+  await requirePermission(PERMISSIONS.PROFESSIONALS_VIEW);
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .eq("id", professionalId)
+    .maybeSingle();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  if (!data) {
+    return { success: false, error: "Profissional não encontrado." };
+  }
+
+  return { success: true, data: { professional: mapTeamMember(data) } };
+}
+
+export type UpdateProfessionalInput = {
+  professionalId: string;
+  fullName: string;
+  cpf?: string;
+  birthDate?: string;
+  professionalRole?: string;
+  professionalCouncil?: string;
+  profile: UserProfile;
+};
+
+export async function updateProfessionalAction(
+  input: UpdateProfessionalInput
+): Promise<ActionResult<{ professional: TeamMember }>> {
+  await requirePermission(PERMISSIONS.TEAM_MANAGE);
+
+  const fullName = input.fullName.trim();
+
+  if (!fullName) {
+    return { success: false, error: "Informe o nome do profissional." };
+  }
+
+  if (!isRole(input.profile)) {
+    return { success: false, error: "Selecione um perfil válido." };
+  }
+
+  const profile = normalizeRole(input.profile);
+  const professionalRole = normalizeOptionalText(input.professionalRole);
+
+  if (
+    professionalRole &&
+    !PROFESSIONAL_ROLES.includes(professionalRole as ProfessionalRole)
+  ) {
+    return { success: false, error: "Selecione um cargo válido." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .update({
+      full_name: fullName,
+      cpf: normalizeOptionalText(input.cpf),
+      birth_date: normalizeOptionalText(input.birthDate),
+      professional_role: professionalRole,
+      professional_council: normalizeOptionalText(input.professionalCouncil),
+      profile,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.professionalId)
+    .select("*")
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error:
+        error.code === "42501"
+          ? "Sem permissão para editar profissionais."
+          : error.message,
+    };
+  }
+
+  return { success: true, data: { professional: mapTeamMember(data) } };
+}
+
+export async function toggleProfessionalStatusAction(
+  professionalId: string
+): Promise<ActionResult<{ professional: TeamMember }>> {
+  await requirePermission(PERMISSIONS.TEAM_MANAGE);
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data: currentProfessional, error: fetchError } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .eq("id", professionalId)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { success: false, error: fetchError.message };
+  }
+
+  if (!currentProfessional) {
+    return { success: false, error: "Profissional não encontrado." };
+  }
+
+  if (currentProfessional.is_master) {
+    return {
+      success: false,
+      error: "Não é possível alterar o status do usuário master.",
+    };
+  }
+
+  const nextStatus =
+    currentProfessional.status === "active" ? "inactive" : "active";
+
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .update({
+      status: nextStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", professionalId)
+    .select("*")
+    .single();
+
+  if (error) {
+    return {
+      success: false,
+      error:
+        error.code === "42501"
+          ? "Sem permissão para alterar o status do profissional."
+          : error.message,
+    };
+  }
+
+  return { success: true, data: { professional: mapTeamMember(data) } };
 }
 
 export async function createTeamMemberAction(

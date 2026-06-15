@@ -1,24 +1,24 @@
 "use client";
 
-import { PatientList } from "@/components/patients/patient-list";
+import { AssessmentList } from "@/components/assessments/assessment-list";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
-import type { PatientRow } from "@/lib/supabase/database.types";
+import type { AssessmentTemplateRow } from "@/lib/supabase/database.types";
 
-type PacientesPageViewProps = {
-  patients: PatientRow[];
+type AvaliacoesPageViewProps = {
+  templates: AssessmentTemplateRow[];
   error?: string;
 };
 
-export function PacientesPageView({ patients, error }: PacientesPageViewProps) {
+export function AvaliacoesPageView({ templates, error }: AvaliacoesPageViewProps) {
   return (
     <PageContainer size="wide" className="space-y-6">
       <DashboardPageHeader
-        title="Aprendizes"
+        title="Avaliações"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Cadastro" },
-          { label: "Aprendizes" },
+          { label: "Avaliações" },
         ]}
       />
 
@@ -27,7 +27,7 @@ export function PacientesPageView({ patients, error }: PacientesPageViewProps) {
           {error}
         </div>
       ) : (
-        <PatientList patients={patients} />
+        <AssessmentList templates={templates} />
       )}
     </PageContainer>
   );
