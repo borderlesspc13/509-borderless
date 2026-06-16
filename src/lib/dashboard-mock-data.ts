@@ -4,6 +4,8 @@ export type AppointmentStatus =
   | "em_espera"
   | "cancelado";
 
+export type PaymentStatus = "pendente" | "pago" | "cancelado";
+
 export type DailyAppointment = {
   id: string;
   date: string;
@@ -12,6 +14,11 @@ export type DailyAppointment = {
   patient: string;
   professional: string;
   status: AppointmentStatus;
+  sessionAmount?: number | null;
+  paymentStatus?: PaymentStatus;
+  paymentLinkUrl?: string | null;
+  professionalUserId?: string | null;
+  patientId?: string | null;
 };
 
 export const monthlyAppointments: DailyAppointment[] = [

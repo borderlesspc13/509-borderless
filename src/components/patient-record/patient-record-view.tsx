@@ -20,7 +20,10 @@ import {
   type PatientRecordData,
 } from "@/app/actions/patient-record-actions";
 import { ProtectedComponent } from "@/components/auth/protected-component";
-import { RichTextEditor } from "@/components/clinical-evolution/rich-text-editor";
+import {
+  RichTextEditor,
+  buildDocumentTemplateVariables,
+} from "@/components/clinical-evolution/rich-text-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,7 +93,8 @@ function EvolutionStatusBadge({ status }: { status: ClinicalEvolutionRecordRow["
 
 export function PatientRecordView({ record }: PatientRecordViewProps) {
   const { patient } = record;
-  const { hasPermission } = useUserRole();
+  const { hasPermission, userName, displayRole, professionalCouncil } =
+    useUserRole();
   const canManageEvolution = hasPermission(PERMISSIONS.CLINICAL_EVOLUTION_MANAGE);
 
   const [sessionDate, setSessionDate] = useState(toDateKey(new Date()));
@@ -102,6 +106,16 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
     message: string;
   } | null>(null);
   const [evolutions, setEvolutions] = useState(record.evolutions);
+
+  const templateVariables = buildDocumentTemplateVariables({
+    patientName: patient.full_name,
+    sessionDate,
+    professionalName: userName,
+    professionalRole: displayRole,
+    professionalCouncil: professionalCouncil ?? undefined,
+    diagnosis: patient.diagnosis ?? undefined,
+    guardianName: patient.guardian_name ?? undefined,
+  });
 
   const loadEvolutionForDate = useCallback(async () => {
     setIsLoadingEvolution(true);
@@ -344,6 +358,8 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
                   value={contentHtml}
                   onChange={setContentHtml}
                   disabled={!canManageEvolution}
+                  enableTemplateInsert={canManageEvolution}
+                  templateVariables={templateVariables}
                   placeholder="Descreva objetivos da sessão, observações comportamentais, intervenções realizadas, resposta do aprendiz e encaminhamentos..."
                 />
               )}

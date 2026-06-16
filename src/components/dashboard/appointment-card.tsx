@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   ChevronDown,
   Clock,
+  Eye,
   GripVertical,
   Lock,
   RefreshCw,
@@ -43,6 +44,8 @@ type AppointmentCardProps = {
   appointment: DailyAppointment;
   isReadOnly?: boolean;
   canDrag?: boolean;
+  canViewDetails?: boolean;
+  onViewDetails?: (appointment: DailyAppointment) => void;
   onStatusChange: (
     appointmentId: string,
     status: AppointmentStatus
@@ -53,6 +56,8 @@ export function AppointmentCard({
   appointment,
   isReadOnly = false,
   canDrag = false,
+  canViewDetails = false,
+  onViewDetails,
   onStatusChange,
 }: AppointmentCardProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -175,45 +180,60 @@ export function AppointmentCard({
           </span>
         </div>
 
-        {isReadOnly ? (
-          <span className="text-xs font-medium text-muted-foreground">
-            Somente leitura
-          </span>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 shrink-0 gap-1.5 text-xs"
-                />
-              }
+        <div className="flex items-center gap-2">
+          {canViewDetails && onViewDetails ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => onViewDetails(appointment)}
             >
-              <RefreshCw className="size-3.5" aria-hidden />
-              Atualizar situação
-              <ChevronDown className="size-3 opacity-60" aria-hidden />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>Alterar para</DropdownMenuLabel>
-                {statusOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    variant={option.variant}
-                    disabled={appointment.status === option.value}
-                    onClick={() =>
-                      onStatusChange(appointment.id, option.value)
-                    }
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+              <Eye className="size-3.5" aria-hidden />
+              Detalhes
+            </Button>
+          ) : null}
+
+          {isReadOnly ? (
+            <span className="text-xs font-medium text-muted-foreground">
+              Somente leitura
+            </span>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 shrink-0 gap-1.5 text-xs"
+                  />
+                }
+              >
+                <RefreshCw className="size-3.5" aria-hidden />
+                Atualizar situação
+                <ChevronDown className="size-3 opacity-60" aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Alterar para</DropdownMenuLabel>
+                  {statusOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      variant={option.variant}
+                      disabled={appointment.status === option.value}
+                      onClick={() =>
+                        onStatusChange(appointment.id, option.value)
+                      }
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </article>
   );

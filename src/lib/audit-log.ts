@@ -169,8 +169,88 @@ export function collectChangedAppointmentIds(
         previous &&
         (previous.status !== next.status ||
           previous.date !== next.date ||
-          previous.professional !== next.professional)
+          previous.professional !== next.professional ||
+          previous.paymentStatus !== next.paymentStatus ||
+          previous.paymentLinkUrl !== next.paymentLinkUrl ||
+          previous.sessionAmount !== next.sessionAmount)
       );
     })
     .map((appointment) => appointment.id);
+}
+
+const PAYMENT_STATUS_LABELS = {
+  pendente: "Pendente",
+  pago: "Pago",
+  cancelado: "Cancelado",
+} as const;
+
+export function buildPaymentLinkGeneratedLog(
+  appointment: DailyAppointment,
+  linkUrl: string,
+  amount: number
+): CreateAuditLogInput {
+  const context = formatAgendaContext(
+    appointment.professional,
+    appointment.date,
+    appointment.time
+  );
+
+  return {
+    actionLabel: "Link de pagamento gerado",
+    patientName: appointment.patient,
+    fromDescription: `${context} · Sem link`,
+    toDescription: `${context} · Link gerado (${amount.toFixed(2)} BRL)`,
+    appointmentId: appointment.id,
+    metadata: {
+      paymentLinkUrl: linkUrl,
+      sessionAmount: amount,
+    },
+  };
+}
+
+export function buildPaymentStatusChangeLog(
+  appointment: DailyAppointment,
+  previousStatus: keyof typeof PAYMENT_STATUS_LABELS,
+  nextStatus: keyof typeof PAYMENT_STATUS_LABELS
+): CreateAuditLogInput {
+  const context = formatAgendaContext(
+    appointment.professional,
+    appointment.date,
+    appointment.time
+  );
+
+  return {
+    actionLabel: "Atualização financeira",
+    patientName: appointment.patient,
+    fromDescription: `${context} · ${PAYMENT_STATUS_LABELS[previousStatus]}`,
+    toDescription: `${context} · ${PAYMENT_STATUS_LABELS[nextStatus]}`,
+    appointmentId: appointment.id,
+    metadata: {
+      previousPaymentStatus: previousStatus,
+      nextPaymentStatus: nextStatus,
+    },
+  };
+}
+
+export function buildPaymentLinkSentLog(
+  appointment: DailyAppointment,
+  receiverLabel: string
+): CreateAuditLogInput {
+  const context = formatAgendaContext(
+    appointment.professional,
+    appointment.date,
+    appointment.time
+  );
+
+  return {
+    actionLabel: "Link de pagamento enviado",
+    patientName: appointment.patient,
+    fromDescription: `${context} · Link não enviado`,
+    toDescription: `${context} · Enviado para ${receiverLabel}`,
+    appointmentId: appointment.id,
+    metadata: {
+      paymentLinkUrl: appointment.paymentLinkUrl,
+      receiverLabel,
+    },
+  };
 }

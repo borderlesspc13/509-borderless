@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CalendarDays, Eye, Plus } from "lucide-react";
 
 import { AgendaDropZone } from "@/components/dashboard/agenda-drop-zone";
+import { AppointmentDetailDialog } from "@/components/dashboard/appointment-detail-dialog";
 import { AppointmentBulkStatusDialog } from "@/components/dashboard/appointment-bulk-status-dialog";
 import { AppointmentCard } from "@/components/dashboard/appointment-card";
 import {
@@ -50,6 +51,7 @@ import type {
   AppointmentStatus,
   DailyAppointment,
 } from "@/lib/dashboard-mock-data";
+import { PERMISSIONS } from "@/lib/rbac";
 import { professionals } from "@/lib/professionals-data";
 
 type PendingStatusUpdate = {
@@ -114,7 +116,7 @@ export function DayAppointmentsDialog({
   onAppointmentCreated,
   onRefreshAppointments,
 }: DayAppointmentsDialogProps) {
-  const { isAgendaReadOnly, canDragAppointments, canManageAgenda } =
+  const { isAgendaReadOnly, canDragAppointments, canManageAgenda, hasPermission } =
     useUserRole();
   const { recordAuditLogs } = useAgendaAudit();
   const { syncAppointmentStatus } = useAgendaStatusSync();
@@ -125,6 +127,11 @@ export function DayAppointmentsDialog({
   const [appointmentDefaults, setAppointmentDefaults] =
     useState<NewAppointmentDefaults | null>(null);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const [detailAppointment, setDetailAppointment] =
+    useState<DailyAppointment | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+  const canViewFinancialDetails = hasPermission(PERMISSIONS.FINANCE_MANAGE);
 
   const showVacantOnly = filters.availability === "vacant";
   const vacantSlots = dateKey
@@ -329,6 +336,19 @@ export function DayAppointmentsDialog({
     setPendingUpdate(null);
   }
 
+  function handleAppointmentFinancialUpdate(updated: DailyAppointment) {
+    const nextAppointments = allAppointments.map((item) =>
+      item.id === updated.id ? updated : item
+    );
+
+    onAppointmentsChange(nextAppointments);
+  }
+
+  function handleViewAppointmentDetails(appointment: DailyAppointment) {
+    setDetailAppointment(appointment);
+    setIsDetailDialogOpen(true);
+  }
+
   function handleBulkDialogOpenChange(nextOpen: boolean) {
     setIsBulkDialogOpen(nextOpen);
 
@@ -442,6 +462,8 @@ export function DayAppointmentsDialog({
                     appointment={appointment}
                     isReadOnly={isAgendaReadOnly}
                     canDrag={canDragAppointments}
+                    canViewDetails={canViewFinancialDetails}
+                    onViewDetails={handleViewAppointmentDetails}
                     onStatusChange={handleStatusChange}
                   />
                 ))}
@@ -477,6 +499,13 @@ export function DayAppointmentsDialog({
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <AppointmentDetailDialog
+        appointment={detailAppointment}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+        onAppointmentUpdate={handleAppointmentFinancialUpdate}
+      />
 
       <NewAppointmentDialog
         open={isAppointmentDialogOpen}

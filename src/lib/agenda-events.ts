@@ -12,6 +12,11 @@ export function mapAgendaEventToDailyAppointment(
     patient: event.patient_name,
     professional: event.professional_name,
     status: event.status,
+    sessionAmount: event.valor_sessao,
+    paymentStatus: event.payment_status,
+    paymentLinkUrl: event.payment_link_url,
+    professionalUserId: event.professional_user_id,
+    patientId: event.patient_id,
   };
 }
 

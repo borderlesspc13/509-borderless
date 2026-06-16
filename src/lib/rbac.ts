@@ -21,11 +21,14 @@ export const PERMISSIONS = {
   ASSESSMENTS_VIEW: "assessments:view",
   CLINICAL_EVOLUTION_VIEW: "clinical_evolution:view",
   CLINICAL_EVOLUTION_MANAGE: "clinical_evolution:manage",
+  DOCUMENT_TEMPLATES_VIEW: "document_templates:view",
+  DOCUMENT_TEMPLATES_MANAGE: "document_templates:manage",
   REPORTS_VIEW: "reports:view",
   AUDIT_LOGS_VIEW: "audit_logs:view",
   SETTINGS_VIEW: "settings:view",
   SETTINGS_MANAGE: "settings:manage",
   INTERNAL_MESSAGING: "internal_messaging:use",
+  FINANCE_MANAGE: "finance:manage",
   TEAM_MANAGE: "team:manage",
 } as const;
 
@@ -44,10 +47,13 @@ const BASE_THERAPIST_PERMISSIONS = [
   PERMISSIONS.PATIENTS_VIEW,
   PERMISSIONS.ASSESSMENTS_VIEW,
   PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+  PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
 ] as const satisfies readonly Permission[];
 
 const CLINICAL_EVOLUTION_EDITOR_PERMISSIONS = [
   PERMISSIONS.CLINICAL_EVOLUTION_MANAGE,
+  PERMISSIONS.DOCUMENT_TEMPLATES_MANAGE,
+  PERMISSIONS.FINANCE_MANAGE,
 ] as const satisfies readonly Permission[];
 
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
@@ -90,6 +96,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/dashboard/avaliacoes": PERMISSIONS.ASSESSMENTS_VIEW,
   "/evolucao": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
   "/dashboard/evolucao": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+  "/dashboard/modelos": PERMISSIONS.DOCUMENT_TEMPLATES_MANAGE,
   "/dashboard/relatorios": PERMISSIONS.REPORTS_VIEW,
   "/dashboard/auditoria": PERMISSIONS.AUDIT_LOGS_VIEW,
   "/configuracoes": PERMISSIONS.SETTINGS_VIEW,

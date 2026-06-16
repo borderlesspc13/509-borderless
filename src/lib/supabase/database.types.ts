@@ -383,6 +383,9 @@ export type Database = {
           start_time: string;
           end_time: string;
           status: "confirmado" | "agendado" | "em_espera" | "cancelado";
+          valor_sessao: number | null;
+          payment_status: "pendente" | "pago" | "cancelado";
+          payment_link_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -396,6 +399,9 @@ export type Database = {
           start_time: string;
           end_time: string;
           status?: "confirmado" | "agendado" | "em_espera" | "cancelado";
+          valor_sessao?: number | null;
+          payment_status?: "pendente" | "pago" | "cancelado";
+          payment_link_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -409,6 +415,9 @@ export type Database = {
           start_time?: string;
           end_time?: string;
           status?: "confirmado" | "agendado" | "em_espera" | "cancelado";
+          valor_sessao?: number | null;
+          payment_status?: "pendente" | "pago" | "cancelado";
+          payment_link_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -558,6 +567,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      document_templates: {
+        Row: {
+          id: string;
+          name: string;
+          category: string;
+          body_html: string;
+          status: "active" | "inactive";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          category: string;
+          body_html?: string;
+          status?: "active" | "inactive";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          category?: string;
+          body_html?: string;
+          status?: "active" | "inactive";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -613,3 +652,6 @@ export type AssessmentScoreGroupRow =
 
 export type AssessmentScoreRow =
   Database["public"]["Tables"]["assessment_scores"]["Row"];
+
+export type DocumentTemplateRow =
+  Database["public"]["Tables"]["document_templates"]["Row"];

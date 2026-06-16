@@ -15,7 +15,10 @@ import {
   saveClinicalEvolutionAction,
 } from "@/app/actions/clinical-evolution-actions";
 import { ProtectedComponent } from "@/components/auth/protected-component";
-import { RichTextEditor } from "@/components/clinical-evolution/rich-text-editor";
+import {
+  RichTextEditor,
+  buildDocumentTemplateVariables,
+} from "@/components/clinical-evolution/rich-text-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +78,16 @@ export function ClinicalEvolutionForm() {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   const selectedPatient = getClinicalPatient(patientId);
+
+  const templateVariables = buildDocumentTemplateVariables({
+    patientName: selectedPatient?.name,
+    sessionDate,
+    professionalName: userName,
+    professionalRole: displayRole,
+    professionalCouncil: professionalCouncil ?? undefined,
+    diagnosis: selectedPatient?.diagnosis,
+    guardianName: selectedPatient?.guardian,
+  });
 
   const loadDrafts = useCallback(async () => {
     const result = await listClinicalEvolutionDraftsAction(userName);
@@ -340,6 +353,8 @@ export function ClinicalEvolutionForm() {
             value={contentHtml}
             onChange={setContentHtml}
             disabled={!canManageClinicalEvolution}
+            enableTemplateInsert={canManageClinicalEvolution}
+            templateVariables={templateVariables}
           />
         )}
       </section>
