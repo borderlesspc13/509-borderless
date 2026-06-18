@@ -50,26 +50,28 @@ export function DashboardMetricCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-border/70 border-t-4 shadow-sm",
+        "flex h-full flex-col overflow-hidden border-border/70 border-t-4 shadow-sm",
         accentMap[accent],
         className
       )}
     >
-      <CardContent className="flex items-start justify-between gap-4 p-5 sm:p-6">
-        <div className="min-w-0 space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <CardContent className="flex flex-1 items-start justify-between gap-3 p-5 sm:p-6">
+        <div className="min-w-0 flex-1 space-y-2">
+          <p className="min-h-10 text-sm font-medium leading-snug text-muted-foreground">
+            {label}
+          </p>
           <p
             className={cn(
               "font-semibold tracking-tight text-foreground",
               compactValue
                 ? "text-lg leading-snug sm:text-xl"
-                : "text-3xl sm:text-4xl"
+                : "text-2xl sm:text-3xl"
             )}
           >
             {value}
           </p>
         </div>
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
           <Icon className="size-5" aria-hidden />
         </div>
       </CardContent>

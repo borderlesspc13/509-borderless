@@ -26,6 +26,10 @@ import {
   sessionsByLearnerData,
   sessionsByWeekData,
 } from "@/lib/dashboard-analytics-data";
+import { cn } from "@/lib/utils";
+
+const filterFieldClassName = "min-w-0 space-y-2";
+const filterControlClassName = "!h-11 w-full min-w-0";
 
 const professionalSelectItems = dashboardProfessionals.map((professional) => ({
   label: professional.label,
@@ -51,16 +55,19 @@ export function ProfessionalDashboardPanel({
   onEndDateChange,
 }: ProfessionalDashboardPanelProps) {
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       <Card className="shadow-sm">
-        <CardContent className="grid gap-5 p-5 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto] lg:items-end">
-          <div className="space-y-2">
+        <CardContent className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:items-end xl:grid-cols-5">
+          <div className={cn(filterFieldClassName, "xl:col-span-2")}>
             <Label htmlFor="dashboard-professional">Profissional</Label>
             <Select
               defaultValue="all"
               items={professionalSelectItems}
             >
-              <SelectTrigger id="dashboard-professional" className="h-10 w-full">
+              <SelectTrigger
+                id="dashboard-professional"
+                className={filterControlClassName}
+              >
                 <SelectValue placeholder="Busque pelo profissional..." />
               </SelectTrigger>
               <SelectContent>
@@ -75,7 +82,7 @@ export function ProfessionalDashboardPanel({
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className={filterFieldClassName}>
             <Label htmlFor="professional-start-date">
               Data início <span className="text-destructive">*</span>
             </Label>
@@ -84,11 +91,11 @@ export function ProfessionalDashboardPanel({
               type="date"
               value={startDate}
               onChange={(event) => onStartDateChange(event.target.value)}
-              className="h-10"
+              className={filterControlClassName}
             />
           </div>
 
-          <div className="space-y-2">
+          <div className={filterFieldClassName}>
             <Label htmlFor="professional-end-date">
               Data fim <span className="text-destructive">*</span>
             </Label>
@@ -97,14 +104,17 @@ export function ProfessionalDashboardPanel({
               type="date"
               value={endDate}
               onChange={(event) => onEndDateChange(event.target.value)}
-              className="h-10"
+              className={filterControlClassName}
             />
           </div>
 
-          <div className="space-y-2">
+          <div className={filterFieldClassName}>
             <Label htmlFor="dashboard-service-type">Tipo Atendimento</Label>
             <Select defaultValue="sessao" items={serviceTypeItems}>
-              <SelectTrigger id="dashboard-service-type" className="h-10 w-full">
+              <SelectTrigger
+                id="dashboard-service-type"
+                className={filterControlClassName}
+              >
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -119,14 +129,17 @@ export function ProfessionalDashboardPanel({
             </Select>
           </div>
 
-          <Button type="button" className="h-10 w-full gap-2 lg:w-auto">
-            <Download className="size-4" aria-hidden />
-            Exportar PDF
-          </Button>
+          <div className={cn(filterFieldClassName, "sm:col-span-2 xl:col-span-1")}>
+            <Label className="sr-only">Exportar relatório</Label>
+            <Button type="button" className="h-11 w-full gap-2">
+              <Download className="size-4" aria-hidden />
+              Exportar PDF
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {professionalDashboardMetrics.map((metric) => (
           <DashboardMetricCard
             key={metric.label}
@@ -139,7 +152,7 @@ export function ProfessionalDashboardPanel({
         ))}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid items-stretch gap-5 xl:grid-cols-2">
         <DashboardChartPanel
           title="Sessões Realizadas por Aprendiz"
           tabs={[

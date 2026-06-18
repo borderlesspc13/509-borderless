@@ -46,7 +46,7 @@ function formatRelativeTime(isoDate: string) {
   }).format(date);
 }
 
-export function NotificationCenter() {
+export function NotificationCenter({ inverse = false }: { inverse?: boolean }) {
   const { canUseInternalMessaging } = useUserRole();
   const {
     notifications,
@@ -67,7 +67,10 @@ export function NotificationCenter() {
               type="button"
               variant="ghost"
               size="icon"
-              className="relative size-10 shrink-0"
+              className={cn(
+                "relative size-10 shrink-0",
+                inverse && "app-header-icon-btn"
+              )}
               aria-label="Central de notificações"
             />
           }

@@ -30,16 +30,16 @@ export function DashboardHome() {
         onValueChange={setActivePanel}
         className="gap-6"
       >
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/80 p-1.5 sm:w-fit sm:min-w-[32rem]">
+        <TabsList className="flex !h-12 w-full max-w-3xl items-stretch gap-1 rounded-2xl bg-muted p-1">
           <TabsTrigger
             value="learner"
-            className="rounded-lg px-4 py-3 text-xs font-semibold uppercase tracking-wide data-active:bg-foreground data-active:text-background sm:text-sm"
+            className="h-full min-h-0 flex-1 rounded-xl border-0 px-4 py-0 text-xs font-bold tracking-wide uppercase data-active:bg-primary data-active:text-primary-foreground data-active:shadow-none sm:text-sm"
           >
             Painel do Aprendiz
           </TabsTrigger>
           <TabsTrigger
             value="professional"
-            className="rounded-lg px-4 py-3 text-xs font-semibold uppercase tracking-wide data-active:bg-foreground data-active:text-background sm:text-sm"
+            className="h-full min-h-0 flex-1 rounded-xl border-0 px-4 py-0 text-xs font-bold tracking-wide uppercase data-active:bg-primary data-active:text-primary-foreground data-active:shadow-none sm:text-sm"
           >
             Painel do Profissional
           </TabsTrigger>

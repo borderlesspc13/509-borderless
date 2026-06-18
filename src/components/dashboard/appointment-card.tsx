@@ -99,7 +99,7 @@ export function AppointmentCard({
       onTouchMove={isReadOnly ? onTouchMove : undefined}
       onTouchEnd={isReadOnly ? onTouchEnd : undefined}
       className={cn(
-        "flex w-full min-h-[5.5rem] flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition-colors",
+        "app-surface-card flex w-full min-h-[5.5rem] flex-col gap-3 p-4 transition-all",
         isWaiting
           ? "border-clinical-warning/50 bg-clinical-warning/10 ring-1 ring-clinical-warning/25"
           : isCancelled

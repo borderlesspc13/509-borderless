@@ -34,29 +34,29 @@ export function DashboardBarChart({
     return (
       <div
         className={cn(
-          "flex h-64 items-end justify-center gap-8 border-b border-border px-4 pb-3",
+          "grid h-72 grid-cols-5 items-end gap-3 border-b border-border px-2 pb-4 sm:gap-4 sm:px-4",
           className
         )}
       >
         {items.map((item) => (
           <div
             key={item.label}
-            className="flex min-w-0 flex-col items-center gap-3"
+            className="flex min-w-0 flex-col items-center gap-2"
           >
-            <span className="text-sm font-semibold text-foreground">
+            <span className="text-sm font-semibold tabular-nums text-foreground">
               {formatValue(item.value)}
             </span>
             <div
               className={cn(
-                "w-16 rounded-t-md transition-all sm:w-20",
+                "w-full max-w-16 rounded-t-md transition-all sm:max-w-20",
                 barClassName
               )}
               style={{
-                height: `${Math.max((item.value / maxValue) * 180, 12)}px`,
+                height: `${Math.max((item.value / maxValue) * 160, 12)}px`,
               }}
               title={`${item.label}: ${formatValue(item.value)}`}
             />
-            <span className="max-w-28 text-center text-xs text-muted-foreground">
+            <span className="line-clamp-2 min-h-8 w-full text-center text-[0.7rem] leading-tight text-muted-foreground sm:text-xs">
               {item.label}
             </span>
           </div>

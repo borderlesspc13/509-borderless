@@ -18,11 +18,9 @@ export function DashboardPageHeader({
   actions,
 }: DashboardPageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 border-b border-border/60 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div className="app-page-header flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
-          {title}
-        </h1>
+        <h1 className="app-screen-title">{title}</h1>
         <nav
           aria-label="Breadcrumb"
           className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground sm:text-sm"
@@ -38,12 +36,12 @@ export function DashboardPageHeader({
                 {item.href && !isLast ? (
                   <Link
                     href={item.href}
-                    className="transition-colors hover:text-foreground"
+                    className="transition-colors hover:text-primary"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={isLast ? "text-foreground" : undefined}>
+                  <span className={isLast ? "font-medium text-foreground" : undefined}>
                     {item.label}
                   </span>
                 )}

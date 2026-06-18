@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { FileStack, Pencil, Plus, Search, Trash2, ToggleLeft } from "lucide-react";
+import { FileStack, Pencil, Plus, Trash2, ToggleLeft } from "lucide-react";
 
 import {
   deleteDocumentTemplateAction,
   toggleDocumentTemplateStatusAction,
 } from "@/app/actions/document-template-actions";
+import { AppSearchField } from "@/components/ui/app-search-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -152,20 +153,14 @@ export function DocumentTemplateList({
         </Button>
       </div>
 
-      <section className="rounded-xl border border-border/70 bg-card p-4 shadow-sm">
+      <section className="app-surface-card p-4">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Buscar por nome ou categoria..."
-              className="h-10 pl-9"
-            />
-          </div>
+          <AppSearchField
+            id="template-search"
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Buscar por nome ou categoria..."
+          />
 
           <Select
             value={categoryFilter}
@@ -214,17 +209,13 @@ export function DocumentTemplateList({
       ) : null}
 
       {filteredTemplates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-16 text-center">
-          <FileStack className="size-10 text-muted-foreground" aria-hidden />
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Nenhum modelo encontrado</p>
-            <p className="text-sm text-muted-foreground">
-              Crie modelos narrativos para agilizar a evolução clínica.
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={FileStack}
+          title="Nenhum modelo encontrado"
+          description="Crie modelos narrativos para agilizar a evolução clínica."
+        />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+        <div className="app-surface-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

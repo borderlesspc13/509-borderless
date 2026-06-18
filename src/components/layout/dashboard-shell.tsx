@@ -25,8 +25,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
-    <div className="flex min-h-dvh bg-clinical-surface lg:flex-row">
-      <aside className="hidden w-[17.5rem] shrink-0 border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
+    <div className="flex min-h-dvh bg-background lg:flex-row">
+      <aside className="hidden w-[17.5rem] shrink-0 border-r border-sidebar-border bg-sidebar shadow-[2px_0_12px_rgb(0_0_0_/_0.04)] lg:flex lg:flex-col">
         <div className="flex h-16 items-center border-b border-sidebar-border px-5">
           <AppLogo linkToHome variant="compact" />
         </div>

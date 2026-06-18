@@ -20,9 +20,10 @@ import { cn } from "@/lib/utils";
 
 type UserMenuProps = {
   className?: string;
+  inverse?: boolean;
 };
 
-export function UserMenu({ className }: UserMenuProps) {
+export function UserMenu({ className, inverse = false }: UserMenuProps) {
   const { fullName, displayRole, initials } = useUserRole();
   const [isPending, startTransition] = useTransition();
 
@@ -40,14 +41,32 @@ export function UserMenu({ className }: UserMenuProps) {
             type="button"
             variant="ghost"
             size="icon"
-            className={cn("size-10 rounded-full p-0", className)}
+            className={cn(
+              "size-10 rounded-lg p-0",
+              inverse
+                ? "app-header-icon-btn"
+                : "rounded-full",
+              className
+            )}
             aria-label="Abrir menu do usuário"
             disabled={isPending}
           />
         }
       >
-        <Avatar className="size-9 ring-2 ring-primary/10 sm:size-10">
-          <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary sm:text-sm">
+        <Avatar
+          className={cn(
+            "size-9 sm:size-10",
+            inverse ? "ring-2 ring-white/30" : "ring-2 ring-primary/10"
+          )}
+        >
+          <AvatarFallback
+            className={cn(
+              "text-xs font-semibold sm:text-sm",
+              inverse
+                ? "bg-white/20 text-primary-foreground"
+                : "bg-primary/10 text-primary"
+            )}
+          >
             {initials}
           </AvatarFallback>
         </Avatar>

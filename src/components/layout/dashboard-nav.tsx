@@ -68,9 +68,9 @@ function NavGroupSection({
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex min-h-9 items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-all",
                   isActive
-                    ? "bg-primary font-medium text-primary-foreground shadow-sm"
+                    ? "bg-primary font-medium text-primary-foreground shadow-[0_2px_8px_color-mix(in_oklch,var(--primary)_22%,transparent)]"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
@@ -113,9 +113,9 @@ export function DashboardNav({ onNavigate }: DashboardNavProps) {
             href={entry.href}
             onClick={onNavigate}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
+              "flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
               isActive
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-[0_4px_12px_color-mix(in_oklch,var(--primary)_25%,transparent)]"
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             )}
           >

@@ -145,6 +145,84 @@
   }
 
   .page-content {
-    @apply px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8;
+    @apply px-4 py-5 sm:px-6 sm:py-8 lg:px-8;
+  }
+}
+
+/* Padrão Acessus adaptado à paleta Nurse Care */
+@layer components {
+  .app-surface-card {
+    @apply rounded-2xl border border-border/70 bg-card text-card-foreground;
+    box-shadow:
+      0 2px 8px rgb(0 0 0 / 0.06),
+      0 1px 2px rgb(0 0 0 / 0.04);
+  }
+
+  .app-surface-card-elevated {
+    @apply rounded-2xl border border-border/70 bg-card text-card-foreground;
+    box-shadow:
+      0 4px 16px rgb(0 0 0 / 0.08),
+      0 2px 4px rgb(0 0 0 / 0.04);
+  }
+
+  .app-section-title {
+    @apply text-xs font-bold tracking-[0.06em] text-primary uppercase;
+  }
+
+  .app-screen-title {
+    @apply text-xl font-bold tracking-tight text-foreground sm:text-2xl;
+  }
+
+  .app-search-field {
+    @apply flex h-11 w-full items-center gap-2.5 rounded-[10px] border border-transparent bg-muted px-3.5 text-sm transition-colors;
+    @apply focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40;
+  }
+
+  .app-search-field input {
+    @apply min-w-0 flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground;
+  }
+
+  .app-header-bar {
+    @apply bg-primary text-primary-foreground;
+    box-shadow: 0 2px 10px color-mix(in oklch, var(--primary) 28%, transparent);
+  }
+
+  .app-header-icon-btn {
+    @apply size-9 rounded-lg bg-white/20 text-primary-foreground transition-colors;
+    @apply hover:bg-white/30 active:opacity-90;
+  }
+
+  .app-auth-shell {
+    @apply bg-muted;
+  }
+
+  .app-auth-card {
+    @apply rounded-2xl border border-border/60 bg-card;
+    box-shadow:
+      0 4px 16px rgb(0 0 0 / 0.08),
+      0 1px 3px rgb(0 0 0 / 0.04);
+  }
+
+  .app-page-header {
+    @apply rounded-2xl border border-border/70 bg-card px-5 py-4 sm:px-6 sm:py-5;
+    box-shadow:
+      0 2px 8px rgb(0 0 0 / 0.06),
+      0 1px 2px rgb(0 0 0 / 0.04);
+  }
+
+  .app-empty-state {
+    @apply flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/30 px-6 py-14 text-center;
+  }
+
+  .app-filter-chip {
+    @apply inline-flex items-center gap-2 rounded-2xl border border-border/70 bg-card px-3.5 py-2 text-sm shadow-sm;
+  }
+
+  .app-filter-chip-label {
+    @apply text-muted-foreground;
+  }
+
+  .app-filter-chip-value {
+    @apply font-semibold text-foreground;
   }
 }

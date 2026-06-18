@@ -41,6 +41,9 @@ const folderSelectItems = dashboardCurriculumFolders.map((folder) => ({
   value: folder.id,
 }));
 
+const filterFieldClassName = "min-w-0 space-y-2";
+const filterControlClassName = "!h-11 w-full min-w-0";
+
 type LearnerDashboardPanelProps = {
   startDate: string;
   endDate: string;
@@ -61,17 +64,17 @@ export function LearnerDashboardPanel({
   const programData = programRanking === "top" ? topProgramsData : bottomProgramsData;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       <Card className="shadow-sm">
-        <CardContent className="grid gap-5 p-5 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
+        <CardContent className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:items-end xl:grid-cols-4">
+          <div className={filterFieldClassName}>
             <Label htmlFor="dashboard-learner">Aprendiz</Label>
             <Select
               value={learnerId}
               items={learnerSelectItems}
               onValueChange={(value) => setLearnerId(value as string)}
             >
-              <SelectTrigger id="dashboard-learner" className="h-10 w-full">
+              <SelectTrigger id="dashboard-learner" className={filterControlClassName}>
                 <SelectValue placeholder="Selecione o aprendiz" />
               </SelectTrigger>
               <SelectContent>
@@ -86,14 +89,14 @@ export function LearnerDashboardPanel({
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className={filterFieldClassName}>
             <Label htmlFor="dashboard-folder">Pasta Curricular</Label>
             <Select
               value={folderId}
               items={folderSelectItems}
               onValueChange={(value) => setFolderId(value as string)}
             >
-              <SelectTrigger id="dashboard-folder" className="h-10 w-full">
+              <SelectTrigger id="dashboard-folder" className={filterControlClassName}>
                 <SelectValue placeholder="Selecione a pasta" />
               </SelectTrigger>
               <SelectContent>
@@ -108,31 +111,31 @@ export function LearnerDashboardPanel({
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className={filterFieldClassName}>
             <Label htmlFor="learner-start-date">Data início</Label>
             <Input
               id="learner-start-date"
               type="date"
               value={startDate}
               onChange={(event) => onStartDateChange(event.target.value)}
-              className="h-10"
+              className={filterControlClassName}
             />
           </div>
 
-          <div className="space-y-2">
+          <div className={filterFieldClassName}>
             <Label htmlFor="learner-end-date">Data fim</Label>
             <Input
               id="learner-end-date"
               type="date"
               value={endDate}
               onChange={(event) => onEndDateChange(event.target.value)}
-              className="h-10"
+              className={filterControlClassName}
             />
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {learnerDashboardMetrics.map((metric, index) => (
           <DashboardMetricCard
             key={metric.label}
@@ -140,22 +143,23 @@ export function LearnerDashboardPanel({
             value={metric.value}
             icon={metric.icon}
             accent={
-              (["emerald", "sky", "slate", "muted"] as const)[index] ?? "primary"
+              (["primary", "primary", "primary", "primary"] as const)[index] ??
+              "primary"
             }
           />
         ))}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
-        <Card className="shadow-sm">
-          <CardHeader>
+      <div className="grid items-stretch gap-5 xl:grid-cols-2">
+        <Card className="flex h-full flex-col shadow-sm">
+          <CardHeader className="border-b border-border/60 pb-4">
             <CardTitle>Desempenho por Habilidade</CardTitle>
             <CardDescription>
               Indicadores de progresso por área curricular no período
               selecionado.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-1 flex-col justify-center py-6">
             <DashboardBarChart
               variant="vertical"
               items={skillPerformanceData.map((item) => ({
@@ -166,19 +170,20 @@ export function LearnerDashboardPanel({
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
+        <Card className="flex h-full flex-col shadow-sm">
+          <CardHeader className="space-y-4 border-b border-border/60 pb-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 space-y-1">
                 <CardTitle>Programas com Maior Desempenho</CardTitle>
                 <CardDescription>
                   Ranking de programas ABA no intervalo filtrado.
                 </CardDescription>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Button
                   type="button"
                   size="sm"
+                  className="h-9 whitespace-nowrap"
                   variant={programRanking === "top" ? "default" : "outline"}
                   onClick={() => setProgramRanking("top")}
                 >
@@ -187,6 +192,7 @@ export function LearnerDashboardPanel({
                 <Button
                   type="button"
                   size="sm"
+                  className="h-9 whitespace-nowrap"
                   variant={programRanking === "bottom" ? "default" : "outline"}
                   onClick={() => setProgramRanking("bottom")}
                 >
@@ -195,7 +201,7 @@ export function LearnerDashboardPanel({
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 py-6">
             <DashboardBarChart
               items={programData.map((item) => ({
                 label: item.program,

@@ -6,14 +6,16 @@ import {
   LayoutGrid,
   List,
   Plus,
-  Search,
   SlidersHorizontal,
+  Users,
 } from "lucide-react";
 
 import { PatientCard, PatientListRow } from "@/components/patients/patient-card";
 import { PatientStatsRow } from "@/components/patients/patient-stats-row";
 import { PatientStatusDialog } from "@/components/patients/patient-status-dialog";
 import { PatientViewDialog } from "@/components/patients/patient-view-dialog";
+import { AppSearchField } from "@/components/ui/app-search-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,20 +213,15 @@ export function PatientList({ patients }: PatientListProps) {
         </div>
       </div>
 
-      <section className="rounded-xl border border-border/70 bg-card p-4 shadow-sm">
+      <section className="app-surface-card p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative min-w-0 flex-1">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Busque por aprendizes..."
-              className="h-10 pl-9"
-            />
-          </div>
+          <AppSearchField
+            id="patient-search"
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Busque por aprendizes..."
+            className="min-w-0 flex-1"
+          />
 
           <div className="flex flex-wrap gap-2 lg:shrink-0">
             <Button
@@ -315,16 +312,15 @@ export function PatientList({ patients }: PatientListProps) {
       </section>
 
       {filteredPatients.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
-          <p className="text-sm font-medium text-foreground">
-            Nenhum aprendiz encontrado
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {patientItems.length === 0
+        <EmptyState
+          icon={Users}
+          title="Nenhum aprendiz encontrado"
+          description={
+            patientItems.length === 0
               ? "Ainda não há aprendizes cadastrados."
-              : "Ajuste a busca ou os filtros para ver outros resultados."}
-          </p>
-        </div>
+              : "Ajuste a busca ou os filtros para ver outros resultados."
+          }
+        />
       ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredPatients.map((patient) => (
