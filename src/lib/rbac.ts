@@ -48,6 +48,7 @@ const BASE_THERAPIST_PERMISSIONS = [
   PERMISSIONS.ASSESSMENTS_VIEW,
   PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
   PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
+  PERMISSIONS.INTERNAL_MESSAGING,
 ] as const satisfies readonly Permission[];
 
 const CLINICAL_EVOLUTION_EDITOR_PERMISSIONS = [
@@ -91,7 +92,7 @@ export const PROFESSIONAL_ROLES = [
 
 export const RECEPCAO_HOME_PATH = "/agenda";
 
-export const RECEPCAO_ALLOWED_PATHS = [RECEPCAO_HOME_PATH] as const;
+export const RECEPCAO_ALLOWED_PATHS = [RECEPCAO_HOME_PATH, "/chat"] as const;
 
 export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/agenda": PERMISSIONS.AGENDA_VIEW,
@@ -108,6 +109,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/dashboard/modelos": PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
   "/dashboard/relatorios": PERMISSIONS.REPORTS_VIEW,
   "/dashboard/auditoria": PERMISSIONS.AUDIT_LOGS_VIEW,
+  "/chat": PERMISSIONS.INTERNAL_MESSAGING,
   "/configuracoes": PERMISSIONS.SETTINGS_VIEW,
   "/dashboard/configuracoes": PERMISSIONS.SETTINGS_VIEW,
 };

@@ -69,6 +69,7 @@ function matchesPatientSearch(patient: PatientRow, query: string) {
     patient.diagnosis,
     patient.guardian_name,
     patient.guardian_phone,
+    patient.guardian_email,
     patient.cpf,
   ]
     .filter(Boolean)
@@ -84,6 +85,7 @@ function exportPatientsToCsv(patients: PatientRow[]) {
     "Status",
     "Data de nascimento",
     "Responsável",
+    "E-mail",
     "Telefone",
     "Diagnóstico",
     "CPF",
@@ -94,6 +96,7 @@ function exportPatientsToCsv(patients: PatientRow[]) {
     patientStatusLabels[patient.status],
     patient.birth_date ?? "",
     patient.guardian_name ?? "",
+    patient.guardian_email ?? "",
     patient.guardian_phone ?? "",
     patient.diagnosis ?? "",
     patient.cpf ?? "",

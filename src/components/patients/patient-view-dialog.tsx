@@ -87,6 +87,10 @@ export function PatientViewDialog({
                 className="sm:col-span-2"
               />
               <InfoField label="CPF" value={patient.cpf} />
+              <InfoField
+                label="E-mail do responsável"
+                value={patient.guardian_email}
+              />
               <InfoField label="Nome do Responsável 1" value={patient.guardian_name} />
               <InfoField label="Nome do Responsável 2" value={null} />
               <InfoField label="Usuário" value={null} />
@@ -113,7 +117,6 @@ export function PatientViewDialog({
             <InfoField label="RG" value={null} />
             <InfoField label="Órgão Emissor" value={null} />
             <InfoField label="Profissão" value={null} />
-            <InfoField label="E-mail" value={patient.guardian_email} />
             <InfoField label="Site" value={null} />
             <InfoField label="Naturalidade" value={null} />
             <InfoField label="Contato" value={null} />

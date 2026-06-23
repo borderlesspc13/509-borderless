@@ -326,6 +326,9 @@ export function TeamManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="px-3 sm:px-4">Nome</TableHead>
+                  <TableHead className="hidden px-3 sm:table-cell sm:px-4">
+                    E-mail
+                  </TableHead>
                   <TableHead className="px-3 sm:px-4">Perfil</TableHead>
                   <TableHead className="hidden px-3 md:table-cell sm:px-4">
                     Cargo
@@ -351,6 +354,9 @@ export function TeamManagement() {
                       ) : null}
                     </div>
                   </TableCell>
+                    <TableCell className="hidden px-3 py-3 sm:table-cell sm:px-4">
+                      {member.email ?? "—"}
+                    </TableCell>
                     <TableCell className="px-3 py-3 sm:px-4">
                       {member.profileLabel}
                     </TableCell>

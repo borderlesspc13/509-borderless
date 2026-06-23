@@ -20,6 +20,15 @@ export function getUnreadNotificationCount(
   return notifications.filter((notification) => !notification.read_at).length;
 }
 
+export function getUnreadChatMessageCount(
+  notifications: InternalNotificationRow[]
+) {
+  return notifications.filter(
+    (notification) =>
+      notification.type === "chat_message" && !notification.read_at
+  ).length;
+}
+
 export function getActivePatientWaitingNotifications(
   notifications: InternalNotificationRow[]
 ) {

@@ -88,6 +88,7 @@ export function ProfessionalViewDialog({
                   className="sm:col-span-2"
                 />
                 <InfoField label="CPF" value={professional.cpf} />
+                <InfoField label="E-mail" value={professional.email} />
                 <InfoField
                   label="Cargo"
                   value={getProfessionalRoleLabel(

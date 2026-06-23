@@ -18,6 +18,7 @@ import {
 import {
   calculatePatientAge,
   formatPatientDate,
+  formatPatientDisplayValue,
   getPatientDisplaySubtitle,
   getPatientToggleActionLabel,
   patientStatusLabels,
@@ -106,11 +107,11 @@ export function PatientCard({ patient, onView, onToggleStatus }: PatientCardProp
         />
         <PatientDetailField
           label="Telefone"
-          value={patient.guardian_phone ?? "—"}
+          value={formatPatientDisplayValue(patient.guardian_phone)}
         />
         <PatientDetailField
-          label="Celular"
-          value={patient.guardian_phone ?? "—"}
+          label="E-mail"
+          value={formatPatientDisplayValue(patient.guardian_email)}
         />
       </div>
 
@@ -196,6 +197,9 @@ export function PatientListRow({
             <span>Idade: {calculatePatientAge(patient.birth_date)}</span>
             {patient.guardian_name ? (
               <span>Responsável: {patient.guardian_name}</span>
+            ) : null}
+            {patient.guardian_email ? (
+              <span>E-mail: {patient.guardian_email}</span>
             ) : null}
           </div>
         </div>

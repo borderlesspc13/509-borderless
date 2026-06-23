@@ -19,6 +19,7 @@ import {
 import {
   calculateProfessionalAge,
   formatProfessionalDate,
+  formatProfessionalDisplayValue,
   getProfessionalDisplaySubtitle,
   getProfessionalRoleLabel,
   getProfessionalToggleActionLabel,
@@ -117,8 +118,8 @@ export function ProfessionalCard({
         />
         <ProfessionalDetailField label="Cargo" value={roleLabel} />
         <ProfessionalDetailField
-          label="Supervisor"
-          value={isProfessionalSupervisor(professional.profile) ? "Sim" : "Não"}
+          label="E-mail"
+          value={formatProfessionalDisplayValue(professional.email)}
         />
       </div>
 
@@ -212,6 +213,9 @@ export function ProfessionalListRow({
           ) : null}
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>Cargo: {roleLabel}</span>
+            {professional.email ? (
+              <span>E-mail: {professional.email}</span>
+            ) : null}
             <span>
               Supervisor:{" "}
               {isProfessionalSupervisor(professional.profile) ? "Sim" : "Não"}

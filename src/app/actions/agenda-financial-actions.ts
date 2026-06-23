@@ -1,7 +1,7 @@
 "use server";
 
 import { persistAuditLogsAction } from "@/app/actions/audit-log-actions";
-import { sendInternalMessageAction } from "@/app/actions/internal-communication-actions";
+import { sendDirectChatMessageToUserAction } from "@/app/actions/chat-actions";
 import { requirePermission } from "@/lib/auth-guard";
 import { requireServerUserSession } from "@/lib/auth-server";
 import { mapAgendaEventToDailyAppointment } from "@/lib/agenda-events";
@@ -365,7 +365,10 @@ export async function sendAppointmentPaymentLinkAction(input: {
     input.messagePreview?.trim() ||
     buildPaymentLinkMessage(appointment, current.payment_link_url);
 
-  const messageResult = await sendInternalMessageAction(receiverId, content);
+  const messageResult = await sendDirectChatMessageToUserAction(
+    receiverId,
+    content
+  );
 
   if (!messageResult.success) {
     return {

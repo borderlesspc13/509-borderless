@@ -14,6 +14,7 @@ import {
 const protectedPrefixes = [
   "/dashboard",
   "/agenda",
+  "/chat",
   "/prontuario",
   "/paciente",
   "/evolucao",

@@ -17,6 +17,7 @@ export type ActionResult<T = undefined> =
 export type TeamMember = {
   id: string;
   fullName: string;
+  email: string | null;
   profile: UserProfile;
   profileLabel: string;
   professionalRole: string | null;
@@ -42,12 +43,16 @@ function isClinicalProfile(profile: UserProfile) {
   return role === "AT1" || role === "AT2" || role === "SUPERVISOR";
 }
 
-function mapTeamMember(row: UserProfileRow): TeamMember {
+function mapTeamMember(
+  row: UserProfileRow,
+  email: string | null = null
+): TeamMember {
   const profile = normalizeRole(row.profile);
 
   return {
     id: row.id,
     fullName: row.full_name,
+    email,
     profile,
     profileLabel: getProfileLabel(profile),
     professionalRole: row.professional_role,
@@ -64,6 +69,73 @@ function normalizeOptionalText(value: string | undefined) {
   const normalized = value?.trim();
 
   return normalized ? normalized : null;
+}
+
+async function loadUserEmailsByIds(userIds: string[]) {
+  const emailByUserId = new Map<string, string>();
+
+  if (userIds.length === 0) {
+    return emailByUserId;
+  }
+
+  const adminClient = createAdminSupabaseClient();
+
+  if (!adminClient) {
+    return emailByUserId;
+  }
+
+  const remainingIds = new Set(userIds);
+  let page = 1;
+
+  while (remainingIds.size > 0) {
+    const { data, error } = await adminClient.auth.admin.listUsers({
+      page,
+      perPage: 1000,
+    });
+
+    if (error || !data.users.length) {
+      break;
+    }
+
+    for (const user of data.users) {
+      if (remainingIds.has(user.id) && user.email) {
+        emailByUserId.set(user.id, user.email);
+        remainingIds.delete(user.id);
+      }
+    }
+
+    if (data.users.length < 1000) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return emailByUserId;
+}
+
+async function mapTeamMembersWithEmails(rows: UserProfileRow[]) {
+  const emailByUserId = await loadUserEmailsByIds(rows.map((row) => row.id));
+
+  return rows.map((row) =>
+    mapTeamMember(row, emailByUserId.get(row.id) ?? null)
+  );
+}
+
+async function loadUserEmail(userId: string) {
+  const adminClient = createAdminSupabaseClient();
+
+  if (!adminClient) {
+    return null;
+  }
+
+  const { data, error } = await adminClient.auth.admin.getUserById(userId);
+
+  if (error || !data.user.email) {
+    return null;
+  }
+
+  return data.user.email;
 }
 
 export async function listTeamMembersAction(): Promise<
@@ -88,7 +160,7 @@ export async function listTeamMembersAction(): Promise<
 
   return {
     success: true,
-    data: { members: (data ?? []).map(mapTeamMember) },
+    data: { members: await mapTeamMembersWithEmails(data ?? []) },
   };
 }
 
@@ -133,7 +205,9 @@ export async function getProfessionalAction(
     return { success: false, error: "Profissional não encontrado." };
   }
 
-  return { success: true, data: { professional: mapTeamMember(data) } };
+  const email = await loadUserEmail(data.id);
+
+  return { success: true, data: { professional: mapTeamMember(data, email) } };
 }
 
 export type UpdateProfessionalInput = {
@@ -202,7 +276,9 @@ export async function updateProfessionalAction(
     };
   }
 
-  return { success: true, data: { professional: mapTeamMember(data) } };
+  const email = await loadUserEmail(data.id);
+
+  return { success: true, data: { professional: mapTeamMember(data, email) } };
 }
 
 export async function toggleProfessionalStatusAction(
@@ -260,7 +336,9 @@ export async function toggleProfessionalStatusAction(
     };
   }
 
-  return { success: true, data: { professional: mapTeamMember(data) } };
+  const email = await loadUserEmail(data.id);
+
+  return { success: true, data: { professional: mapTeamMember(data, email) } };
 }
 
 export async function createTeamMemberAction(
@@ -357,6 +435,6 @@ export async function createTeamMemberAction(
 
   return {
     success: true,
-    data: { member: mapTeamMember(profileRow) },
+    data: { member: mapTeamMember(profileRow, email) },
   };
 }

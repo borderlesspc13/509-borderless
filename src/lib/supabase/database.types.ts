@@ -328,7 +328,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          type: "patient_waiting" | "new_message";
+          type: "patient_waiting" | "new_message" | "chat_message";
           title: string;
           body: string;
           metadata: Json;
@@ -338,7 +338,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          type: "patient_waiting" | "new_message";
+          type: "patient_waiting" | "new_message" | "chat_message";
           title: string;
           body: string;
           metadata?: Json;
@@ -348,11 +348,89 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          type?: "patient_waiting" | "new_message";
+          type?: "patient_waiting" | "new_message" | "chat_message";
           title?: string;
           body?: string;
           metadata?: Json;
           read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      chat_conversations: {
+        Row: {
+          id: string;
+          type: "direct" | "group";
+          name: string | null;
+          direct_pair_key: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: "direct" | "group";
+          name?: string | null;
+          direct_pair_key?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          type?: "direct" | "group";
+          name?: string | null;
+          direct_pair_key?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      chat_conversation_members: {
+        Row: {
+          conversation_id: string;
+          user_id: string;
+          role: "owner" | "member";
+          joined_at: string;
+          last_read_at: string;
+        };
+        Insert: {
+          conversation_id: string;
+          user_id: string;
+          role?: "owner" | "member";
+          joined_at?: string;
+          last_read_at?: string;
+        };
+        Update: {
+          conversation_id?: string;
+          user_id?: string;
+          role?: "owner" | "member";
+          joined_at?: string;
+          last_read_at?: string;
+        };
+        Relationships: [];
+      };
+      chat_messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          content?: string;
           created_at?: string;
         };
         Relationships: [];
@@ -608,7 +686,27 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_or_create_direct_conversation: {
+        Args: {
+          p_other_user_id: string;
+        };
+        Returns: string;
+      };
+      build_direct_pair_key: {
+        Args: {
+          p_user_id_1: string;
+          p_user_id_2: string;
+        };
+        Returns: string;
+      };
+      is_chat_conversation_member: {
+        Args: {
+          p_conversation_id: string;
+        };
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -664,3 +762,12 @@ export type AssessmentScoreRow =
 
 export type DocumentTemplateRow =
   Database["public"]["Tables"]["document_templates"]["Row"];
+
+export type ChatConversationRow =
+  Database["public"]["Tables"]["chat_conversations"]["Row"];
+
+export type ChatConversationMemberRow =
+  Database["public"]["Tables"]["chat_conversation_members"]["Row"];
+
+export type ChatMessageRow =
+  Database["public"]["Tables"]["chat_messages"]["Row"];

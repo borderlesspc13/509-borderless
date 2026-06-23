@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { userProfileOptions } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 import {
+  formatProfessionalDisplayValue,
   formatProfessionalRegistrationStatus,
   getProfessionalRoleLabel,
   isProfessionalSupervisor,
@@ -192,6 +193,15 @@ export function ProfessionalEditPageView({
                             onChange={(event) => setFullName(event.target.value)}
                             className={inputClassName}
                             required
+                          />
+                        </FormField>
+                        <FormField id="email" label="E-mail">
+                          <Input
+                            id="email"
+                            value={formatProfessionalDisplayValue(professional.email)}
+                            className={inputClassName}
+                            readOnly
+                            disabled
                           />
                         </FormField>
                         <FormField id="role" label="Cargo">

@@ -6,6 +6,7 @@ import {
   FileStack,
   FileText,
   LayoutDashboard,
+  MessageSquare,
   Monitor,
   ScrollText,
   Settings,
@@ -123,6 +124,13 @@ export const mainNavEntries: NavEntry[] = [
         permission: PERMISSIONS.AGENDA_VIEW,
       },
     ],
+  },
+  {
+    kind: "link",
+    title: "Chat Interno",
+    href: "/chat",
+    icon: MessageSquare,
+    permission: PERMISSIONS.INTERNAL_MESSAGING,
   },
   {
     kind: "link",

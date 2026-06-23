@@ -10,7 +10,6 @@ import {
 } from "react";
 
 import {
-  listMessagesAction,
   listNotificationsAction,
   listOnlineProfessionalsAction,
   markMessageReadAction,
@@ -23,6 +22,7 @@ import {
   getUnreadNotificationCount,
   type OnlineProfessional,
 } from "@/lib/internal-communication";
+import { emitNotificationInsert } from "@/lib/notification-events";
 import type {
   InternalMessageRow,
   InternalNotificationRow,
@@ -68,17 +68,10 @@ export function InternalCommunicationProvider({
   const [isLoading, setIsLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const [notificationsResult, messagesResult] = await Promise.all([
-      listNotificationsAction(),
-      listMessagesAction(),
-    ]);
+    const notificationsResult = await listNotificationsAction();
 
     if (notificationsResult.success && notificationsResult.data) {
       setNotifications(notificationsResult.data.notifications);
-    }
-
-    if (messagesResult.success && messagesResult.data) {
-      setMessages(messagesResult.data.messages);
     }
   }, []);
 
@@ -173,6 +166,7 @@ export function InternalCommunicationProvider({
         (payload) => {
           const notification = payload.new as InternalNotificationRow;
           setNotifications((current) => [notification, ...current]);
+          emitNotificationInsert(notification);
         }
       )
       .on(
@@ -194,37 +188,8 @@ export function InternalCommunicationProvider({
       )
       .subscribe();
 
-    const messagesChannel = supabase
-      .channel(`internal-messages:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "internal_messages",
-        },
-        (payload) => {
-          const message = payload.new as InternalMessageRow;
-
-          if (
-            message.sender_id === userId ||
-            message.receiver_id === userId
-          ) {
-            setMessages((current) => {
-              if (current.some((item) => item.id === message.id)) {
-                return current;
-              }
-
-              return [message, ...current];
-            });
-          }
-        }
-      )
-      .subscribe();
-
     return () => {
       void supabase.removeChannel(notificationsChannel);
-      void supabase.removeChannel(messagesChannel);
     };
   }, [userId]);
 
@@ -232,16 +197,30 @@ export function InternalCommunicationProvider({
     void updatePresenceAction();
 
     const heartbeat = window.setInterval(() => {
-      void updatePresenceAction();
-    }, 30_000);
+      if (document.visibilityState === "visible") {
+        void updatePresenceAction();
+      }
+    }, 60_000);
 
     const professionalsRefresh = window.setInterval(() => {
-      void refreshOnlineProfessionals();
-    }, 30_000);
+      if (document.visibilityState === "visible") {
+        void refreshOnlineProfessionals();
+      }
+    }, 60_000);
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        void updatePresenceAction();
+        void refreshOnlineProfessionals();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.clearInterval(heartbeat);
       window.clearInterval(professionalsRefresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [refreshOnlineProfessionals]);
 

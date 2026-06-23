@@ -67,6 +67,7 @@ function matchesProfessionalSearch(professional: TeamMember, query: string) {
 
   const haystack = [
     professional.fullName,
+    professional.email,
     professional.cpf,
     professional.professionalCouncil,
     professional.professionalRole,
@@ -82,6 +83,7 @@ function matchesProfessionalSearch(professional: TeamMember, query: string) {
 function exportProfessionalsToCsv(professionals: TeamMember[]) {
   const headers = [
     "Nome",
+    "E-mail",
     "Status",
     "Cargo",
     "Perfil",
@@ -92,6 +94,7 @@ function exportProfessionalsToCsv(professionals: TeamMember[]) {
 
   const rows = professionals.map((professional) => [
     professional.fullName,
+    professional.email ?? "",
     professionalStatusLabels[professional.status],
     professional.professionalRole ?? professional.profileLabel,
     professional.profileLabel,
