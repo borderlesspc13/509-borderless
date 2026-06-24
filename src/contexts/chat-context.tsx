@@ -160,10 +160,17 @@ export function ChatProvider({ children, userId }: ChatProviderProps) {
     async (otherUserId: string) => {
       const result = await getOrCreateDirectConversationAction(otherUserId);
 
-      if (!result.success || !result.data) {
+      if (!result.success) {
         return {
           conversationId: null,
           error: result.error ?? "Não foi possível iniciar a conversa.",
+        };
+      }
+
+      if (!result.data) {
+        return {
+          conversationId: null,
+          error: "Não foi possível iniciar a conversa.",
         };
       }
 
@@ -181,10 +188,17 @@ export function ChatProvider({ children, userId }: ChatProviderProps) {
     async (name: string, memberIds: string[]) => {
       const result = await createGroupConversationAction({ name, memberIds });
 
-      if (!result.success || !result.data) {
+      if (!result.success) {
         return {
           conversationId: null,
           error: result.error ?? "Não foi possível criar o grupo.",
+        };
+      }
+
+      if (!result.data) {
+        return {
+          conversationId: null,
+          error: "Não foi possível criar o grupo.",
         };
       }
 

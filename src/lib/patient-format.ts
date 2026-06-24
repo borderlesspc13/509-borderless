@@ -147,5 +147,6 @@ export const appointmentStatusLabels = {
   confirmado: "Confirmado",
   agendado: "Agendado",
   em_espera: "Em espera",
+  chamado: "Chamado",
   cancelado: "Cancelado",
 } as const;
