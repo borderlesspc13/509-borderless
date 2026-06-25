@@ -1,5 +1,5 @@
 import { toDateKey } from "@/lib/calendar-utils";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 
 export type ReceptionPanelCall = {
   id: string;
@@ -84,42 +84,3 @@ export function buildReceptionPanelData(
     updatedAt: new Date().toISOString(),
   };
 }
-
-export const mockReceptionPanelData: ReceptionPanelData = {
-  currentCall: {
-    id: "mock-current",
-    queueNumber: 12,
-    professionalName: "Ana Silva",
-    roomName: "Sala 2",
-    calledAt: new Date().toISOString(),
-  },
-  recentCalls: [
-    {
-      id: "mock-recent-1",
-      queueNumber: 11,
-      professionalName: "Carlos Lima",
-      roomName: "Sala 1",
-      calledAt: new Date(Date.now() - 5 * 60_000).toISOString(),
-    },
-    {
-      id: "mock-recent-2",
-      queueNumber: 10,
-      professionalName: "Juliana Costa",
-      roomName: "Sala 3",
-      calledAt: new Date(Date.now() - 12 * 60_000).toISOString(),
-    },
-  ],
-  waitingQueue: [
-    {
-      id: "mock-wait-1",
-      queueNumber: 13,
-      professionalName: "Ana Silva",
-    },
-    {
-      id: "mock-wait-2",
-      queueNumber: 14,
-      professionalName: "Carlos Lima",
-    },
-  ],
-  updatedAt: new Date().toISOString(),
-};

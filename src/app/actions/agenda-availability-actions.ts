@@ -7,12 +7,11 @@ import { validateAgendaAppointmentSlot } from "@/lib/agenda-conflict-server";
 import type { AppointmentConflictType } from "@/lib/agenda-conflicts";
 import {
   filterAvailableProfessionals,
-  getCatalogProfessionalsByRole,
   isValidTimeRange,
   type AvailabilitySearchParams,
   type AvailableProfessional,
 } from "@/lib/agenda-availability";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 import type { ProfessionalRole } from "@/lib/professionals-data";
 import { CLINICAL_ROLES } from "@/lib/rbac";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -53,11 +52,7 @@ export async function searchAvailableProfessionalsAction(
   const supabase = await createServerSupabaseClient();
 
   if (!supabase) {
-    const catalogProfessionals = getCatalogProfessionalsByRole(input.role);
-    return {
-      success: true,
-      data: { professionals: catalogProfessionals },
-    };
+    return { success: false, error: "Supabase não configurado." };
   }
 
   const { data: profileRows, error: profilesError } = await supabase
@@ -71,7 +66,7 @@ export async function searchAvailableProfessionalsAction(
     return { success: false, error: profilesError.message };
   }
 
-  const dbProfessionals: AvailableProfessional[] = (profileRows ?? []).map(
+  const professionals: AvailableProfessional[] = (profileRows ?? []).map(
     (row) => ({
       id: row.id,
       fullName: row.full_name,
@@ -79,11 +74,6 @@ export async function searchAvailableProfessionalsAction(
       source: "database",
     })
   );
-
-  const professionals =
-    dbProfessionals.length > 0
-      ? dbProfessionals
-      : getCatalogProfessionalsByRole(input.role);
 
   const { data: eventRows, error: eventsError } = await supabase
     .from("agenda_events")
@@ -124,7 +114,7 @@ async function resolveProfessionalUserId(
   professionalName: string,
   professionalUserId?: string | null
 ) {
-  if (professionalUserId && !professionalUserId.startsWith("catalog:")) {
+  if (professionalUserId) {
     return professionalUserId;
   }
 

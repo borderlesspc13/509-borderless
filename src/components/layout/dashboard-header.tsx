@@ -3,6 +3,7 @@
 import { Menu } from "lucide-react";
 
 import { NotificationCenter } from "@/components/internal-communication/notification-center";
+import { AiGlobalAssistant } from "@/features/ai/presentation/components/ai-assistants";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -37,6 +38,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <AiGlobalAssistant />
           <NotificationCenter inverse />
 
           <div className="hidden min-w-0 text-right sm:block">

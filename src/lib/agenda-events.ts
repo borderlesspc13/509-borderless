@@ -1,4 +1,4 @@
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 import type { AgendaEventRow } from "@/lib/supabase/database.types";
 
 export function mapAgendaEventToDailyAppointment(

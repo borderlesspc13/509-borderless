@@ -1,8 +1,7 @@
 "use server";
 
 import { mapAgendaEventToDailyAppointment, sortAppointments } from "@/lib/agenda-events";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
-import { monthlyAppointments } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type ActionResult<T = undefined> =
@@ -15,10 +14,7 @@ export async function listAgendaEventsAction(): Promise<
   const supabase = await createServerSupabaseClient();
 
   if (!supabase) {
-    return {
-      success: true,
-      data: { appointments: monthlyAppointments },
-    };
+    return { success: false, error: "Supabase não configurado." };
   }
 
   const { data, error } = await supabase

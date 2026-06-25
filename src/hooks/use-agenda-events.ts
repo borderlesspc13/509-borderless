@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { listAgendaEventsAction } from "@/app/actions/agenda-events-actions";
 import { mergeAppointments } from "@/lib/agenda-events";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 
 export function useAgendaEvents() {
   const pathname = usePathname();

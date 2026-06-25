@@ -1,4 +1,4 @@
-import type { AppointmentStatus, DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { AppointmentStatus, DailyAppointment } from "@/lib/agenda-types";
 
 export type AuditActor = {
   userName: string;

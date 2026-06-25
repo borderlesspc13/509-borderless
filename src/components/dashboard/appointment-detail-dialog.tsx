@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatFullDate } from "@/lib/calendar-utils";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 
 type AppointmentDetailDialogProps = {
   appointment: DailyAppointment | null;

@@ -1,4 +1,4 @@
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 
 export const AGENDA_DRAG_MIME = "application/x-agenda-appointment";
 

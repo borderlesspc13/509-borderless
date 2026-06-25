@@ -23,10 +23,6 @@ function toMinorUnits(amount: number) {
   return Math.round(amount * 100);
 }
 
-function buildMockPaymentUrl(input: CreatePaymentLinkInput) {
-  const appointmentId = input.metadata?.appointment_id ?? "preview";
-  return `https://pay.localhost/preview/${appointmentId}?amount=${input.amount.toFixed(2)}`;
-}
 
 async function createStripePaymentLink(
   input: CreatePaymentLinkInput
@@ -149,11 +145,9 @@ export async function createPaymentLink(
   }
 
   if (!isPaymentConfigured()) {
-    return {
-      url: buildMockPaymentUrl(input),
-      provider: getPaymentProvider(),
-      externalId: `mock_${Date.now()}`,
-    };
+    throw new Error(
+      "Pagamento não configurado. Defina STRIPE_SECRET_KEY ou MERCADO_PAGO_ACCESS_TOKEN."
+    );
   }
 
   const provider = getPaymentProvider();

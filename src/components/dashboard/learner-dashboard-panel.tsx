@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
+import { getLearnerDashboardDataAction } from "@/app/actions/dashboard-analytics-actions";
 import { DashboardBarChart } from "@/components/dashboard/dashboard-bar-chart";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { Button } from "@/components/ui/button";
@@ -22,27 +23,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  bottomProgramsData,
-  dashboardCurriculumFolders,
-  dashboardLearners,
-  learnerDashboardMetrics,
-  skillPerformanceData,
-  topProgramsData,
-} from "@/lib/dashboard-analytics-data";
-
-const learnerSelectItems = dashboardLearners.map((learner) => ({
-  label: learner.label,
-  value: learner.id,
-}));
-
-const folderSelectItems = dashboardCurriculumFolders.map((folder) => ({
-  label: folder.label,
-  value: folder.id,
-}));
+import type {
+  DashboardMetric,
+  ProgramPerformance,
+  SkillPerformance,
+} from "@/lib/dashboard-analytics-types";
 
 const filterFieldClassName = "min-w-0 space-y-2";
 const filterControlClassName = "!h-11 w-full min-w-0";
+
+const emptyMetrics: DashboardMetric[] = [
+  { label: "Sessões Atendidas", value: "0", icon: "sessions" },
+  { label: "Evoluções Registradas", value: "0", icon: "programs" },
+  { label: "Avaliações no Período", value: "0", icon: "attempts" },
+  { label: "Média de Duração/Sessão", value: "0 min", icon: "independence" },
+];
 
 type LearnerDashboardPanelProps = {
   startDate: string;
@@ -60,8 +55,40 @@ export function LearnerDashboardPanel({
   const [learnerId, setLearnerId] = useState("all");
   const [folderId, setFolderId] = useState("all");
   const [programRanking, setProgramRanking] = useState<"top" | "bottom">("top");
+  const [learners, setLearners] = useState([{ id: "all", label: "Todos os aprendizes" }]);
+  const [folders, setFolders] = useState([{ id: "all", label: "Todas as pastas" }]);
+  const [metrics, setMetrics] = useState(emptyMetrics);
+  const [skillPerformance, setSkillPerformance] = useState<SkillPerformance[]>([]);
+  const [topPrograms, setTopPrograms] = useState<ProgramPerformance[]>([]);
+  const [bottomPrograms, setBottomPrograms] = useState<ProgramPerformance[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, startTransition] = useTransition();
 
-  const programData = programRanking === "top" ? topProgramsData : bottomProgramsData;
+  useEffect(() => {
+    startTransition(async () => {
+      const result = await getLearnerDashboardDataAction({
+        startDate,
+        endDate,
+        learnerId,
+        folderId,
+      });
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      setError(null);
+      setLearners(result.data.learners);
+      setFolders(result.data.folders);
+      setMetrics(result.data.metrics);
+      setSkillPerformance(result.data.skillPerformance);
+      setTopPrograms(result.data.topPrograms);
+      setBottomPrograms(result.data.bottomPrograms);
+    });
+  }, [startDate, endDate, learnerId, folderId]);
+
+  const programData = programRanking === "top" ? topPrograms : bottomPrograms;
 
   return (
     <div className="space-y-6">
@@ -71,7 +98,10 @@ export function LearnerDashboardPanel({
             <Label htmlFor="dashboard-learner">Aprendiz</Label>
             <Select
               value={learnerId}
-              items={learnerSelectItems}
+              items={learners.map((learner) => ({
+                label: learner.label,
+                value: learner.id,
+              }))}
               onValueChange={(value) => setLearnerId(value as string)}
             >
               <SelectTrigger id="dashboard-learner" className={filterControlClassName}>
@@ -79,7 +109,7 @@ export function LearnerDashboardPanel({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {dashboardLearners.map((learner) => (
+                  {learners.map((learner) => (
                     <SelectItem key={learner.id} value={learner.id}>
                       {learner.label}
                     </SelectItem>
@@ -93,7 +123,10 @@ export function LearnerDashboardPanel({
             <Label htmlFor="dashboard-folder">Pasta Curricular</Label>
             <Select
               value={folderId}
-              items={folderSelectItems}
+              items={folders.map((folder) => ({
+                label: folder.label,
+                value: folder.id,
+              }))}
               onValueChange={(value) => setFolderId(value as string)}
             >
               <SelectTrigger id="dashboard-folder" className={filterControlClassName}>
@@ -101,7 +134,7 @@ export function LearnerDashboardPanel({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {dashboardCurriculumFolders.map((folder) => (
+                  {folders.map((folder) => (
                     <SelectItem key={folder.id} value={folder.id}>
                       {folder.label}
                     </SelectItem>
@@ -135,8 +168,16 @@ export function LearnerDashboardPanel({
         </CardContent>
       </Card>
 
+      {error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : null}
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Carregando indicadores...</p>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {learnerDashboardMetrics.map((metric, index) => (
+        {metrics.map((metric, index) => (
           <DashboardMetricCard
             key={metric.label}
             label={metric.label}
@@ -153,20 +194,31 @@ export function LearnerDashboardPanel({
       <div className="grid items-stretch gap-5 xl:grid-cols-2">
         <Card className="flex h-full flex-col shadow-sm">
           <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle>Desempenho por Habilidade</CardTitle>
+            <CardTitle>
+              {folderId === "all"
+                ? "Sessões por Profissional"
+                : "Desempenho por Habilidade"}
+            </CardTitle>
             <CardDescription>
-              Indicadores de progresso por área curricular no período
-              selecionado.
+              {folderId === "all"
+                ? "Distribuição de sessões da agenda no período selecionado."
+                : "Pontuações do instrumento selecionado no Supabase."}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-1 flex-col justify-center py-6">
-            <DashboardBarChart
-              variant="vertical"
-              items={skillPerformanceData.map((item) => ({
-                label: item.skill.split(" ")[0],
-                value: item.score,
-              }))}
-            />
+            {skillPerformance.length > 0 ? (
+              <DashboardBarChart
+                variant="vertical"
+                items={skillPerformance.map((item) => ({
+                  label: item.skill.split(" ")[0],
+                  value: item.score,
+                }))}
+              />
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">
+                Nenhum dado disponível para o filtro atual.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -174,9 +226,9 @@ export function LearnerDashboardPanel({
           <CardHeader className="space-y-4 border-b border-border/60 pb-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 space-y-1">
-                <CardTitle>Programas com Maior Desempenho</CardTitle>
+                <CardTitle>Instrumentos de Avaliação</CardTitle>
                 <CardDescription>
-                  Ranking de programas ABA no intervalo filtrado.
+                  Frequência de avaliações registradas no período filtrado.
                 </CardDescription>
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
@@ -187,7 +239,7 @@ export function LearnerDashboardPanel({
                   variant={programRanking === "top" ? "default" : "outline"}
                   onClick={() => setProgramRanking("top")}
                 >
-                  + 10 maior desempenho
+                  + 10 mais frequentes
                 </Button>
                 <Button
                   type="button"
@@ -196,19 +248,24 @@ export function LearnerDashboardPanel({
                   variant={programRanking === "bottom" ? "default" : "outline"}
                   onClick={() => setProgramRanking("bottom")}
                 >
-                  + 10 menor desempenho
+                  + 10 menos frequentes
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="flex-1 py-6">
-            <DashboardBarChart
-              items={programData.map((item) => ({
-                label: item.program,
-                value: item.score,
-              }))}
-              valueSuffix="%"
-            />
+            {programData.length > 0 ? (
+              <DashboardBarChart
+                items={programData.map((item) => ({
+                  label: item.program,
+                  value: item.score,
+                }))}
+              />
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">
+                Nenhuma avaliação encontrada no período.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

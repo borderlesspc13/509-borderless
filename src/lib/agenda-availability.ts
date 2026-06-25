@@ -1,8 +1,5 @@
 import { CLINIC_TIME_SLOTS } from "@/lib/agenda-filter-utils";
-import {
-  getProfessionalsByRole,
-  type ProfessionalRole,
-} from "@/lib/professionals-data";
+import type { ProfessionalRole } from "@/lib/professionals-data";
 
 export type AvailabilitySearchParams = {
   role: ProfessionalRole;
@@ -97,15 +94,6 @@ export function filterAvailableProfessionals(
       })
     );
   });
-}
-
-export function getCatalogProfessionalsByRole(role: ProfessionalRole) {
-  return getProfessionalsByRole(role).map((professional) => ({
-    id: `catalog:${professional.name}`,
-    fullName: professional.name,
-    role: professional.role,
-    source: "catalog" as const,
-  }));
 }
 
 export function getTodayDateKey() {

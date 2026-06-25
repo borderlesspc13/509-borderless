@@ -1,4 +1,4 @@
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 
 export type PaymentStatus = "pendente" | "pago" | "cancelado";
 

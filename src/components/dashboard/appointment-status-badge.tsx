@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { AppointmentStatus } from "@/lib/dashboard-mock-data";
+import type { AppointmentStatus } from "@/lib/agenda-types";
 
 const statusConfig: Record<
   AppointmentStatus,

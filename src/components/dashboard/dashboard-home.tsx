@@ -6,7 +6,7 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { LearnerDashboardPanel } from "@/components/dashboard/learner-dashboard-panel";
 import { ProfessionalDashboardPanel } from "@/components/dashboard/professional-dashboard-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getDefaultDateRange } from "@/lib/dashboard-analytics-data";
+import { getDefaultDateRange } from "@/lib/dashboard-analytics-types";
 import { PageContainer } from "@/components/layout/page-container";
 
 export function DashboardHome() {

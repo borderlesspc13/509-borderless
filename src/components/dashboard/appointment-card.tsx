@@ -29,7 +29,7 @@ import { formatQueueNumber } from "@/lib/reception-panel";
 import type {
   AppointmentStatus,
   DailyAppointment,
-} from "@/lib/dashboard-mock-data";
+} from "@/lib/agenda-types";
 
 const statusOptions: {
   value: AppointmentStatus;

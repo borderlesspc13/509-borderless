@@ -7,6 +7,7 @@ import { AgendaFilters } from "@/components/dashboard/agenda-filters";
 import { Badge } from "@/components/ui/badge";
 import { useAgendaAudit } from "@/hooks/use-agenda-audit";
 import { useAgendaEvents } from "@/hooks/use-agenda-events";
+import { useAgendaProfessionals } from "@/hooks/use-agenda-professionals";
 import { useUserRole } from "@/hooks/use-user-role";
 import { buildDateMoveLog } from "@/lib/audit-log";
 import { moveAppointmentToDate, parseDraggedAppointmentId } from "@/lib/appointment-move-utils";
@@ -23,7 +24,7 @@ import {
   filterAppointmentsByRole,
   type AgendaFilters as AgendaFiltersState,
 } from "@/lib/agenda-filter-utils";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 import {
   formatMonthYear,
   getCalendarDays,
@@ -43,6 +44,8 @@ export function AgendaCalendar() {
     addAppointment,
     refetch,
   } = useAgendaEvents();
+  const { professionals, isLoading: isProfessionalsLoading } =
+    useAgendaProfessionals();
   const today = new Date();
   const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
   const [visibleMonth, setVisibleMonth] = useState(
@@ -83,7 +86,8 @@ export function AgendaCalendar() {
   const selectedAppointments = selectedDateKey
     ? filterAppointmentsByRole(
         appointmentsByDate.get(selectedDateKey) ?? [],
-        filters.role
+        filters.role,
+        professionals
       )
     : [];
 
@@ -207,7 +211,7 @@ export function AgendaCalendar() {
 
       <AgendaFilters filters={filters} onFiltersChange={setFilters} />
 
-      {isLoading ? (
+      {isLoading || isProfessionalsLoading ? (
         <p className="text-sm text-muted-foreground">Carregando agenda...</p>
       ) : null}
 
@@ -267,12 +271,14 @@ export function AgendaCalendar() {
           {calendarDays.map((day) => {
             const dayAppointments = filterAppointmentsByRole(
               appointmentsByDate.get(day.dateKey) ?? [],
-              filters.role
+              filters.role,
+              professionals
             );
             const vacantCount = countVacantSlotsForDate(
               day.dateKey,
               appointments,
-              filters
+              filters,
+              professionals
             );
             const visibleAppointments = dayAppointments.slice(0, 3);
             const hiddenCount =
@@ -371,6 +377,7 @@ export function AgendaCalendar() {
         appointments={selectedAppointments}
         allAppointments={appointments}
         filters={filters}
+        professionals={professionals}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onAppointmentsChange={setAppointments}

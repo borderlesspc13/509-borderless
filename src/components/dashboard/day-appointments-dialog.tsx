@@ -51,9 +51,9 @@ import { formatFullDate } from "@/lib/calendar-utils";
 import type {
   AppointmentStatus,
   DailyAppointment,
-} from "@/lib/dashboard-mock-data";
+} from "@/lib/agenda-types";
 import { PERMISSIONS } from "@/lib/rbac";
-import { professionals } from "@/lib/professionals-data";
+import type { AgendaProfessional } from "@/lib/agenda-professionals";
 
 type PendingStatusUpdate = {
   appointmentId: string;
@@ -67,6 +67,7 @@ type DayAppointmentsDialogProps = {
   appointments: DailyAppointment[];
   allAppointments: DailyAppointment[];
   filters: AgendaFilters;
+  professionals: AgendaProfessional[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAppointmentsChange: (appointments: DailyAppointment[]) => void;
@@ -111,6 +112,7 @@ export function DayAppointmentsDialog({
   appointments,
   allAppointments,
   filters,
+  professionals,
   open,
   onOpenChange,
   onAppointmentsChange,
@@ -139,7 +141,7 @@ export function DayAppointmentsDialog({
 
   const showVacantOnly = filters.availability === "vacant";
   const vacantSlots = dateKey
-    ? getVacantSlotsForDate(dateKey, allAppointments, filters)
+    ? getVacantSlotsForDate(dateKey, allAppointments, filters, professionals)
     : [];
   const waitingCount = appointments.filter(
     (item) => item.status === "em_espera"
@@ -185,7 +187,7 @@ export function DayAppointmentsDialog({
 
     setAppointmentDefaults({
       professionalName: slot.professional,
-      professionalRole: slot.role,
+      professionalRole: slot.role ?? undefined,
       eventDate: dateKey,
       startTime: slot.time,
       endTime: slot.endTime,
@@ -445,9 +447,9 @@ export function DayAppointmentsDialog({
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {professionals.map((professional) => (
                       <AgendaDropZone
-                        key={professional.name}
+                        key={professional.id}
                         label={professional.name}
-                        description={professional.role}
+                        description={professional.role ?? undefined}
                         onDropAppointment={handleMoveToProfessional(
                           professional.name
                         )}

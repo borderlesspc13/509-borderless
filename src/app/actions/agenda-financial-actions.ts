@@ -15,7 +15,7 @@ import { getDefaultSessionAmount } from "@/lib/payment/env";
 import { PERMISSIONS } from "@/lib/rbac";
 import { createPaymentLink } from "@/services/payment";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { DailyAppointment, PaymentStatus } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment, PaymentStatus } from "@/lib/agenda-types";
 import type { AgendaEventRow } from "@/lib/supabase/database.types";
 
 type ActionResult<T = undefined> =

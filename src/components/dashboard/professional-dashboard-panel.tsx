@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import { Download } from "lucide-react";
 
+import { getProfessionalDashboardDataAction } from "@/app/actions/dashboard-analytics-actions";
 import { DashboardChartPanel } from "@/components/dashboard/dashboard-chart-panel";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { Button } from "@/components/ui/button";
@@ -19,27 +21,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  dashboardProfessionals,
-  dashboardServiceTypes,
-  professionalDashboardMetrics,
-  sessionsByLearnerData,
-  sessionsByWeekData,
-} from "@/lib/dashboard-analytics-data";
+import { dashboardServiceTypes } from "@/lib/dashboard-analytics-types";
+import type { ProfessionalMetric } from "@/lib/dashboard-analytics-types";
 import { cn } from "@/lib/utils";
 
 const filterFieldClassName = "min-w-0 space-y-2";
 const filterControlClassName = "!h-11 w-full min-w-0";
 
-const professionalSelectItems = dashboardProfessionals.map((professional) => ({
-  label: professional.label,
-  value: professional.id,
-}));
-
 const serviceTypeItems = dashboardServiceTypes.map((type) => ({
   label: type.label,
   value: type.id,
 }));
+
+const emptyMetrics: ProfessionalMetric[] = [
+  {
+    label: "Sessões Realizadas",
+    value: "0",
+    icon: "sessions",
+    accent: "emerald",
+  },
+  {
+    label: "Horas de Atendimento",
+    value: "0 minutos",
+    icon: "hours",
+    accent: "sky",
+  },
+  {
+    label: "Aprendizes Atendidos",
+    value: "0",
+    icon: "programs",
+    accent: "slate",
+  },
+  {
+    label: "Média Aprendizes/Sessão",
+    value: "0",
+    icon: "avgPrograms",
+    accent: "muted",
+  },
+];
 
 type ProfessionalDashboardPanelProps = {
   startDate: string;
@@ -54,6 +73,41 @@ export function ProfessionalDashboardPanel({
   onStartDateChange,
   onEndDateChange,
 }: ProfessionalDashboardPanelProps) {
+  const [professionalUserId, setProfessionalUserId] = useState("all");
+  const [professionals, setProfessionals] = useState([
+    { id: "all", label: "Todos os profissionais" },
+  ]);
+  const [metrics, setMetrics] = useState(emptyMetrics);
+  const [sessionsByLearner, setSessionsByLearner] = useState<
+    Array<{ learner: string; sessions: number }>
+  >([]);
+  const [sessionsByWeek, setSessionsByWeek] = useState<
+    Array<{ weekLabel: string; sessions: number }>
+  >([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, startTransition] = useTransition();
+
+  useEffect(() => {
+    startTransition(async () => {
+      const result = await getProfessionalDashboardDataAction({
+        startDate,
+        endDate,
+        professionalUserId,
+      });
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      setError(null);
+      setProfessionals(result.data.professionals);
+      setMetrics(result.data.metrics);
+      setSessionsByLearner(result.data.sessionsByLearner);
+      setSessionsByWeek(result.data.sessionsByWeek);
+    });
+  }, [startDate, endDate, professionalUserId]);
+
   return (
     <div className="space-y-6">
       <Card className="shadow-sm">
@@ -61,8 +115,12 @@ export function ProfessionalDashboardPanel({
           <div className={cn(filterFieldClassName, "xl:col-span-2")}>
             <Label htmlFor="dashboard-professional">Profissional</Label>
             <Select
-              defaultValue="all"
-              items={professionalSelectItems}
+              value={professionalUserId}
+              items={professionals.map((professional) => ({
+                label: professional.label,
+                value: professional.id,
+              }))}
+              onValueChange={(value) => setProfessionalUserId(value as string)}
             >
               <SelectTrigger
                 id="dashboard-professional"
@@ -72,7 +130,7 @@ export function ProfessionalDashboardPanel({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {dashboardProfessionals.map((professional) => (
+                  {professionals.map((professional) => (
                     <SelectItem key={professional.id} value={professional.id}>
                       {professional.label}
                     </SelectItem>
@@ -139,8 +197,16 @@ export function ProfessionalDashboardPanel({
         </CardContent>
       </Card>
 
+      {error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : null}
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Carregando indicadores...</p>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {professionalDashboardMetrics.map((metric) => (
+        {metrics.map((metric) => (
           <DashboardMetricCard
             key={metric.label}
             label={metric.label}
@@ -161,21 +227,21 @@ export function ProfessionalDashboardPanel({
             { value: "stats", label: "Estatísticas" },
           ]}
           dataByTab={{
-            sessions: sessionsByLearnerData.map((item) => ({
+            sessions: sessionsByLearner.map((item) => ({
               label: item.learner,
               value: item.sessions,
             })),
-            hours: sessionsByLearnerData.map((item) => ({
+            hours: sessionsByLearner.map((item) => ({
               label: item.learner,
-              value: 1,
+              value: item.sessions,
             })),
-            stats: sessionsByLearnerData.map((item) => ({
+            stats: sessionsByLearner.map((item) => ({
               label: item.learner,
               value: item.sessions,
             })),
           }}
           variant="horizontal"
-          footnotes={["* Este gráfico analisa apenas horas completas."]}
+          footnotes={["* Dados consolidados a partir da agenda no Supabase."]}
         />
 
         <DashboardChartPanel
@@ -186,15 +252,15 @@ export function ProfessionalDashboardPanel({
             { value: "stats", label: "Estatísticas" },
           ]}
           dataByTab={{
-            sessions: sessionsByWeekData.map((item) => ({
+            sessions: sessionsByWeek.map((item) => ({
               label: item.weekLabel,
               value: item.sessions,
             })),
-            minutes: sessionsByWeekData.map((item) => ({
+            minutes: sessionsByWeek.map((item) => ({
               label: item.weekLabel,
-              value: 1,
+              value: item.sessions,
             })),
-            stats: sessionsByWeekData.map((item) => ({
+            stats: sessionsByWeek.map((item) => ({
               label: item.weekLabel,
               value: item.sessions,
             })),
@@ -203,7 +269,7 @@ export function ProfessionalDashboardPanel({
           barClassName="bg-sky-400"
           footnotes={[
             "* A semana inicia no domingo e termina no sábado.",
-            "* Este gráfico analisa apenas horas completas.",
+            "* Dados consolidados a partir da agenda no Supabase.",
           ]}
         />
       </div>

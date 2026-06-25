@@ -2,15 +2,13 @@
 
 import { mapAgendaEventToDailyAppointment } from "@/lib/agenda-events";
 import { toDateKey } from "@/lib/calendar-utils";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
-import { monthlyAppointments } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 import { requirePermission } from "@/lib/auth-guard";
 import {
   resolveQueueNumberForAppointment,
 } from "@/lib/reception-panel-queue";
 import {
   buildReceptionPanelData,
-  mockReceptionPanelData,
   type ReceptionPanelData,
 } from "@/lib/reception-panel";
 import { PERMISSIONS } from "@/lib/rbac";
@@ -40,7 +38,7 @@ export async function getReceptionPanelDataAction(): Promise<
   const todayKey = toDateKey(new Date());
 
   if (!supabase) {
-    return { success: true, data: mockReceptionPanelData };
+    return { success: false, error: "Supabase não configurado." };
   }
 
   const { data, error } = await supabase
@@ -153,15 +151,7 @@ export async function resolveQueueNumberForWaitingAction(
   const supabase = await createServerSupabaseClient();
 
   if (!supabase) {
-    const waitingToday = monthlyAppointments.filter(
-      (appointment) =>
-        appointment.date === eventDate && appointment.status === "em_espera"
-    ).length;
-
-    return {
-      success: true,
-      data: { queueNumber: waitingToday + 1 },
-    };
+    return { success: false, error: "Supabase não configurado." };
   }
 
   const { data: existingEvent, error: fetchError } = await supabase

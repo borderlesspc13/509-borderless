@@ -14,6 +14,7 @@ import {
 
 import { updatePatientAction } from "@/app/actions/patient-record-actions";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
+import { useAiEntityContext } from "@/features/ai/presentation/hooks/use-ai-entity-context";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,6 +139,11 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useAiEntityContext({
+    entityId: patient.id,
+    entityLabel: patient.full_name,
+  });
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

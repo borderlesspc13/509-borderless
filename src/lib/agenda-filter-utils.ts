@@ -1,9 +1,10 @@
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
 import {
-  getProfessionalRole,
-  getProfessionalsByRole,
-  type ProfessionalRole,
-} from "@/lib/professionals-data";
+  filterAgendaProfessionalsByRole,
+  getAgendaProfessionalRole,
+  type AgendaProfessional,
+} from "@/lib/agenda-professionals";
+import type { DailyAppointment } from "@/lib/agenda-types";
+import type { ProfessionalRole } from "@/lib/professionals-data";
 
 export type AgendaAvailabilityFilter = "all" | "vacant";
 
@@ -23,7 +24,7 @@ export type VacantSlot = {
   time: string;
   endTime: string;
   professional: string;
-  role: ProfessionalRole;
+  role: ProfessionalRole | null;
 };
 
 export const CLINIC_TIME_SLOTS = [
@@ -72,23 +73,33 @@ export function countActiveFilters(filters: AgendaFilters) {
 
 export function filterAppointmentsByRole(
   appointments: DailyAppointment[],
-  role: ProfessionalRole | "all"
+  role: ProfessionalRole | "all",
+  professionals: AgendaProfessional[]
 ) {
   if (role === "all") {
     return appointments;
   }
 
   return appointments.filter(
-    (appointment) => getProfessionalRole(appointment.professional) === role
+    (appointment) =>
+      getAgendaProfessionalRole(
+        professionals,
+        appointment.professional,
+        appointment.professionalUserId
+      ) === role
   );
 }
 
 export function getVacantSlotsForDate(
   date: string,
   appointments: DailyAppointment[],
-  filters: AgendaFilters
+  filters: AgendaFilters,
+  professionals: AgendaProfessional[]
 ): VacantSlot[] {
-  const matchingProfessionals = getProfessionalsByRole(filters.role);
+  const matchingProfessionals = filterAgendaProfessionalsByRole(
+    professionals,
+    filters.role
+  );
   const vacantSlots: VacantSlot[] = [];
 
   matchingProfessionals.forEach((professional) => {
@@ -102,7 +113,7 @@ export function getVacantSlotsForDate(
         )
       ) {
         vacantSlots.push({
-          id: `${date}-${professional.name}-${slot.time}`,
+          id: `${date}-${professional.id}-${slot.time}`,
           date,
           time: slot.time,
           endTime: slot.endTime,
@@ -119,15 +130,22 @@ export function getVacantSlotsForDate(
 export function countVacantSlotsForDate(
   date: string,
   appointments: DailyAppointment[],
-  filters: AgendaFilters
+  filters: AgendaFilters,
+  professionals: AgendaProfessional[]
 ) {
-  return getVacantSlotsForDate(date, appointments, filters).length;
+  return getVacantSlotsForDate(
+    date,
+    appointments,
+    filters,
+    professionals
+  ).length;
 }
 
 export function hasVacantSlotsForDate(
   date: string,
   appointments: DailyAppointment[],
-  filters: AgendaFilters
+  filters: AgendaFilters,
+  professionals: AgendaProfessional[]
 ) {
-  return countVacantSlotsForDate(date, appointments, filters) > 0;
+  return countVacantSlotsForDate(date, appointments, filters, professionals) > 0;
 }

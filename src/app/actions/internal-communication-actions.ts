@@ -2,7 +2,7 @@
 
 import { requirePermission } from "@/lib/auth-guard";
 import { mapAgendaEventToDailyAppointment } from "@/lib/agenda-events";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type {
   InternalMessageRow,

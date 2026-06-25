@@ -34,7 +34,7 @@ import {
   parseSessionAmountInput,
   paymentStatusLabels,
 } from "@/lib/agenda-financial";
-import type { DailyAppointment, PaymentStatus } from "@/lib/dashboard-mock-data";
+import type { DailyAppointment, PaymentStatus } from "@/lib/agenda-types";
 import { PERMISSIONS } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 

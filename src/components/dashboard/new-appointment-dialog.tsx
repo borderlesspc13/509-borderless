@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { createAppointmentAction } from "@/app/actions/agenda-availability-actions";
+import { listAgendaProfessionalsAction } from "@/app/actions/dashboard-analytics-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,12 +42,8 @@ import {
 } from "@/lib/agenda-availability";
 import { formatFullDate } from "@/lib/calendar-utils";
 import type { AppointmentConflictType } from "@/lib/agenda-conflicts";
-import type { DailyAppointment } from "@/lib/dashboard-mock-data";
-import {
-  getProfessionalRole,
-  professionals,
-  type ProfessionalRole,
-} from "@/lib/professionals-data";
+import type { DailyAppointment } from "@/lib/agenda-types";
+import type { ProfessionalRole } from "@/lib/professionals-data";
 import { cn } from "@/lib/utils";
 
 export type NewAppointmentDefaults = {
@@ -74,10 +71,11 @@ function isPrefilledMode(defaults?: NewAppointmentDefaults | null) {
   );
 }
 
-const professionalSelectItems = professionals.map((professional) => ({
-  label: `${professional.name} · ${professional.role}`,
-  value: professional.name,
-}));
+type AgendaProfessionalOption = {
+  id: string;
+  fullName: string;
+  professionalRole: ProfessionalRole | null;
+};
 
 function SummaryRow({
   label,
@@ -124,6 +122,13 @@ export function NewAppointmentDialog({
     useState<AppointmentConflictType | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [professionals, setProfessionals] = useState<AgendaProfessionalOption[]>(
+    []
+  );
+  const [professionalUserId, setProfessionalUserId] = useState<string | null>(
+    null
+  );
+  const [isLoadingProfessionals, setIsLoadingProfessionals] = useState(false);
 
   const startTimeOptions = useMemo(() => getTimeSlotOptions(), []);
   const endTimeOptions = useMemo(
@@ -131,8 +136,22 @@ export function NewAppointmentDialog({
     [startTime]
   );
 
+  const professionalSelectItems = useMemo(
+    () =>
+      professionals.map((professional) => ({
+        label: professional.professionalRole
+          ? `${professional.fullName} · ${professional.professionalRole}`
+          : professional.fullName,
+        value: professional.fullName,
+      })),
+    [professionals]
+  );
+
   const selectedProfessionalRole =
-    defaults?.professionalRole ?? getProfessionalRole(professionalName);
+    defaults?.professionalRole ??
+    professionals.find((professional) => professional.fullName === professionalName)
+      ?.professionalRole ??
+    null;
 
   const isSubmitDisabled =
     isPending ||
@@ -151,11 +170,23 @@ export function NewAppointmentDialog({
     setConflictType(null);
     setSuccessMessage(null);
     setProfessionalName(defaults?.professionalName ?? "");
+    setProfessionalUserId(defaults?.professionalUserId ?? null);
     setEventDate(defaults?.eventDate ?? getTodayDateKey());
     setStartTime(defaults?.startTime ?? "09:00");
     setEndTime(
       defaults?.endTime ?? resolveDefaultEndTime(defaults?.startTime ?? "09:00")
     );
+
+    setIsLoadingProfessionals(true);
+    void listAgendaProfessionalsAction().then((result) => {
+      if (result.success && result.data) {
+        setProfessionals(result.data.professionals);
+      } else {
+        setProfessionals([]);
+      }
+
+      setIsLoadingProfessionals(false);
+    });
   }, [open, defaults]);
 
   function handleStartTimeChange(value: string) {
@@ -177,6 +208,7 @@ export function NewAppointmentDialog({
       : {
           patientName,
           professionalName,
+          professionalUserId,
           eventDate,
           startTime,
           endTime,
@@ -298,9 +330,14 @@ export function NewAppointmentDialog({
                   <Select
                     value={professionalName}
                     items={professionalSelectItems}
-                    onValueChange={(value) =>
-                      setProfessionalName(value as string)
-                    }
+                    onValueChange={(value) => {
+                      const selected = professionals.find(
+                        (professional) => professional.fullName === value
+                      );
+                      setProfessionalName(value as string);
+                      setProfessionalUserId(selected?.id ?? null);
+                    }}
+                    disabled={isLoadingProfessionals}
                   >
                     <SelectTrigger
                       id="appointment-professional"
@@ -312,10 +349,12 @@ export function NewAppointmentDialog({
                       <SelectGroup>
                         {professionals.map((professional) => (
                           <SelectItem
-                            key={professional.name}
-                            value={professional.name}
+                            key={professional.id}
+                            value={professional.fullName}
                           >
-                            {professional.name} · {professional.role}
+                            {professional.professionalRole
+                              ? `${professional.fullName} · ${professional.professionalRole}`
+                              : professional.fullName}
                           </SelectItem>
                         ))}
                       </SelectGroup>

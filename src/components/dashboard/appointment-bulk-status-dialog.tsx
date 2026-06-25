@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { AppointmentStatus } from "@/lib/dashboard-mock-data";
+import type { AppointmentStatus } from "@/lib/agenda-types";
 
 const statusLabels: Record<"confirmado" | "cancelado", string> = {
   confirmado: "Confirmado",

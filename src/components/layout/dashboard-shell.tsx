@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 
 import { AccessDeniedBanner } from "@/components/layout/access-denied-banner";
 import { PatientWaitingBanner } from "@/components/internal-communication/patient-waiting-banner";
+import { AiModuleCopilot } from "@/features/ai/presentation/components/ai-assistants";
 import { AppLogo } from "@/components/layout/app-logo";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
@@ -52,6 +53,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <main className="flex-1 overflow-y-auto">
           <div className="page-content">{children}</div>
         </main>
+
+        <AiModuleCopilot />
       </div>
 
       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>

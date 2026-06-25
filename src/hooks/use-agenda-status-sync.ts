@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 
 import { syncAgendaStatusAction } from "@/app/actions/internal-communication-actions";
-import type { AppointmentStatus, DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { AppointmentStatus, DailyAppointment } from "@/lib/agenda-types";
 
 export function useAgendaStatusSync() {
   const syncAppointmentStatus = useCallback(

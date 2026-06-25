@@ -1,4 +1,4 @@
-import type { AppointmentStatus, DailyAppointment } from "@/lib/dashboard-mock-data";
+import type { AppointmentStatus, DailyAppointment } from "@/lib/agenda-types";
 import { toDateKey } from "@/lib/calendar-utils";
 
 export type BulkStatus = Extract<AppointmentStatus, "confirmado" | "cancelado">;
