@@ -24,6 +24,10 @@ import {
   filterAppointmentsByRole,
   type AgendaFilters as AgendaFiltersState,
 } from "@/lib/agenda-filter-utils";
+import {
+  filterAppointmentsByIndividualFilter,
+  type AgendaIndividualFilter,
+} from "@/lib/agenda-individual-filter";
 import type { DailyAppointment } from "@/lib/agenda-types";
 import {
   formatMonthYear,
@@ -33,7 +37,13 @@ import {
 } from "@/lib/calendar-utils";
 import { cn } from "@/lib/utils";
 
-export function AgendaCalendar() {
+type AgendaCalendarProps = {
+  individualFilter?: AgendaIndividualFilter | null;
+};
+
+export function AgendaCalendar({
+  individualFilter = null,
+}: AgendaCalendarProps) {
   const { isAgendaReadOnly, canDragAppointments, canManageAgenda } =
     useUserRole();
   const { recordAuditLogs } = useAgendaAudit();
@@ -59,6 +69,22 @@ export function AgendaCalendar() {
     useState<NewAppointmentDefaults | null>(null);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
 
+  const scopedProfessionals = useMemo(() => {
+    if (individualFilter?.type === "professional") {
+      return professionals.filter(
+        (professional) => professional.id === individualFilter.id
+      );
+    }
+
+    return professionals;
+  }, [individualFilter, professionals]);
+
+  const visibleAppointments = useMemo(
+    () =>
+      filterAppointmentsByIndividualFilter(appointments, individualFilter),
+    [appointments, individualFilter]
+  );
+
   const calendarDays = useMemo(
     () =>
       getCalendarDays(visibleMonth.getFullYear(), visibleMonth.getMonth()),
@@ -68,7 +94,7 @@ export function AgendaCalendar() {
   const appointmentsByDate = useMemo(() => {
     const map = new Map<string, DailyAppointment[]>();
 
-    appointments.forEach((appointment) => {
+    visibleAppointments.forEach((appointment) => {
       const existing = map.get(appointment.date) ?? [];
       map.set(appointment.date, [...existing, appointment]);
     });
@@ -81,13 +107,13 @@ export function AgendaCalendar() {
     });
 
     return map;
-  }, [appointments]);
+  }, [visibleAppointments]);
 
   const selectedAppointments = selectedDateKey
     ? filterAppointmentsByRole(
         appointmentsByDate.get(selectedDateKey) ?? [],
         filters.role,
-        professionals
+        scopedProfessionals
       )
     : [];
 
@@ -175,6 +201,12 @@ export function AgendaCalendar() {
       <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
+            {individualFilter ? (
+              <Badge variant="secondary" className="gap-1">
+                {individualFilter.type === "patient" ? "Paciente" : "Profissional"}
+                : {individualFilter.name}
+              </Badge>
+            ) : null}
             {isAgendaReadOnly ? (
               <Badge
                 variant="outline"
@@ -186,7 +218,9 @@ export function AgendaCalendar() {
             ) : null}
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            {isAgendaReadOnly
+            {individualFilter
+              ? `Exibindo atendimentos de ${individualFilter.name}.`
+              : isAgendaReadOnly
               ? "Visualize os atendimentos do dia. Seu perfil não permite alterações na agenda."
               : "Toque em um dia para ver os atendimentos agendados ou arraste sessões entre datas."}
           </p>
@@ -272,17 +306,17 @@ export function AgendaCalendar() {
             const dayAppointments = filterAppointmentsByRole(
               appointmentsByDate.get(day.dateKey) ?? [],
               filters.role,
-              professionals
+              scopedProfessionals
             );
             const vacantCount = countVacantSlotsForDate(
               day.dateKey,
               appointments,
               filters,
-              professionals
+              scopedProfessionals
             );
-            const visibleAppointments = dayAppointments.slice(0, 3);
+            const previewAppointments = dayAppointments.slice(0, 3);
             const hiddenCount =
-              dayAppointments.length - visibleAppointments.length;
+              dayAppointments.length - previewAppointments.length;
             const hasAppointments = dayAppointments.length > 0;
             const hasVacantSlots = vacantCount > 0;
 
@@ -333,7 +367,7 @@ export function AgendaCalendar() {
                   ) : null
                 ) : hasAppointments ? (
                   <div className="mt-auto flex flex-wrap items-center gap-0.5 sm:gap-1">
-                    {visibleAppointments.map((appointment) => (
+                    {previewAppointments.map((appointment) => (
                       <AppointmentDayIcon
                         key={appointment.id}
                         status={appointment.status}
@@ -377,7 +411,7 @@ export function AgendaCalendar() {
         appointments={selectedAppointments}
         allAppointments={appointments}
         filters={filters}
-        professionals={professionals}
+        professionals={scopedProfessionals}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onAppointmentsChange={setAppointments}
