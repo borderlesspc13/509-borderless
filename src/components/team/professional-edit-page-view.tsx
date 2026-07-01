@@ -8,6 +8,7 @@ import {
   updateProfessionalAction,
   type TeamMember,
 } from "@/app/actions/team-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ export function ProfessionalEditPageView({
   const [professionalCouncil, setProfessionalCouncil] = useState(
     professional.professionalCouncil ?? ""
   );
+  const toast = useAppToast();
   const [profile, setProfile] = useState<UserProfile>(professional.profile);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -122,11 +124,17 @@ export function ProfessionalEditPageView({
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível salvar o profissional.");
+        const message = result.error ?? "Não foi possível salvar o profissional.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar", description: message });
         return;
       }
 
       setSuccessMessage("Dados do profissional salvos com sucesso.");
+      toast.success({
+        title: "Dados salvos",
+        description: "As informações do profissional foram atualizadas.",
+      });
     });
   }
 

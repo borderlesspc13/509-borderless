@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useInternalCommunication } from "@/contexts/internal-communication-context";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { getProfileLabel } from "@/lib/user-profile";
 import type { UserProfile } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ export function ReceptionMessaging({
   onOpenChange,
 }: ReceptionMessagingProps) {
   const { onlineProfessionals, sendMessage } = useInternalCommunication();
+  const toast = useAppToast();
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<
     string | null
   >(null);
@@ -56,9 +58,17 @@ export function ReceptionMessaging({
     if (success) {
       setMessage("");
       setFeedback("Mensagem enviada com sucesso.");
+      toast.success({
+        title: "Mensagem enviada",
+        description: "Mensagem enviada ao profissional.",
+      });
       onOpenChange?.(false);
     } else {
       setFeedback("Não foi possível enviar a mensagem.");
+      toast.error({
+        title: "Falha no envio",
+        description: "Não foi possível enviar a mensagem.",
+      });
     }
   }
 

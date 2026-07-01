@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 
 import { getLearnerDashboardDataAction } from "@/app/actions/dashboard-analytics-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardBarChart } from "@/components/dashboard/dashboard-bar-chart";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ export function LearnerDashboardPanel({
   const [skillPerformance, setSkillPerformance] = useState<SkillPerformance[]>([]);
   const [topPrograms, setTopPrograms] = useState<ProgramPerformance[]>([]);
   const [bottomPrograms, setBottomPrograms] = useState<ProgramPerformance[]>([]);
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, startTransition] = useTransition();
 
@@ -75,6 +77,11 @@ export function LearnerDashboardPanel({
 
       if (!result.success) {
         setError(result.error);
+        toast.error({
+          title: "Falha ao carregar",
+          description:
+            result.error ?? "Não foi possível carregar os indicadores.",
+        });
         return;
       }
 

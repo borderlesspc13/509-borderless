@@ -5,12 +5,14 @@ import Link from "next/link";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { resetPasswordAction } from "@/app/actions/auth-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { AuthCard } from "@/components/auth/auth-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function ForgotPasswordForm() {
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -27,11 +29,19 @@ export function ForgotPasswordForm() {
 
       if (result?.error) {
         setError(result.error);
+        toast.error({
+          title: "Não foi possível enviar",
+          description: result.error,
+        });
         return;
       }
 
       if (result?.message) {
         setSuccessMessage(result.message);
+        toast.success({
+          title: "E-mail enviado",
+          description: result.message,
+        });
       }
     });
   }

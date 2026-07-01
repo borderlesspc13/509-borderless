@@ -8,6 +8,7 @@ import {
   deleteDocumentTemplateAction,
   toggleDocumentTemplateStatusAction,
 } from "@/app/actions/document-template-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { ProtectedComponent } from "@/components/auth/protected-component";
 import { AppSearchField } from "@/components/ui/app-search-field";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -74,6 +75,7 @@ export function DocumentTemplateList({
   templates,
   onTemplatesChange,
 }: DocumentTemplateListProps) {
+  const toast = useAppToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -110,9 +112,17 @@ export function DocumentTemplateList({
     const result = await toggleDocumentTemplateStatusAction(template.id);
 
     if (!result.success || !result.data?.template) {
-      setError(result.error ?? "Não foi possível alterar o status.");
+      const message = result.error ?? "Não foi possível alterar o status.";
+      setError(message);
+      toast.error({ title: "Falha na alteração", description: message });
       return;
     }
+
+    const isActive = result.data.template.status === "active";
+    toast.success({
+      title: "Status alterado",
+      description: `O modelo foi ${isActive ? "ativado" : "inativado"}.`,
+    });
 
     onTemplatesChange(
       templates.map((item) =>
@@ -134,9 +144,16 @@ export function DocumentTemplateList({
     setIsDeleting(false);
 
     if (!result.success) {
-      setError(result.error ?? "Não foi possível excluir o modelo.");
+      const message = result.error ?? "Não foi possível excluir o modelo.";
+      setError(message);
+      toast.error({ title: "Falha ao excluir", description: message });
       return;
     }
+
+    toast.success({
+      title: "Modelo excluído",
+      description: "O modelo foi removido permanentemente.",
+    });
 
     onTemplatesChange(templates.filter((item) => item.id !== deleteTarget.id));
     setDeleteTarget(null);

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 
 import { signInAction } from "@/app/actions/auth-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { AuthCard } from "@/components/auth/auth-card";
 import { PasswordInput } from "@/components/auth/password-input";
 import { LogoutButton } from "@/components/layout/logout-button";
@@ -16,6 +17,7 @@ import { Label } from "@/components/ui/label";
 export function LoginForm() {
   const searchParams = useSearchParams();
   const isPendingProfile = searchParams.get("erro") === "perfil-pendente";
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -30,6 +32,10 @@ export function LoginForm() {
 
       if (result?.error) {
         setError(result.error);
+        toast.error({
+          title: "Não foi possível entrar",
+          description: result.error,
+        });
       }
     });
   }

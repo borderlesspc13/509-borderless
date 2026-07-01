@@ -11,9 +11,12 @@ import {
 
 import { ToastViewport } from "@/components/ui/toast-viewport";
 
+export type ToastVariant = "success" | "error" | "warning" | "info";
+
 export type ToastInput = {
   title: string;
   description?: string;
+  variant?: ToastVariant;
   duration?: number;
   onClick?: () => void;
 };

@@ -19,6 +19,7 @@ import {
   savePatientEvolutionAction,
   type PatientRecordData,
 } from "@/app/actions/patient-record-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { ProtectedComponent } from "@/components/auth/protected-component";
 import {
   RichTextEditor,
@@ -97,6 +98,7 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
     useUserRole();
   const canManageEvolution = hasPermission(PERMISSIONS.CLINICAL_EVOLUTION_MANAGE);
 
+  const toast = useAppToast();
   const [sessionDate, setSessionDate] = useState(toDateKey(new Date()));
   const [contentHtml, setContentHtml] = useState("");
   const [isLoadingEvolution, setIsLoadingEvolution] = useState(false);
@@ -124,10 +126,9 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
     const result = await loadPatientEvolutionAction(patient.id, sessionDate);
 
     if (!result.success) {
-      setFeedback({
-        type: "error",
-        message: result.error ?? "Não foi possível carregar a evolução.",
-      });
+      const message = result.error ?? "Não foi possível carregar a evolução.";
+      setFeedback({ type: "error", message });
+      toast.error({ title: "Falha ao carregar", description: message });
       setContentHtml("");
       setIsLoadingEvolution(false);
       return;
@@ -160,10 +161,9 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
     setIsSaving(false);
 
     if (!result.success || !result.data?.record) {
-      setFeedback({
-        type: "error",
-        message: result.error ?? "Não foi possível salvar a evolução.",
-      });
+      const message = result.error ?? "Não foi possível salvar a evolução.";
+      setFeedback({ type: "error", message });
+      toast.error({ title: "Falha ao salvar", description: message });
       return;
     }
 
@@ -176,12 +176,15 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
       );
     });
 
-    setFeedback({
-      type: "success",
-      message:
-        status === "finalized"
-          ? "Evolução finalizada e registrada no prontuário."
-          : "Rascunho salvo com sucesso.",
+    const successMessage =
+      status === "finalized"
+        ? "Evolução finalizada e registrada no prontuário."
+        : "Rascunho salvo com sucesso.";
+
+    setFeedback({ type: "success", message: successMessage });
+    toast.success({
+      title: status === "finalized" ? "Evolução registrada" : "Rascunho salvo",
+      description: successMessage,
     });
   }
 

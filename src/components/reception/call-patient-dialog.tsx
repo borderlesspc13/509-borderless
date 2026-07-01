@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Megaphone } from "lucide-react";
 
 import { callPatientAction } from "@/app/actions/reception-panel-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,6 +31,7 @@ export function CallPatientDialog({
   onOpenChange,
   onPatientCalled,
 }: CallPatientDialogProps) {
+  const toast = useAppToast();
   const [roomName, setRoomName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -63,9 +65,16 @@ export function CallPatientDialog({
       });
 
       if (!result.success || !result.data?.appointment) {
-        setError(result.error ?? "Não foi possível chamar o paciente.");
+        const message = result.error ?? "Não foi possível chamar o paciente.";
+        setError(message);
+        toast.error({ title: "Falha na chamada", description: message });
         return;
       }
+
+      toast.success({
+        title: "Paciente chamado",
+        description: `${appointment.patient} foi exibido no painel da recepção.`,
+      });
 
       onPatientCalled(result.data.appointment);
       onOpenChange(false);

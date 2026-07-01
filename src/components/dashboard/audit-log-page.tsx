@@ -9,11 +9,13 @@ import {
   fetchAuditLogsAction,
   type AuditLogFilters,
 } from "@/app/actions/audit-log-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { AuditLogFiltersBar } from "@/components/dashboard/audit-log-filters";
 import { AuditLogTable } from "@/components/dashboard/audit-log-table";
 import type { AgendaAuditLogRow } from "@/lib/supabase/database.types";
 
 export function AuditLogPage() {
+  const toast = useAppToast();
   const [filters, setFilters] = useState<AuditLogFilters>({});
   const [logs, setLogs] = useState<AgendaAuditLogRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,7 +28,10 @@ export function AuditLogPage() {
     const result = await fetchAuditLogsAction(nextFilters);
 
     if (!result.success) {
-      setError(result.error ?? "Não foi possível carregar o log de auditoria.");
+      const message =
+        result.error ?? "Não foi possível carregar o log de auditoria.";
+      setError(message);
+      toast.error({ title: "Falha ao carregar", description: message });
       setLogs([]);
       setIsLoading(false);
       return;

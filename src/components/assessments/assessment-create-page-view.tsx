@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Info, Plus } from "lucide-react";
 
 import { saveAssessmentTemplateAction } from "@/app/actions/assessment-template-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ function EmptyTableMessage() {
 
 export function AssessmentCreatePageView() {
   const router = useRouter();
+  const toast = useAppToast();
   const [evaluationType, setEvaluationType] =
     useState<AssessmentEvaluationType>("acquisition");
   const [name, setName] = useState("");
@@ -49,7 +51,12 @@ export function AssessmentCreatePageView() {
   const [isPending, startTransition] = useTransition();
 
   function requireGeneralSave() {
-    setError('Salve a aba "Geral" antes de cadastrar itens nesta seção.');
+    const message = 'Salve a aba "Geral" antes de cadastrar itens nesta seção.';
+    setError(message);
+    toast.warning({
+      title: "Salve a aba Geral",
+      description: message,
+    });
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -64,9 +71,16 @@ export function AssessmentCreatePageView() {
       });
 
       if (!result.success || !result.data?.template) {
-        setError(result.error ?? "Não foi possível salvar a avaliação.");
+        const message = result.error ?? "Não foi possível salvar a avaliação.";
+        setError(message);
+        toast.error({ title: "Falha ao criar avaliação", description: message });
         return;
       }
+
+      toast.success({
+        title: "Avaliação criada",
+        description: "Continue configurando níveis e habilidades.",
+      });
 
       router.push(`/dashboard/avaliacoes/${result.data.template.id}/editar`);
       router.refresh();

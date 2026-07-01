@@ -3,6 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 
 import { sendAiMessageAction } from "@/app/actions/ai-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import type { AiAgentId, AiChatMessage, AiScreenContext, AiToolCallTrace } from "@/features/ai/domain/types";
 
 type UseAiChatOptions = {
@@ -11,6 +12,7 @@ type UseAiChatOptions = {
 };
 
 export function useAiChat({ agentId, screenContext }: UseAiChatOptions) {
+  const toast = useAppToast();
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
   const [toolCalls, setToolCalls] = useState<AiToolCallTrace[]>([]);
   const [mode, setMode] = useState<"mock" | "live">("mock");
@@ -44,7 +46,12 @@ export function useAiChat({ agentId, screenContext }: UseAiChatOptions) {
         });
 
         if (!result.success || !result.data) {
-          setError(result.success ? "Resposta inválida." : result.error);
+          const message = result.success ? "Resposta inválida." : result.error;
+          setError(message);
+          toast.error({
+            title: "Assistente indisponível",
+            description: message ?? "Não foi possível obter resposta. Tente novamente.",
+          });
           return;
         }
 

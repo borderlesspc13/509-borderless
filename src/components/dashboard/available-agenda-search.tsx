@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { searchAvailableProfessionalsAction } from "@/app/actions/agenda-availability-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   NewAppointmentDialog,
   type NewAppointmentDefaults,
@@ -45,6 +46,7 @@ const roleSelectItems = PROFESSIONAL_ROLES.map((role) => ({
 
 export function AvailableAgendaSearch() {
   const searchParams = useSearchParams();
+  const toast = useAppToast();
   const initialDate = searchParams.get("date") ?? getTodayDateKey();
   const [role, setRole] = useState<ProfessionalRole>("Psicólogo");
   const [date, setDate] = useState(initialDate);
@@ -85,11 +87,23 @@ export function AvailableAgendaSearch() {
 
       if (!result.success) {
         setSearchError(result.error);
+        toast.error({
+          title: "Falha na busca",
+          description: result.error ?? "Não foi possível buscar horários.",
+        });
         setResults([]);
         return;
       }
 
-      setResults(result.data?.professionals ?? []);
+      const professionals = result.data?.professionals ?? [];
+      setResults(professionals);
+
+      if (professionals.length === 0) {
+        toast.info({
+          title: "Nenhum horário encontrado",
+          description: "Tente outro horário ou profissional.",
+        });
+      }
     });
   }
 

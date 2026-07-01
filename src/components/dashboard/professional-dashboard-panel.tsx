@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Download } from "lucide-react";
 
 import { getProfessionalDashboardDataAction } from "@/app/actions/dashboard-analytics-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardChartPanel } from "@/components/dashboard/dashboard-chart-panel";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ export function ProfessionalDashboardPanel({
   const [sessionsByWeek, setSessionsByWeek] = useState<
     Array<{ weekLabel: string; sessions: number }>
   >([]);
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, startTransition] = useTransition();
 
@@ -97,6 +99,11 @@ export function ProfessionalDashboardPanel({
 
       if (!result.success) {
         setError(result.error);
+        toast.error({
+          title: "Falha ao carregar",
+          description:
+            result.error ?? "Não foi possível carregar os relatórios clínicos.",
+        });
         return;
       }
 

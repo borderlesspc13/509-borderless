@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { HelpCircle } from "lucide-react";
 
 import { togglePatientStatusAction } from "@/app/actions/patient-record-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +32,7 @@ export function PatientStatusDialog({
   onOpenChange,
   onStatusChanged,
 }: PatientStatusDialogProps) {
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -45,9 +47,17 @@ export function PatientStatusDialog({
       const result = await togglePatientStatusAction(patient.id);
 
       if (!result.success || !result.data?.patient) {
-        setError(result.error ?? "Não foi possível alterar o status.");
+        const message = result.error ?? "Não foi possível alterar o status.";
+        setError(message);
+        toast.error({ title: "Falha na alteração", description: message });
         return;
       }
+
+      const isActive = result.data.patient.status === "active";
+      toast.success({
+        title: isActive ? "Aprendiz ativado" : "Aprendiz inativado",
+        description: `O status de ${patient.full_name} foi alterado.`,
+      });
 
       onStatusChanged(result.data.patient);
       onOpenChange(false);

@@ -47,29 +47,40 @@ export function ChatMessageToastListener() {
 
   useEffect(() => {
     return subscribeNotificationInsert(({ notification }) => {
-      if (notification.type !== "chat_message") {
+      if (notification.type === "chat_message") {
+        const conversationId = getConversationIdFromMetadata(
+          notification.metadata
+        );
+
+        if (
+          conversationId &&
+          conversationId === getActiveChatConversationId()
+        ) {
+          return;
+        }
+
+        showToast({
+          ...getChatToastContent(notification),
+          variant: "info",
+          onClick: conversationId
+            ? () => {
+                router.push(`/chat?conversation=${conversationId}`);
+              }
+            : () => {
+                router.push("/chat");
+              },
+        });
         return;
       }
 
-      const conversationId = getConversationIdFromMetadata(notification.metadata);
-
-      if (
-        conversationId &&
-        conversationId === getActiveChatConversationId()
-      ) {
-        return;
+      if (notification.type === "patient_waiting") {
+        showToast({
+          title: "Paciente aguardando",
+          description: notification.body,
+          variant: "warning",
+          duration: 10_000,
+        });
       }
-
-      showToast({
-        ...getChatToastContent(notification),
-        onClick: conversationId
-          ? () => {
-              router.push(`/chat?conversation=${conversationId}`);
-            }
-          : () => {
-              router.push("/chat");
-            },
-      });
     });
   }, [router, showToast]);
 

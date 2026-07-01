@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { createAppointmentAction } from "@/app/actions/agenda-availability-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { listAgendaProfessionalsAction } from "@/app/actions/dashboard-analytics-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,7 @@ export function NewAppointmentDialog({
   onCreated,
 }: NewAppointmentDialogProps) {
   const { canForceAppointment } = useUserRole();
+  const toast = useAppToast();
   const prefilled = isPrefilledMode(defaults);
 
   const [patientName, setPatientName] = useState("");
@@ -216,7 +218,9 @@ export function NewAppointmentDialog({
         };
 
     if (!payload.professionalName.trim()) {
-      setError("Selecione o profissional.");
+      const message = "Selecione o profissional.";
+      setError(message);
+      toast.warning({ title: "Profissional obrigatório", description: message });
       return;
     }
 
@@ -230,14 +234,43 @@ export function NewAppointmentDialog({
       if (!result.success) {
         setError(result.error);
         setConflictType(result.conflictType ?? null);
+
+        if (result.conflictType === "professional_busy") {
+          toast.error({
+            title: "Conflito detectado",
+            description: "O profissional já está alocado neste horário.",
+          });
+        } else if (result.conflictType === "patient_busy") {
+          toast.error({
+            title: "Conflito detectado",
+            description: "O paciente já possui agendamento neste horário.",
+          });
+        } else {
+          toast.error({
+            title: "Falha no agendamento",
+            description: result.error ?? "Não foi possível criar o agendamento.",
+          });
+        }
         return;
       }
 
-      setSuccessMessage(
-        force
-          ? "Agendamento criado com conflito forçado pelo administrador."
-          : "Agendamento criado com sucesso."
-      );
+      const successText = force
+        ? "Agendamento criado com conflito forçado pelo administrador."
+        : "Agendamento criado com sucesso.";
+
+      setSuccessMessage(successText);
+
+      if (force) {
+        toast.warning({
+          title: "Agendamento com conflito",
+          description: successText,
+        });
+      } else {
+        toast.success({
+          title: "Agendamento criado",
+          description: successText,
+        });
+      }
 
       if (result.data?.appointment) {
         onCreated?.(result.data.appointment);

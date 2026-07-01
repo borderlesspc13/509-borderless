@@ -9,6 +9,7 @@ import {
   upsertInstitutionalSettingsAction,
   type UpsertInstitutionalSettingsInput,
 } from "@/app/actions/clinic-settings-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,6 +35,7 @@ export function InstitutionalSettingsForm({
   onSettingsChange,
 }: InstitutionalSettingsFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toast = useAppToast();
   const [nomeClinica, setNomeClinica] = useState(settings.nomeClinica);
   const [cnpj, setCnpj] = useState(formatCnpjDisplay(settings.cnpj));
   const [enderecoCompleto, setEnderecoCompleto] = useState(
@@ -63,6 +65,10 @@ export function InstitutionalSettingsForm({
 
       if (!result.success) {
         setFeedback({ type: "error", message: result.error });
+        toast.error({
+          title: "Falha ao salvar",
+          description: result.error,
+        });
         return;
       }
 
@@ -73,9 +79,11 @@ export function InstitutionalSettingsForm({
         setEnderecoCompleto(result.data.enderecoCompleto ?? "");
       }
 
-      setFeedback({
-        type: "success",
-        message: result.message ?? "Dados salvos com sucesso.",
+      const message = result.message ?? "Dados salvos com sucesso.";
+      setFeedback({ type: "success", message });
+      toast.success({
+        title: "Configurações salvas",
+        description: "Dados institucionais atualizados com sucesso.",
       });
     });
   }
@@ -93,6 +101,10 @@ export function InstitutionalSettingsForm({
 
       if (!result.success) {
         setFeedback({ type: "error", message: result.error });
+        toast.error({
+          title: "Falha no upload",
+          description: result.error,
+        });
         return;
       }
 
@@ -100,9 +112,11 @@ export function InstitutionalSettingsForm({
         onSettingsChange(result.data);
       }
 
-      setFeedback({
-        type: "success",
-        message: result.message ?? "Logo enviada com sucesso.",
+      const message = result.message ?? "Logo enviada com sucesso.";
+      setFeedback({ type: "success", message });
+      toast.success({
+        title: "Logo atualizada",
+        description: "A logo da clínica foi enviada.",
       });
     });
   }

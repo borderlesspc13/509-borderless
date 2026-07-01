@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Info } from "lucide-react";
 
 import { saveDocumentTemplateAction } from "@/app/actions/document-template-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { RichTextEditor } from "@/components/clinical-evolution/rich-text-editor";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
@@ -39,6 +40,7 @@ const categorySelectItems = documentTemplateCategories.map((category) => ({
 
 export function DocumentTemplateForm({ template }: DocumentTemplateFormProps) {
   const router = useRouter();
+  const toast = useAppToast();
   const isEditing = Boolean(template);
   const [name, setName] = useState(template?.name ?? "");
   const [category, setCategory] = useState(
@@ -64,15 +66,26 @@ export function DocumentTemplateForm({ template }: DocumentTemplateFormProps) {
       });
 
       if (!result.success || !result.data?.template) {
-        setError(result.error ?? "Não foi possível salvar o modelo.");
+        const message = result.error ?? "Não foi possível salvar o modelo.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar", description: message });
         return;
       }
 
       if (isEditing) {
         setSuccessMessage("Modelo atualizado com sucesso.");
+        toast.success({
+          title: "Modelo atualizado",
+          description: "As alterações foram salvas.",
+        });
         router.refresh();
         return;
       }
+
+      toast.success({
+        title: "Modelo criado",
+        description: "O modelo foi salvo na biblioteca.",
+      });
 
       router.push(`/dashboard/modelos/${result.data.template.id}/editar`);
       router.refresh();

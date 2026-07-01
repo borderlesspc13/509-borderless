@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { HelpCircle } from "lucide-react";
 
 import { toggleAssessmentTemplateStatusAction } from "@/app/actions/assessment-template-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function AssessmentStatusDialog({
   onOpenChange,
   onStatusChanged,
 }: AssessmentStatusDialogProps) {
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -42,14 +44,24 @@ export function AssessmentStatusDialog({
       const result = await toggleAssessmentTemplateStatusAction(template.id);
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível alterar o status.");
+        const message = result.error ?? "Não foi possível alterar o status.";
+        setError(message);
+        toast.error({ title: "Falha na alteração", description: message });
         return;
       }
 
       if (!result.data?.template) {
-        setError("Não foi possível alterar o status.");
+        const message = "Não foi possível alterar o status.";
+        setError(message);
+        toast.error({ title: "Falha na alteração", description: message });
         return;
       }
+
+      const isActive = result.data.template.status === "active";
+      toast.success({
+        title: isActive ? "Avaliação ativada" : "Avaliação inativada",
+        description: `O status de ${template.name} foi alterado.`,
+      });
 
       onStatusChanged(result.data.template);
       onOpenChange(false);

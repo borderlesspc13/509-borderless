@@ -14,6 +14,7 @@ import {
   listClinicalEvolutionDraftsAction,
   saveClinicalEvolutionAction,
 } from "@/app/actions/clinical-evolution-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { ProtectedComponent } from "@/components/auth/protected-component";
 import {
   RichTextEditor,
@@ -76,6 +77,7 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const toast = useAppToast();
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     message: string;
@@ -117,10 +119,9 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
     );
 
     if (!result.success) {
-      setFeedback({
-        type: "error",
-        message: result.error ?? "Não foi possível carregar o rascunho.",
-      });
+      const message = result.error ?? "Não foi possível carregar o rascunho.";
+      setFeedback({ type: "error", message });
+      toast.error({ title: "Falha ao carregar", description: message });
       setIsLoadingDraft(false);
       return;
     }
@@ -160,18 +161,17 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
     setIsSaving(false);
 
     if (!result.success) {
-      setFeedback({
-        type: "error",
-        message: result.error ?? "Não foi possível salvar o rascunho.",
-      });
+      const message = result.error ?? "Não foi possível salvar o rascunho.";
+      setFeedback({ type: "error", message });
+      toast.error({ title: "Falha ao salvar", description: message });
       return;
     }
 
     setLastSavedAt(result.record?.updated_at ?? new Date().toISOString());
-    setFeedback({
-      type: "success",
-      message: "Rascunho salvo. Você pode retomar este relatório a qualquer momento.",
-    });
+    const successMessage =
+      "Rascunho salvo. Você pode retomar este relatório a qualquer momento.";
+    setFeedback({ type: "success", message: successMessage });
+    toast.success({ title: "Rascunho salvo", description: successMessage });
     void loadDrafts();
   }
 
@@ -181,10 +181,9 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
     }
 
     if (!contentHtml.trim() || contentHtml === "<br>") {
-      setFeedback({
-        type: "error",
-        message: "Escreva a evolução clínica antes de gerar o PDF.",
-      });
+      const message = "Escreva a evolução clínica antes de gerar o PDF.";
+      setFeedback({ type: "error", message });
+      toast.warning({ title: "Conteúdo vazio", description: message });
       return;
     }
 
@@ -206,6 +205,10 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
         type: "error",
         message: "Não foi possível gerar o PDF do relatório.",
       });
+      toast.error({
+        title: "Falha ao gerar PDF",
+        description: "Não foi possível gerar o PDF do relatório.",
+      });
       setIsGeneratingPdf(false);
       return;
     }
@@ -222,15 +225,18 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
     });
 
     if (!saveResult.success) {
-      setFeedback({
-        type: "success",
-        message:
-          "PDF gerado com sucesso, mas não foi possível marcar o relatório como finalizado no banco.",
-      });
+      const message =
+        "PDF gerado com sucesso, mas não foi possível marcar o relatório como finalizado no banco.";
+      setFeedback({ type: "success", message });
+      toast.warning({ title: "PDF gerado parcialmente", description: message });
     } else {
       setFeedback({
         type: "success",
         message: "PDF gerado com sucesso.",
+      });
+      toast.success({
+        title: "PDF gerado",
+        description: "O relatório foi exportado com sucesso.",
       });
     }
 

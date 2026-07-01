@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FileStack, Loader2 } from "lucide-react";
 
 import { listDocumentTemplatesAction } from "@/app/actions/document-template-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -43,6 +44,7 @@ export function TemplateInsertDialog({
   variables,
   onInsert,
 }: TemplateInsertDialogProps) {
+  const toast = useAppToast();
   const [templates, setTemplates] = useState<DocumentTemplateRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +73,9 @@ export function TemplateInsertDialog({
 
     void listDocumentTemplatesAction({ activeOnly: true }).then((result) => {
       if (!result.success) {
-        setError(result.error ?? "Não foi possível carregar os modelos.");
+        const message = result.error ?? "Não foi possível carregar os modelos.";
+        setError(message);
+        toast.error({ title: "Falha ao carregar", description: message });
         setTemplates([]);
       } else {
         setTemplates(result.data?.templates ?? []);
@@ -114,6 +118,10 @@ export function TemplateInsertDialog({
     );
 
     onInsert(resolvedHtml);
+    toast.success({
+      title: "Modelo inserido",
+      description: "O conteúdo foi adicionado ao editor.",
+    });
     onOpenChange(false);
   }
 

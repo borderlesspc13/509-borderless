@@ -47,7 +47,9 @@ import {
   type AgendaFilters,
   type VacantSlot,
 } from "@/lib/agenda-filter-utils";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { formatFullDate } from "@/lib/calendar-utils";
+import { appointmentStatusLabels } from "@/lib/patient-format";
 import type {
   AppointmentStatus,
   DailyAppointment,
@@ -124,6 +126,7 @@ export function DayAppointmentsDialog({
   const { recordAuditLogs } = useAgendaAudit();
   const { syncAppointmentStatus } = useAgendaStatusSync();
   const { onTouchStart, onTouchMove, onTouchEnd } = useTouchScrollGuard();
+  const toast = useAppToast();
   const [pendingUpdate, setPendingUpdate] =
     useState<PendingStatusUpdate | null>(null);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
@@ -234,6 +237,16 @@ export function DayAppointmentsDialog({
 
     applyAppointmentsChange(nextAppointments, auditLogs);
 
+    const statusLabel = appointmentStatusLabels[newStatus] ?? newStatus;
+    const bulkMessage = applyToAllPatientToday
+      ? `${affectedIds.length} atendimento${affectedIds.length > 1 ? "s" : ""} de ${target.patient} atualizado${affectedIds.length > 1 ? "s" : ""} para ${statusLabel}.`
+      : `Situação de ${target.patient} alterada para ${statusLabel}.`;
+
+    toast.success({
+      title: applyToAllPatientToday ? "Status aplicado em massa" : "Status atualizado",
+      description: bulkMessage,
+    });
+
     const updatedAppointments = nextAppointments.filter((appointment) =>
       affectedIds.includes(appointment.id)
     );
@@ -241,6 +254,11 @@ export function DayAppointmentsDialog({
     updatedAppointments.forEach((appointment) => {
       void syncAppointmentStatus(appointment, newStatus).then((synced) => {
         if (!synced) {
+          toast.error({
+            title: "Falha na sincronização",
+            description:
+              "Não foi possível sincronizar o status com o servidor.",
+          });
           return;
         }
 
@@ -309,6 +327,11 @@ export function DayAppointmentsDialog({
       applyAppointmentsChange(nextAppointments, [
         buildDateMoveLog(appointment, targetDate),
       ]);
+
+      toast.success({
+        title: "Agendamento movido",
+        description: `Transferido para ${formatShortDate(targetDate)}.`,
+      });
     };
   }
 
@@ -335,6 +358,11 @@ export function DayAppointmentsDialog({
       applyAppointmentsChange(nextAppointments, [
         buildProfessionalMoveLog(appointment, professionalName),
       ]);
+
+      toast.success({
+        title: "Profissional alterado",
+        description: `Atendimento transferido para ${professionalName}.`,
+      });
     };
   }
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
 
 import { createTeamMemberAction } from "@/app/actions/team-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ function isClinicalProfile(profile: UserProfile) {
 
 export function ProfessionalCreatePageView() {
   const router = useRouter();
+  const toast = useAppToast();
   const [selectedProfile, setSelectedProfile] = useState<UserProfile>(ROLES.AT1);
   const [selectedProfessionalRole, setSelectedProfessionalRole] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -73,8 +75,20 @@ export function ProfessionalCreatePageView() {
 
       if (!result.success) {
         setError(result.error);
+        toast.error({
+          title: "Falha no cadastro",
+          description: result.error ?? "Não foi possível cadastrar o profissional.",
+        });
         return;
       }
+
+      const fullName = String(formData.get("fullName") ?? "");
+      toast.success({
+        title: "Profissional cadastrado",
+        description: fullName
+          ? `${fullName} foi adicionado à equipe.`
+          : "O profissional foi adicionado à equipe.",
+      });
 
       router.push("/dashboard/profissionais");
       router.refresh();

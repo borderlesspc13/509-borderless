@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
 
 import { createPatientAction } from "@/app/actions/patient-record-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const textareaClassName =
 
 export function PatientCreatePageView() {
   const router = useRouter();
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -40,9 +42,19 @@ export function PatientCreatePageView() {
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível cadastrar o aprendiz.");
+        const message = result.error ?? "Não foi possível cadastrar o aprendiz.";
+        setError(message);
+        toast.error({ title: "Falha no cadastro", description: message });
         return;
       }
+
+      const fullName = String(formData.get("fullName") ?? "");
+      toast.success({
+        title: "Aprendiz cadastrado",
+        description: fullName
+          ? `${fullName} foi adicionado com sucesso.`
+          : "O aprendiz foi adicionado com sucesso.",
+      });
 
       router.push("/dashboard/pacientes");
       router.refresh();

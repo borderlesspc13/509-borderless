@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Eye, Plus } from "lucide-react";
 
 import { AgendaFilters } from "@/components/dashboard/agenda-filters";
 import { Badge } from "@/components/ui/badge";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useAgendaAudit } from "@/hooks/use-agenda-audit";
 import { useAgendaEvents } from "@/hooks/use-agenda-events";
 import { useAgendaProfessionals } from "@/hooks/use-agenda-professionals";
@@ -47,6 +48,7 @@ export function AgendaCalendar({
   const { isAgendaReadOnly, canDragAppointments, canManageAgenda } =
     useUserRole();
   const { recordAuditLogs } = useAgendaAudit();
+  const toast = useAppToast();
   const {
     appointments,
     setAppointments,
@@ -194,6 +196,10 @@ export function AgendaCalendar({
 
     setAppointments(nextAppointments);
     void recordAuditLogs([buildDateMoveLog(appointment, dateKey)]);
+    toast.success({
+      title: "Agendamento movido",
+      description: `Sessão de ${appointment.patient} transferida para outra data.`,
+    });
   }
 
   return (

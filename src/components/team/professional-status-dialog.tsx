@@ -3,8 +3,11 @@
 import { useState, useTransition } from "react";
 import { HelpCircle } from "lucide-react";
 
-import { toggleProfessionalStatusAction } from "@/app/actions/team-actions";
-import type { TeamMember } from "@/app/actions/team-actions";
+import {
+  toggleProfessionalStatusAction,
+  type TeamMember,
+} from "@/app/actions/team-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,6 +35,7 @@ export function ProfessionalStatusDialog({
   onOpenChange,
   onStatusChanged,
 }: ProfessionalStatusDialogProps) {
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -46,14 +50,24 @@ export function ProfessionalStatusDialog({
       const result = await toggleProfessionalStatusAction(professional.id);
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível alterar o status.");
+        const message = result.error ?? "Não foi possível alterar o status.";
+        setError(message);
+        toast.error({ title: "Falha na alteração", description: message });
         return;
       }
 
       if (!result.data?.professional) {
-        setError("Não foi possível alterar o status.");
+        const message = "Não foi possível alterar o status.";
+        setError(message);
+        toast.error({ title: "Falha na alteração", description: message });
         return;
       }
+
+      const isActive = result.data.professional.status === "active";
+      toast.success({
+        title: isActive ? "Profissional ativado" : "Profissional inativado",
+        description: `O status de ${professional.fullName} foi alterado.`,
+      });
 
       onStatusChanged(result.data.professional);
       onOpenChange(false);

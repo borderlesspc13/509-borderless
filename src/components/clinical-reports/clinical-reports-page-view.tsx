@@ -7,6 +7,7 @@ import {
   getClinicalReportsDataAction,
   type ClinicalReportsQuery,
 } from "@/app/actions/clinical-reports-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { EvaluationComparisonChart } from "@/components/clinical-reports/evaluation-comparison-chart";
 import { EvaluationEvolutionChart } from "@/components/clinical-reports/evaluation-evolution-chart";
 import { ReassessmentAlertsPanel } from "@/components/clinical-reports/reassessment-alerts-panel";
@@ -60,6 +61,7 @@ function formatTrendLabel(trend: number | null) {
 }
 
 export function ClinicalReportsPageView() {
+  const toast = useAppToast();
   const [patientId, setPatientId] = useState("all");
   const [instrument, setInstrument] = useState("all");
   const [comparisonEnabled, setComparisonEnabled] = useState(false);
@@ -100,6 +102,11 @@ export function ClinicalReportsPageView() {
 
       if (!result.success) {
         setError(result.error);
+        toast.error({
+          title: "Falha ao carregar",
+          description:
+            result.error ?? "Não foi possível carregar os relatórios clínicos.",
+        });
         return;
       }
 

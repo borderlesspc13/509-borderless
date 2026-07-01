@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useChat } from "@/contexts/chat-context";
+import { useAppToast } from "@/hooks/use-app-toast";
 import type { ChatMemberPreview } from "@/lib/chat";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ type NewChatDialogProps = {
 
 export function NewChatDialog({ open, onOpenChange }: NewChatDialogProps) {
   const { users, startDirectChat, isLoadingUsers } = useChat();
+  const toast = useAppToast();
   const [search, setSearch] = useState("");
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,12 +53,18 @@ export function NewChatDialog({ open, onOpenChange }: NewChatDialogProps) {
     setIsStarting(false);
 
     if (result.conversationId) {
+      toast.success({
+        title: "Conversa iniciada",
+        description: `Chat aberto com ${user.fullName}.`,
+      });
       setSearch("");
       onOpenChange(false);
       return;
     }
 
-    setError(result.error ?? "Não foi possível iniciar a conversa.");
+    const message = result.error ?? "Não foi possível iniciar a conversa.";
+    setError(message);
+    toast.error({ title: "Falha ao iniciar conversa", description: message });
   }
 
   return (
@@ -139,6 +147,7 @@ export function CreateGroupDialog({
   onOpenChange,
 }: CreateGroupDialogProps) {
   const { users, createGroup, isLoadingUsers } = useChat();
+  const toast = useAppToast();
   const [name, setName] = useState("");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -174,6 +183,10 @@ export function CreateGroupDialog({
     setIsCreating(false);
 
     if (result.conversationId) {
+      toast.success({
+        title: "Grupo criado",
+        description: "O grupo foi criado com sucesso.",
+      });
       setName("");
       setSearch("");
       setSelectedIds([]);
@@ -181,10 +194,11 @@ export function CreateGroupDialog({
       return;
     }
 
-    setError(
+    const message =
       result.error ??
-        "Não foi possível criar o grupo. Verifique o nome e os participantes."
-    );
+      "Não foi possível criar o grupo. Verifique o nome e os participantes.";
+    setError(message);
+    toast.error({ title: "Falha ao criar grupo", description: message });
   }
 
   return (

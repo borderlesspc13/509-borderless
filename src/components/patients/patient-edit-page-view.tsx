@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { updatePatientAction } from "@/app/actions/patient-record-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { useAiEntityContext } from "@/features/ai/presentation/hooks/use-ai-entity-context";
 import { PageContainer } from "@/components/layout/page-container";
@@ -135,6 +136,7 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
   const [diagnosis, setDiagnosis] = useState(patient.diagnosis ?? "");
   const [birthDate, setBirthDate] = useState(patient.birth_date ?? "");
   const [notes, setNotes] = useState(patient.notes ?? "");
+  const toast = useAppToast();
   const [defineAccess, setDefineAccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -164,11 +166,17 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível salvar o aprendiz.");
+        const message = result.error ?? "Não foi possível salvar o aprendiz.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar", description: message });
         return;
       }
 
       setSuccessMessage("Dados do aprendiz salvos com sucesso.");
+      toast.success({
+        title: "Dados salvos",
+        description: "As informações do aprendiz foram atualizadas.",
+      });
     });
   }
 

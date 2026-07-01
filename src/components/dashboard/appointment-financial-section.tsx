@@ -15,6 +15,7 @@ import {
   updateAppointmentPaymentStatusAction,
   updateAppointmentSessionAmountAction,
 } from "@/app/actions/agenda-financial-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { PermissionGate } from "@/components/auth/permission-gate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,7 @@ export function AppointmentFinancialSection({
     appointment.paymentLinkUrl ?? ""
   );
   const [messagePreview, setMessagePreview] = useState("");
+  const toast = useAppToast();
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     message: string;
@@ -115,12 +117,25 @@ export function AppointmentFinancialSection({
     );
   }, [appointment, paymentLinkUrl, sessionAmountInput]);
 
+  function showFeedback(type: "success" | "error", message: string) {
+    setFeedback({ type, message });
+    if (type === "success") {
+      toast.success({ title: "Operação concluída", description: message });
+    } else {
+      toast.error({ title: "Falha na operação", description: message });
+    }
+  }
+
   function handleCopyLink() {
     if (!paymentLinkUrl) {
       return;
     }
 
     void navigator.clipboard.writeText(paymentLinkUrl);
+    toast.info({
+      title: "Link copiado",
+      description: "O link foi copiado para a área de transferência.",
+    });
     setFeedback({
       type: "success",
       message: "Link copiado para a área de transferência.",
@@ -131,10 +146,11 @@ export function AppointmentFinancialSection({
     const amount = parseSessionAmountInput(sessionAmountInput);
 
     if (!amount || amount <= 0) {
-      setFeedback({
-        type: "error",
-        message: "Informe um valor válido para a sessão.",
+      toast.warning({
+        title: "Valor inválido",
+        description: "Informe um valor válido para a sessão.",
       });
+      showFeedback("error", "Informe um valor válido para a sessão.");
       return;
     }
 
@@ -147,26 +163,20 @@ export function AppointmentFinancialSection({
       });
 
       if (!result.success) {
-        setFeedback({
-          type: "error",
-          message: result.error ?? "Não foi possível salvar o valor.",
-        });
+        showFeedback(
+          "error",
+          result.error ?? "Não foi possível salvar o valor."
+        );
         return;
       }
 
       if (!result.data?.appointment) {
-        setFeedback({
-          type: "error",
-          message: "Não foi possível salvar o valor.",
-        });
+        showFeedback("error", "Não foi possível salvar o valor.");
         return;
       }
 
       onAppointmentUpdate(result.data.appointment);
-      setFeedback({
-        type: "success",
-        message: "Valor da sessão atualizado.",
-      });
+      showFeedback("success", "Valor da sessão atualizado.");
     });
   }
 
@@ -182,27 +192,25 @@ export function AppointmentFinancialSection({
       });
 
       if (!result.success) {
-        setFeedback({
-          type: "error",
-          message: result.error ?? "Não foi possível gerar o link.",
-        });
+        showFeedback(
+          "error",
+          result.error ?? "Não foi possível gerar o link."
+        );
         return;
       }
 
       if (!result.data) {
-        setFeedback({
-          type: "error",
-          message: "Não foi possível gerar o link.",
-        });
+        showFeedback("error", "Não foi possível gerar o link.");
         return;
       }
 
       onAppointmentUpdate(result.data.appointment);
       setPaymentLinkUrl(result.data.paymentLinkUrl);
-      setFeedback({
-        type: "success",
-        message: "Link de pagamento gerado com sucesso.",
+      toast.success({
+        title: "Link criado",
+        description: "Link de pagamento gerado com sucesso.",
       });
+      showFeedback("success", "Link de pagamento gerado com sucesso.");
     });
   }
 
@@ -216,27 +224,21 @@ export function AppointmentFinancialSection({
       });
 
       if (!result.success) {
-        setFeedback({
-          type: "error",
-          message: result.error ?? "Não foi possível atualizar o status.",
-        });
+        showFeedback(
+          "error",
+          result.error ?? "Não foi possível atualizar o status."
+        );
         return;
       }
 
       if (!result.data?.appointment) {
-        setFeedback({
-          type: "error",
-          message: "Não foi possível atualizar o status.",
-        });
+        showFeedback("error", "Não foi possível atualizar o status.");
         return;
       }
 
       onAppointmentUpdate(result.data.appointment);
       setPaymentStatus(nextStatus);
-      setFeedback({
-        type: "success",
-        message: "Status de pagamento atualizado.",
-      });
+      showFeedback("success", "Status de pagamento atualizado.");
     });
   }
 
@@ -250,25 +252,26 @@ export function AppointmentFinancialSection({
       });
 
       if (!result.success) {
-        setFeedback({
-          type: "error",
-          message: result.error ?? "Não foi possível enviar a mensagem.",
-        });
+        showFeedback(
+          "error",
+          result.error ?? "Não foi possível enviar a mensagem."
+        );
         return;
       }
 
       if (!result.data) {
-        setFeedback({
-          type: "error",
-          message: "Não foi possível enviar a mensagem.",
-        });
+        showFeedback("error", "Não foi possível enviar a mensagem.");
         return;
       }
 
-      setFeedback({
-        type: "success",
-        message: `Link enviado para ${result.data.receiverName} via chat interno.`,
+      toast.success({
+        title: "Link enviado",
+        description: `Enviado para ${result.data.receiverName} via chat interno.`,
       });
+      showFeedback(
+        "success",
+        `Link enviado para ${result.data.receiverName} via chat interno.`
+      );
     });
   }
 

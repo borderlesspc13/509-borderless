@@ -3,9 +3,8 @@
 import { useState, useTransition } from "react";
 import { CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 
-import {
-  upsertPaymentSettingsAction,
-} from "@/app/actions/clinic-settings-actions";
+import { upsertPaymentSettingsAction } from "@/app/actions/clinic-settings-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +28,7 @@ export function PaymentIntegrationsForm({
   settings,
   onSettingsChange,
 }: PaymentIntegrationsFormProps) {
+  const toast = useAppToast();
   const [stripeApiKey, setStripeApiKey] = useState("");
   const [mercadoPagoApiKey, setMercadoPagoApiKey] = useState("");
   const [feedback, setFeedback] = useState<{
@@ -46,6 +46,10 @@ export function PaymentIntegrationsForm({
 
       if (!result.success) {
         setFeedback({ type: "error", message: result.error });
+        toast.error({
+          title: "Falha ao salvar",
+          description: result.error,
+        });
         return;
       }
 
@@ -56,9 +60,11 @@ export function PaymentIntegrationsForm({
       setStripeApiKey("");
       setMercadoPagoApiKey("");
 
-      setFeedback({
-        type: "success",
-        message: result.message ?? "Chaves salvas com sucesso.",
+      const message = result.message ?? "Chaves salvas com sucesso.";
+      setFeedback({ type: "success", message });
+      toast.success({
+        title: "Integrações salvas",
+        description: "Chaves de pagamento atualizadas.",
       });
     });
   }

@@ -8,6 +8,7 @@ import {
   listTeamMembersAction,
   type TeamMember,
 } from "@/app/actions/team-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { ProtectedComponent } from "@/components/auth/protected-component";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ function isClinicalProfile(profile: UserProfile) {
 
 export function TeamManagement() {
   const { hasPermission } = useUserRole();
+  const toast = useAppToast();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +86,10 @@ export function TeamManagement() {
 
     if (!result.success) {
       setError(result.error);
+      toast.error({
+        title: "Falha ao carregar",
+        description: result.error ?? "Não foi possível carregar a equipe.",
+      });
       setMembers([]);
     } else {
       setMembers(result.data?.members ?? []);
@@ -118,6 +124,10 @@ export function TeamManagement() {
 
       if (!result.success) {
         setFormError(result.error);
+        toast.error({
+          title: "Falha no cadastro",
+          description: result.error ?? "Não foi possível cadastrar o funcionário.",
+        });
         return;
       }
 
@@ -129,9 +139,13 @@ export function TeamManagement() {
         );
       }
 
-      setSuccessMessage(
-        "Funcionário cadastrado. Compartilhe o e-mail e a senha provisória para o primeiro acesso."
-      );
+      const successText =
+        "Funcionário cadastrado. Compartilhe o e-mail e a senha provisória para o primeiro acesso.";
+      setSuccessMessage(successText);
+      toast.success({
+        title: "Funcionário cadastrado",
+        description: successText,
+      });
       form.reset();
       setSelectedProfile(ROLES.RECEPCAO);
       setSelectedProfessionalRole("");

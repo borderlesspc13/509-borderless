@@ -16,6 +16,7 @@ import {
   saveAssessmentSkillAction,
   saveAssessmentTemplateAction,
 } from "@/app/actions/assessment-template-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ export function AssessmentEditPageView({
   const [description, setDescription] = useState(
     initialDetails.template.description ?? ""
   );
+  const toast = useAppToast();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -142,7 +144,9 @@ export function AssessmentEditPageView({
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível salvar.");
+        const message = result.error ?? "Não foi possível salvar.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar", description: message });
         return;
       }
 
@@ -154,6 +158,10 @@ export function AssessmentEditPageView({
       }
 
       setSuccessMessage("Dados gerais salvos com sucesso.");
+      toast.success({
+        title: "Dados gerais salvos",
+        description: "As informações da avaliação foram atualizadas.",
+      });
     });
   }
 
@@ -193,11 +201,17 @@ export function AssessmentEditPageView({
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível salvar o nível.");
+        const message = result.error ?? "Não foi possível salvar o nível.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar nível", description: message });
         return;
       }
 
       setLevelDialogOpen(false);
+      toast.success({
+        title: editingLevel ? "Nível atualizado" : "Nível criado",
+        description: "O nível foi salvo com sucesso.",
+      });
       await reloadDetails();
     });
   }
@@ -212,11 +226,17 @@ export function AssessmentEditPageView({
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível salvar a habilidade.");
+        const message = result.error ?? "Não foi possível salvar a habilidade.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar habilidade", description: message });
         return;
       }
 
       setSkillDialogOpen(false);
+      toast.success({
+        title: editingSkill ? "Habilidade atualizada" : "Habilidade criada",
+        description: "A habilidade foi salva com sucesso.",
+      });
       await reloadDetails();
     });
   }
@@ -238,11 +258,17 @@ export function AssessmentEditPageView({
       });
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível salvar a pontuação.");
+        const message = result.error ?? "Não foi possível salvar a pontuação.";
+        setError(message);
+        toast.error({ title: "Falha ao salvar pontuação", description: message });
         return;
       }
 
       setScoreDialogOpen(false);
+      toast.success({
+        title: editingScore ? "Pontuação atualizada" : "Pontuação criada",
+        description: "A pontuação foi salva com sucesso.",
+      });
       await reloadDetails();
     });
   }
@@ -252,10 +278,16 @@ export function AssessmentEditPageView({
       const result = await createAssessmentScoreGroupAction(details.template.id);
 
       if (!result.success) {
-        setError(result.error ?? "Não foi possível criar o grupo.");
+        const message = result.error ?? "Não foi possível criar o grupo.";
+        setError(message);
+        toast.error({ title: "Falha ao criar grupo", description: message });
         return;
       }
 
+      toast.success({
+        title: "Grupo criado",
+        description: "Novo grupo de pontuação adicionado.",
+      });
       await reloadDetails();
     });
   }
@@ -416,7 +448,21 @@ export function AssessmentEditPageView({
                                 size="icon-sm"
                                 onClick={() =>
                                   startTransition(async () => {
-                                    await deleteAssessmentLevelAction(level.id);
+                                    const result =
+                                      await deleteAssessmentLevelAction(level.id);
+                                    if (!result.success) {
+                                      toast.error({
+                                        title: "Falha ao excluir",
+                                        description:
+                                          result.error ??
+                                          "Não foi possível excluir o nível.",
+                                      });
+                                      return;
+                                    }
+                                    toast.success({
+                                      title: "Nível removido",
+                                      description: "O nível foi excluído com sucesso.",
+                                    });
                                     await reloadDetails();
                                   })
                                 }
@@ -476,7 +522,22 @@ export function AssessmentEditPageView({
                                 size="icon-sm"
                                 onClick={() =>
                                   startTransition(async () => {
-                                    await deleteAssessmentSkillAction(skill.id);
+                                    const result =
+                                      await deleteAssessmentSkillAction(skill.id);
+                                    if (!result.success) {
+                                      toast.error({
+                                        title: "Falha ao excluir",
+                                        description:
+                                          result.error ??
+                                          "Não foi possível excluir a habilidade.",
+                                      });
+                                      return;
+                                    }
+                                    toast.success({
+                                      title: "Habilidade removida",
+                                      description:
+                                        "A habilidade foi excluída com sucesso.",
+                                    });
                                     await reloadDetails();
                                   })
                                 }
@@ -531,7 +592,21 @@ export function AssessmentEditPageView({
                           size="icon-sm"
                           onClick={() =>
                             startTransition(async () => {
-                              await deleteAssessmentScoreGroupAction(group.id);
+                              const result =
+                                await deleteAssessmentScoreGroupAction(group.id);
+                              if (!result.success) {
+                                toast.error({
+                                  title: "Falha ao excluir",
+                                  description:
+                                    result.error ??
+                                    "Não foi possível excluir o grupo.",
+                                });
+                                return;
+                              }
+                              toast.success({
+                                title: "Grupo removido",
+                                description: "O grupo foi excluído com sucesso.",
+                              });
                               await reloadDetails();
                             })
                           }
@@ -582,9 +657,24 @@ export function AssessmentEditPageView({
                                       size="icon-sm"
                                       onClick={() =>
                                         startTransition(async () => {
-                                          await deleteAssessmentScoreAction(
-                                            score.id
-                                          );
+                                          const result =
+                                            await deleteAssessmentScoreAction(
+                                              score.id
+                                            );
+                                          if (!result.success) {
+                                            toast.error({
+                                              title: "Falha ao excluir",
+                                              description:
+                                                result.error ??
+                                                "Não foi possível excluir a pontuação.",
+                                            });
+                                            return;
+                                          }
+                                          toast.success({
+                                            title: "Pontuação removida",
+                                            description:
+                                              "A pontuação foi excluída com sucesso.",
+                                          });
                                           await reloadDetails();
                                         })
                                       }

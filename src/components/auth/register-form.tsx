@@ -8,6 +8,7 @@ import {
   getBootstrapStatusAction,
   signUpAction,
 } from "@/app/actions/auth-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { AuthCard } from "@/components/auth/auth-card";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ const profileSelectItems = userProfileOptions.map((option) => ({
 }));
 
 export function RegisterForm() {
+  const toast = useAppToast();
   const [hasMaster, setHasMaster] = useState<boolean | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,9 @@ export function RegisterForm() {
 
     if (!isBootstrap) {
       if (!selectedProfile) {
-        setError("Selecione um perfil válido.");
+        const message = "Selecione um perfil válido.";
+        setError(message);
+        toast.warning({ title: "Perfil obrigatório", description: message });
         return;
       }
 
@@ -65,11 +69,19 @@ export function RegisterForm() {
 
       if (result?.error) {
         setError(result.error);
+        toast.error({
+          title: "Falha no cadastro",
+          description: result.error,
+        });
         return;
       }
 
       if (result?.message) {
         setSuccessMessage(result.message);
+        toast.success({
+          title: "Conta criada",
+          description: result.message,
+        });
       }
     });
   }

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { LogOut } from "lucide-react";
 
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -18,10 +19,15 @@ export function LogoutButton({
   variant = "outline",
   showIcon = true,
 }: LogoutButtonProps) {
+  const toast = useAppToast();
   const [isPending, startTransition] = useTransition();
 
   function handleSignOut() {
     startTransition(async () => {
+      toast.info({
+        title: "Sessão encerrada",
+        description: "Você saiu da plataforma com segurança.",
+      });
       await signOut();
     });
   }
