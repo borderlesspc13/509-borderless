@@ -109,14 +109,17 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/dashboard/pacientes": PERMISSIONS.PATIENTS_VIEW,
   "/dashboard/profissionais": PERMISSIONS.PROFESSIONALS_VIEW,
   "/dashboard/avaliacoes": PERMISSIONS.ASSESSMENTS_VIEW,
+  "/dashboard/programas": PERMISSIONS.ASSESSMENTS_VIEW,
   "/evolucao": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
   "/dashboard/evolucao": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
   "/dashboard/modelos": PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
   "/dashboard/relatorios": PERMISSIONS.REPORTS_VIEW,
   "/dashboard/auditoria": PERMISSIONS.AUDIT_LOGS_VIEW,
   "/chat": PERMISSIONS.INTERNAL_MESSAGING,
+  "/dashboard/empresa": PERMISSIONS.SETTINGS_MANAGE,
   "/configuracoes": PERMISSIONS.SETTINGS_MANAGE,
   "/dashboard/configuracoes": PERMISSIONS.SETTINGS_MANAGE,
+  "/em-desenvolvimento": PERMISSIONS.DASHBOARD_VIEW,
   "/portal-familia": PERMISSIONS.FAMILY_PORTAL_VIEW,
 };
 

@@ -83,11 +83,30 @@ export type PatientFormInput = {
   fullName: string;
   cpf?: string;
   guardianName?: string;
+  guardianName2?: string;
   guardianPhone?: string;
   guardianEmail?: string;
   diagnosis?: string;
   birthDate?: string;
   notes?: string;
+  zipCode?: string;
+  state?: string;
+  city?: string;
+  street?: string;
+  neighborhood?: string;
+  addressComplement?: string;
+  gender?: string;
+  maritalStatus?: string;
+  rg?: string;
+  rgIssuer?: string;
+  profession?: string;
+  website?: string;
+  birthplace?: string;
+  contact?: string;
+  phone?: string;
+  healthPlan?: string;
+  healthPlanIdentifier?: string;
+  supportLevel?: string;
 };
 
 export type UpdatePatientInput = PatientFormInput & {
@@ -117,11 +136,64 @@ function validatePatientFormInput(input: PatientFormInput) {
     fullName,
     cpf: normalizeOptionalText(input.cpf),
     guardianName: normalizeOptionalText(input.guardianName),
+    guardianName2: normalizeOptionalText(input.guardianName2),
     guardianPhone: normalizeOptionalText(input.guardianPhone),
     guardianEmail,
     diagnosis: normalizeOptionalText(input.diagnosis),
     birthDate: normalizeOptionalText(input.birthDate),
     notes: normalizeOptionalText(input.notes),
+    zipCode: normalizeOptionalText(input.zipCode),
+    state: normalizeOptionalText(input.state),
+    city: normalizeOptionalText(input.city),
+    street: normalizeOptionalText(input.street),
+    neighborhood: normalizeOptionalText(input.neighborhood),
+    addressComplement: normalizeOptionalText(input.addressComplement),
+    gender: normalizeOptionalText(input.gender),
+    maritalStatus: normalizeOptionalText(input.maritalStatus),
+    rg: normalizeOptionalText(input.rg),
+    rgIssuer: normalizeOptionalText(input.rgIssuer),
+    profession: normalizeOptionalText(input.profession),
+    website: normalizeOptionalText(input.website),
+    birthplace: normalizeOptionalText(input.birthplace),
+    contact: normalizeOptionalText(input.contact),
+    phone: normalizeOptionalText(input.phone),
+    healthPlan: normalizeOptionalText(input.healthPlan),
+    healthPlanIdentifier: normalizeOptionalText(input.healthPlanIdentifier),
+    supportLevel: normalizeOptionalText(input.supportLevel),
+  };
+}
+
+function toPatientRecord(
+  validated: Exclude<ReturnType<typeof validatePatientFormInput>, { error: string }>
+) {
+  return {
+    full_name: validated.fullName,
+    cpf: validated.cpf,
+    guardian_name: validated.guardianName,
+    guardian_name_2: validated.guardianName2,
+    guardian_phone: validated.guardianPhone,
+    guardian_email: validated.guardianEmail,
+    diagnosis: validated.diagnosis,
+    birth_date: validated.birthDate,
+    notes: validated.notes,
+    zip_code: validated.zipCode,
+    state: validated.state,
+    city: validated.city,
+    street: validated.street,
+    neighborhood: validated.neighborhood,
+    address_complement: validated.addressComplement,
+    gender: validated.gender,
+    marital_status: validated.maritalStatus,
+    rg: validated.rg,
+    rg_issuer: validated.rgIssuer,
+    profession: validated.profession,
+    website: validated.website,
+    birthplace: validated.birthplace,
+    contact: validated.contact,
+    phone: validated.phone,
+    health_plan: validated.healthPlan,
+    health_plan_identifier: validated.healthPlanIdentifier,
+    support_level: validated.supportLevel,
   };
 }
 
@@ -145,14 +217,7 @@ export async function createPatientAction(
   const { data, error } = await supabase
     .from("patients")
     .insert({
-      full_name: validated.fullName,
-      cpf: validated.cpf,
-      guardian_name: validated.guardianName,
-      guardian_phone: validated.guardianPhone,
-      guardian_email: validated.guardianEmail,
-      diagnosis: validated.diagnosis,
-      birth_date: validated.birthDate,
-      notes: validated.notes,
+      ...toPatientRecord(validated),
       status: "active",
     })
     .select()
@@ -191,14 +256,7 @@ export async function updatePatientAction(
   const { data, error } = await supabase
     .from("patients")
     .update({
-      full_name: validated.fullName,
-      cpf: validated.cpf,
-      guardian_name: validated.guardianName,
-      guardian_phone: validated.guardianPhone,
-      guardian_email: validated.guardianEmail,
-      diagnosis: validated.diagnosis,
-      birth_date: validated.birthDate,
-      notes: validated.notes,
+      ...toPatientRecord(validated),
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.patientId)

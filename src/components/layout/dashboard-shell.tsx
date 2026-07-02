@@ -32,7 +32,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <AppLogo linkToHome variant="compact" />
         </div>
         <div className="flex-1 overflow-y-auto py-2">
-          <DashboardNav />
+          <Suspense fallback={null}>
+            <DashboardNav />
+          </Suspense>
         </div>
         <Separator />
         <div className="space-y-3 px-4 py-5">
@@ -71,7 +73,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto py-2">
-            <DashboardNav onNavigate={() => setIsMobileNavOpen(false)} />
+            <Suspense fallback={null}>
+              <DashboardNav onNavigate={() => setIsMobileNavOpen(false)} />
+            </Suspense>
           </div>
 
           <div className="mt-auto border-t border-border px-4 py-5">

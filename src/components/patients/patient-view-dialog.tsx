@@ -12,6 +12,10 @@ import {
   formatPatientFullName,
   getPatientDisplayId,
 } from "@/lib/patient-format";
+import {
+  getHealthPlanLabel,
+  getSupportLevelLabel,
+} from "@/lib/patient-form";
 import type { PatientRow } from "@/lib/supabase/database.types";
 
 type PatientViewDialogProps = {
@@ -91,19 +95,40 @@ export function PatientViewDialog({
                 label="E-mail do responsável"
                 value={patient.guardian_email}
               />
-              <InfoField label="Nome do Responsável 1" value={patient.guardian_name} />
-              <InfoField label="Nome do Responsável 2" value={null} />
+              <InfoField
+                label="Nome do Responsável 1"
+                value={patient.guardian_name}
+              />
+              <InfoField
+                label="Nome do Responsável 2"
+                value={patient.guardian_name_2}
+              />
+              <InfoField
+                label="Convênio Saúde"
+                value={getHealthPlanLabel(patient.health_plan)}
+              />
+              <InfoField
+                label="Nível de Suporte"
+                value={getSupportLevelLabel(patient.support_level)}
+              />
+              <InfoField
+                label="Identificador Convênio"
+                value={patient.health_plan_identifier}
+              />
               <InfoField label="Usuário" value={null} />
               <InfoField label="Perfil" value={null} />
             </InfoSection>
 
             <InfoSection title="Endereço">
-              <InfoField label="CEP" value={null} />
-              <InfoField label="Estado" value={null} />
-              <InfoField label="Cidade" value={null} />
-              <InfoField label="Logradouro" value={null} />
-              <InfoField label="Bairro" value={null} />
-              <InfoField label="Complemento" value={null} />
+              <InfoField label="CEP" value={patient.zip_code} />
+              <InfoField label="Estado" value={patient.state} />
+              <InfoField label="Cidade" value={patient.city} />
+              <InfoField label="Logradouro" value={patient.street} />
+              <InfoField label="Bairro" value={patient.neighborhood} />
+              <InfoField
+                label="Complemento"
+                value={patient.address_complement}
+              />
             </InfoSection>
           </div>
 
@@ -112,15 +137,15 @@ export function PatientViewDialog({
               label="Data Nascimento"
               value={formatPatientBirthWithAge(patient.birth_date)}
             />
-            <InfoField label="Sexo" value={null} />
-            <InfoField label="Estado Civil" value={null} />
-            <InfoField label="RG" value={null} />
-            <InfoField label="Órgão Emissor" value={null} />
-            <InfoField label="Profissão" value={null} />
-            <InfoField label="Site" value={null} />
-            <InfoField label="Naturalidade" value={null} />
-            <InfoField label="Contato" value={null} />
-            <InfoField label="Telefone 1" value={null} />
+            <InfoField label="Sexo" value={patient.gender} />
+            <InfoField label="Estado Civil" value={patient.marital_status} />
+            <InfoField label="RG" value={patient.rg} />
+            <InfoField label="Órgão Emissor" value={patient.rg_issuer} />
+            <InfoField label="Profissão" value={patient.profession} />
+            <InfoField label="Site" value={patient.website} />
+            <InfoField label="Naturalidade" value={patient.birthplace} />
+            <InfoField label="Contato" value={patient.contact} />
+            <InfoField label="Telefone 1" value={patient.phone} />
             <InfoField label="Telefone 2" value={patient.guardian_phone} />
             <InfoField
               label="Observações"

@@ -11,8 +11,6 @@ import {
   calculateProfessionalAge,
   formatProfessionalDate,
   formatProfessionalDisplayValue,
-  getProfessionalDisplayId,
-  getProfessionalDisplaySubtitle,
   getProfessionalRoleLabel,
   isProfessionalSupervisor,
   professionalStatusLabels,
@@ -75,7 +73,7 @@ export function ProfessionalViewDialog({
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-0 sm:max-w-5xl">
           <DialogHeader className="border-b border-border/60 px-6 py-4">
             <DialogTitle className="text-lg font-semibold">
-              Informações #{getProfessionalDisplayId(professional.id)}
+              {professional.fullName}
             </DialogTitle>
           </DialogHeader>
 

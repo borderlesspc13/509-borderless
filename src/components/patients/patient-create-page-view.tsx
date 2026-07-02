@@ -9,37 +9,36 @@ import { createPatientAction } from "@/app/actions/patient-record-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
+import {
+  PatientAdicionaisSection,
+  PatientEnderecoSection,
+  PatientGeralSection,
+  formStateToActionInput,
+} from "@/components/patients/patient-form-sections";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-const inputClassName = "h-11 w-full";
-const textareaClassName =
-  "min-h-32 w-full resize-y rounded-lg border border-input bg-transparent px-3 py-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { emptyPatientFormState } from "@/lib/patient-form";
 
 export function PatientCreatePageView() {
   const router = useRouter();
   const toast = useAppToast();
+  const [values, setValues] = useState(emptyPatientFormState);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function handleChange<K extends keyof typeof values>(
+    field: K,
+    value: (typeof values)[K]
+  ) {
+    setValues((current) => ({ ...current, [field]: value }));
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
-    const formData = new FormData(event.currentTarget);
-
     startTransition(async () => {
-      const result = await createPatientAction({
-        fullName: String(formData.get("fullName") ?? ""),
-        cpf: String(formData.get("cpf") ?? ""),
-        guardianName: String(formData.get("guardianName") ?? ""),
-        guardianPhone: String(formData.get("guardianPhone") ?? ""),
-        guardianEmail: String(formData.get("guardianEmail") ?? ""),
-        diagnosis: String(formData.get("diagnosis") ?? ""),
-        birthDate: String(formData.get("birthDate") ?? ""),
-        notes: String(formData.get("notes") ?? ""),
-      });
+      const result = await createPatientAction(formStateToActionInput(values));
 
       if (!result.success) {
         const message = result.error ?? "Não foi possível cadastrar o aprendiz.";
@@ -48,11 +47,10 @@ export function PatientCreatePageView() {
         return;
       }
 
-      const fullName = String(formData.get("fullName") ?? "");
       toast.success({
         title: "Aprendiz cadastrado",
-        description: fullName
-          ? `${fullName} foi adicionado com sucesso.`
+        description: values.fullName
+          ? `${values.fullName} foi adicionado com sucesso.`
           : "O aprendiz foi adicionado com sucesso.",
       });
 
@@ -82,122 +80,86 @@ export function PatientCreatePageView() {
         }
       />
 
-      <section className="rounded-xl border border-border/70 bg-card p-6 shadow-sm sm:p-8">
-        <div className="mb-6 space-y-1">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <UserPlus className="size-5 text-primary" aria-hidden />
-            Cadastrar aprendiz
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Preencha os dados principais. Informações adicionais podem ser
-            editadas depois.
-          </p>
-        </div>
-
-        <form className="grid gap-6 sm:grid-cols-2" onSubmit={handleSubmit}>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="full-name">Nome completo *</Label>
-            <Input
-              id="full-name"
-              name="fullName"
-              required
-              className={inputClassName}
-              placeholder="Nome do aprendiz"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="cpf">CPF</Label>
-            <Input
-              id="cpf"
-              name="cpf"
-              className={inputClassName}
-              placeholder="000.000.000-00"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="birth-date">Data de nascimento</Label>
-            <Input
-              id="birth-date"
-              name="birthDate"
-              type="date"
-              className={inputClassName}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="guardian-name">Nome do responsável</Label>
-            <Input
-              id="guardian-name"
-              name="guardianName"
-              className={inputClassName}
-              placeholder="Nome do responsável"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="guardian-phone">Telefone do responsável</Label>
-            <Input
-              id="guardian-phone"
-              name="guardianPhone"
-              className={inputClassName}
-              placeholder="(00) 00000-0000"
-            />
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="guardian-email">E-mail do responsável</Label>
-            <Input
-              id="guardian-email"
-              name="guardianEmail"
-              type="email"
-              className={inputClassName}
-              placeholder="responsavel@email.com"
-            />
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="diagnosis">Diagnóstico</Label>
-            <Input
-              id="diagnosis"
-              name="diagnosis"
-              className={inputClassName}
-              placeholder="Ex.: TEA — Nível 2"
-            />
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="notes">Observações</Label>
-            <textarea
-              id="notes"
-              name="notes"
-              className={textareaClassName}
-              placeholder="Informações complementares sobre o aprendiz"
-            />
-          </div>
-
-          {error ? (
-            <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:col-span-2">
-              {error}
+      <form onSubmit={handleSubmit}>
+        <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+          <div className="border-b border-border/60 px-6 py-5 sm:px-8">
+            <div className="space-y-1">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
+                <UserPlus className="size-5 text-primary" aria-hidden />
+                Cadastrar aprendiz
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Apenas o nome é obrigatório. Os demais campos são opcionais e
+                podem ser preenchidos agora ou depois.
+              </p>
             </div>
-          ) : null}
-
-          <div className="flex flex-wrap justify-end gap-3 sm:col-span-2">
-            <Button
-              type="button"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/dashboard/pacientes" />}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" size="lg" disabled={isPending}>
-              {isPending ? "Cadastrando..." : "Cadastrar aprendiz"}
-            </Button>
           </div>
-        </form>
-      </section>
+
+          <Tabs defaultValue="geral" className="gap-0">
+            <div className="border-b border-border/60 bg-muted/25 px-6 py-4 sm:px-8">
+              <TabsList className="grid h-auto w-full grid-cols-3 gap-2 bg-transparent p-0">
+                <TabsTrigger
+                  value="geral"
+                  className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
+                >
+                  Geral
+                </TabsTrigger>
+                <TabsTrigger
+                  value="adicionais"
+                  className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
+                >
+                  Info. Adicionais
+                </TabsTrigger>
+                <TabsTrigger
+                  value="endereco"
+                  className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
+                >
+                  Endereço
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="geral" className="mt-0 px-6 py-8 sm:px-8">
+              <PatientGeralSection
+                values={values}
+                onChange={handleChange}
+                requireFullName
+              />
+            </TabsContent>
+
+            <TabsContent value="adicionais" className="mt-0 px-6 py-8 sm:px-8">
+              <PatientAdicionaisSection values={values} onChange={handleChange} />
+            </TabsContent>
+
+            <TabsContent value="endereco" className="mt-0 px-6 py-8 sm:px-8">
+              <PatientEnderecoSection values={values} onChange={handleChange} />
+            </TabsContent>
+
+            {error ? (
+              <div className="border-t border-border/60 px-6 py-4 sm:px-8">
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  {error}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap justify-end gap-3 border-t border-border/60 px-6 py-5 sm:px-8">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                nativeButton={false}
+                render={<Link href="/dashboard/pacientes" />}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" size="lg" disabled={isPending}>
+                {isPending ? "Cadastrando..." : "Cadastrar aprendiz"}
+              </Button>
+            </div>
+          </Tabs>
+        </section>
+      </form>
     </PageContainer>
   );
 }

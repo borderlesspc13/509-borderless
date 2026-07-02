@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import {
   filterNavEntriesForProfile,
@@ -26,9 +26,17 @@ function NavGroupSection({
   pathname: string;
   onNavigate?: () => void;
 }) {
-  const hasActiveChild = entry.items.some((item) =>
-    isNavHrefActive(pathname, item.href)
-  );
+  const searchParams = useSearchParams();
+  const activeTitle = searchParams.get("titulo");
+  const hasActiveChild = entry.items.some((item) => {
+    if (item.href.startsWith("/em-desenvolvimento")) {
+      return (
+        pathname === "/em-desenvolvimento" && activeTitle === item.title
+      );
+    }
+
+    return isNavHrefActive(pathname, item.href);
+  });
   const [isOpen, setIsOpen] = useState(hasActiveChild);
   const Icon = entry.icon;
 
@@ -38,43 +46,41 @@ function NavGroupSection({
         type="button"
         onClick={() => setIsOpen((current) => !current)}
         className={cn(
-          "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          hasActiveChild
-            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          "flex min-h-11 w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-colors",
+          isOpen || hasActiveChild
+            ? "border-border bg-muted/50 text-foreground"
+            : "border-transparent text-sidebar-foreground hover:border-border/70 hover:bg-muted/30"
         )}
         aria-expanded={isOpen}
       >
         <Icon className="size-5 shrink-0" aria-hidden />
         <span className="flex-1 truncate text-left">{entry.title}</span>
-        <ChevronDown
-          className={cn(
-            "size-4 shrink-0 transition-transform",
-            isOpen && "rotate-180"
-          )}
-          aria-hidden
-        />
+        {isOpen ? (
+          <ChevronDown className="size-4 shrink-0" aria-hidden />
+        ) : (
+          <ChevronRight className="size-4 shrink-0" aria-hidden />
+        )}
       </button>
 
       {isOpen ? (
-        <div className="ml-3 space-y-0.5 border-l border-sidebar-border pl-3">
+        <div className="space-y-0.5 py-1 pl-11 pr-1">
           {entry.items.map((item) => {
-            const isActive = isNavHrefActive(pathname, item.href);
-            const ItemIcon = item.icon;
+            const isActive = item.href.startsWith("/em-desenvolvimento")
+              ? pathname === "/em-desenvolvimento" && activeTitle === item.title
+              : isNavHrefActive(pathname, item.href);
 
             return (
               <Link
-                key={item.href}
+                key={`${entry.title}-${item.title}`}
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-all",
+                  "block rounded-lg px-2 py-2 text-sm transition-colors",
                   isActive
-                    ? "bg-primary font-medium text-primary-foreground shadow-[0_2px_8px_color-mix(in_oklch,var(--primary)_22%,transparent)]"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "font-semibold text-primary"
+                    : "text-sidebar-foreground hover:text-foreground"
                 )}
               >
-                <ItemIcon className="size-4 shrink-0" aria-hidden />
                 <span className="truncate">{item.title}</span>
               </Link>
             );
@@ -91,7 +97,7 @@ export function DashboardNav({ onNavigate }: DashboardNavProps) {
   const entries = filterNavEntriesForProfile(profile, isMaster);
 
   return (
-    <nav aria-label="Navegação principal" className="flex flex-col gap-1.5 px-3 py-1">
+    <nav aria-label="Navegação principal" className="flex flex-col gap-1 px-3 py-2">
       {entries.map((entry) => {
         if (entry.kind === "group") {
           return (
@@ -113,10 +119,10 @@ export function DashboardNav({ onNavigate }: DashboardNavProps) {
             href={entry.href}
             onClick={onNavigate}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+              "flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-colors",
               isActive
-                ? "bg-primary text-primary-foreground shadow-[0_4px_12px_color-mix(in_oklch,var(--primary)_25%,transparent)]"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                ? "border-border bg-muted/50 text-foreground"
+                : "border-transparent text-sidebar-foreground hover:border-border/70 hover:bg-muted/30"
             )}
           >
             <Icon className="size-5 shrink-0" aria-hidden />

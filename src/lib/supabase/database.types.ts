@@ -124,11 +124,30 @@ export type Database = {
           full_name: string;
           birth_date: string | null;
           guardian_name: string | null;
+          guardian_name_2: string | null;
           guardian_phone: string | null;
           guardian_email: string | null;
           diagnosis: string | null;
           cpf: string | null;
           notes: string | null;
+          zip_code: string | null;
+          state: string | null;
+          city: string | null;
+          street: string | null;
+          neighborhood: string | null;
+          address_complement: string | null;
+          gender: string | null;
+          marital_status: string | null;
+          rg: string | null;
+          rg_issuer: string | null;
+          profession: string | null;
+          website: string | null;
+          birthplace: string | null;
+          contact: string | null;
+          phone: string | null;
+          health_plan: string | null;
+          health_plan_identifier: string | null;
+          support_level: string | null;
           status: "active" | "inactive" | "discharged";
           created_at: string;
           updated_at: string;
@@ -138,11 +157,30 @@ export type Database = {
           full_name: string;
           birth_date?: string | null;
           guardian_name?: string | null;
+          guardian_name_2?: string | null;
           guardian_phone?: string | null;
           guardian_email?: string | null;
           diagnosis?: string | null;
           cpf?: string | null;
           notes?: string | null;
+          zip_code?: string | null;
+          state?: string | null;
+          city?: string | null;
+          street?: string | null;
+          neighborhood?: string | null;
+          address_complement?: string | null;
+          gender?: string | null;
+          marital_status?: string | null;
+          rg?: string | null;
+          rg_issuer?: string | null;
+          profession?: string | null;
+          website?: string | null;
+          birthplace?: string | null;
+          contact?: string | null;
+          phone?: string | null;
+          health_plan?: string | null;
+          health_plan_identifier?: string | null;
+          support_level?: string | null;
           status?: "active" | "inactive" | "discharged";
           created_at?: string;
           updated_at?: string;
@@ -152,11 +190,30 @@ export type Database = {
           full_name?: string;
           birth_date?: string | null;
           guardian_name?: string | null;
+          guardian_name_2?: string | null;
           guardian_phone?: string | null;
           guardian_email?: string | null;
           diagnosis?: string | null;
           cpf?: string | null;
           notes?: string | null;
+          zip_code?: string | null;
+          state?: string | null;
+          city?: string | null;
+          street?: string | null;
+          neighborhood?: string | null;
+          address_complement?: string | null;
+          gender?: string | null;
+          marital_status?: string | null;
+          rg?: string | null;
+          rg_issuer?: string | null;
+          profession?: string | null;
+          website?: string | null;
+          birthplace?: string | null;
+          contact?: string | null;
+          phone?: string | null;
+          health_plan?: string | null;
+          health_plan_identifier?: string | null;
+          support_level?: string | null;
           status?: "active" | "inactive" | "discharged";
           created_at?: string;
           updated_at?: string;
@@ -754,6 +811,242 @@ export type Database = {
         };
         Relationships: [];
       };
+      programs: {
+        Row: {
+          id: string;
+          name: string;
+          registration_type: "catalog" | "learner";
+          protocol: string | null;
+          specialty: string | null;
+          skill: string | null;
+          milestone_coding: string | null;
+          teaching_type: string;
+          targets_per_session: number;
+          attempts_per_target: number;
+          patient_id: string | null;
+          visibility: "private" | "public";
+          status: "active" | "inactive";
+          teaching_procedure: string | null;
+          instruction_sd: string | null;
+          objective: string | null;
+          hint_step: string | null;
+          correction_procedure: string | null;
+          learning_criterion: string | null;
+          materials_used: string | null;
+          observations: string | null;
+          evolution_primary_correct_pct: number | null;
+          evolution_primary_sessions: number | null;
+          evolution_secondary_correct_pct: number | null;
+          evolution_secondary_sessions: number | null;
+          correction_primary_incorrect_pct: number | null;
+          correction_primary_sessions: number | null;
+          correction_secondary_incorrect_pct: number | null;
+          correction_secondary_sessions: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          registration_type?: "catalog" | "learner";
+          protocol?: string | null;
+          specialty?: string | null;
+          skill?: string | null;
+          milestone_coding?: string | null;
+          teaching_type: string;
+          targets_per_session?: number;
+          attempts_per_target?: number;
+          patient_id?: string | null;
+          visibility?: "private" | "public";
+          status?: "active" | "inactive";
+          teaching_procedure?: string | null;
+          instruction_sd?: string | null;
+          objective?: string | null;
+          hint_step?: string | null;
+          correction_procedure?: string | null;
+          learning_criterion?: string | null;
+          materials_used?: string | null;
+          observations?: string | null;
+          evolution_primary_correct_pct?: number | null;
+          evolution_primary_sessions?: number | null;
+          evolution_secondary_correct_pct?: number | null;
+          evolution_secondary_sessions?: number | null;
+          correction_primary_incorrect_pct?: number | null;
+          correction_primary_sessions?: number | null;
+          correction_secondary_incorrect_pct?: number | null;
+          correction_secondary_sessions?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          registration_type?: "catalog" | "learner";
+          protocol?: string | null;
+          specialty?: string | null;
+          skill?: string | null;
+          milestone_coding?: string | null;
+          teaching_type?: string;
+          targets_per_session?: number;
+          attempts_per_target?: number;
+          patient_id?: string | null;
+          visibility?: "private" | "public";
+          status?: "active" | "inactive";
+          teaching_procedure?: string | null;
+          instruction_sd?: string | null;
+          objective?: string | null;
+          hint_step?: string | null;
+          correction_procedure?: string | null;
+          learning_criterion?: string | null;
+          materials_used?: string | null;
+          observations?: string | null;
+          evolution_primary_correct_pct?: number | null;
+          evolution_primary_sessions?: number | null;
+          evolution_secondary_correct_pct?: number | null;
+          evolution_secondary_sessions?: number | null;
+          correction_primary_incorrect_pct?: number | null;
+          correction_primary_sessions?: number | null;
+          correction_secondary_incorrect_pct?: number | null;
+          correction_secondary_sessions?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "programs_patient_id_fkey";
+            columns: ["patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_targets: {
+        Row: {
+          id: string;
+          program_id: string;
+          target_group: string | null;
+          sort_order: number;
+          target_name: string;
+          situation: "active" | "inactive" | "acquired" | "maintenance";
+          start_date: string | null;
+          maintenances: string | null;
+          acquired_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          program_id: string;
+          target_group?: string | null;
+          sort_order?: number;
+          target_name: string;
+          situation?: "active" | "inactive" | "acquired" | "maintenance";
+          start_date?: string | null;
+          maintenances?: string | null;
+          acquired_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          program_id?: string;
+          target_group?: string | null;
+          sort_order?: number;
+          target_name?: string;
+          situation?: "active" | "inactive" | "acquired" | "maintenance";
+          start_date?: string | null;
+          maintenances?: string | null;
+          acquired_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_targets_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_criteria: {
+        Row: {
+          id: string;
+          program_id: string;
+          position: number;
+          acronym: string | null;
+          degree: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          program_id: string;
+          position?: number;
+          acronym?: string | null;
+          degree: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          program_id?: string;
+          position?: number;
+          acronym?: string | null;
+          degree?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_criteria_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_files: {
+        Row: {
+          id: string;
+          program_id: string;
+          file_name: string;
+          file_extension: string | null;
+          file_size: number;
+          file_url: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          program_id: string;
+          file_name: string;
+          file_extension?: string | null;
+          file_size?: number;
+          file_url: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          program_id?: string;
+          file_name?: string;
+          file_extension?: string | null;
+          file_size?: number;
+          file_url?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_files_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       clinic_settings: {
         Row: {
           id: string;
@@ -763,6 +1056,25 @@ export type Database = {
           logo_url: string | null;
           stripe_api_key: string | null;
           mercado_pago_api_key: string | null;
+          trade_name: string | null;
+          company_code: string | null;
+          plan_name: string | null;
+          phone: string | null;
+          mobile_phone: string | null;
+          municipal_registration: string | null;
+          state_registration: string | null;
+          email: string | null;
+          contact_name: string | null;
+          website: string | null;
+          zip_code: string | null;
+          state: string | null;
+          city: string | null;
+          street: string | null;
+          neighborhood: string | null;
+          address_complement: string | null;
+          whatsapp_guardian_confirmation: boolean;
+          whatsapp_professional_notification: boolean;
+          appointment_notification_hours: number;
           created_at: string;
           updated_at: string;
         };
@@ -774,6 +1086,25 @@ export type Database = {
           logo_url?: string | null;
           stripe_api_key?: string | null;
           mercado_pago_api_key?: string | null;
+          trade_name?: string | null;
+          company_code?: string | null;
+          plan_name?: string | null;
+          phone?: string | null;
+          mobile_phone?: string | null;
+          municipal_registration?: string | null;
+          state_registration?: string | null;
+          email?: string | null;
+          contact_name?: string | null;
+          website?: string | null;
+          zip_code?: string | null;
+          state?: string | null;
+          city?: string | null;
+          street?: string | null;
+          neighborhood?: string | null;
+          address_complement?: string | null;
+          whatsapp_guardian_confirmation?: boolean;
+          whatsapp_professional_notification?: boolean;
+          appointment_notification_hours?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -785,6 +1116,25 @@ export type Database = {
           logo_url?: string | null;
           stripe_api_key?: string | null;
           mercado_pago_api_key?: string | null;
+          trade_name?: string | null;
+          company_code?: string | null;
+          plan_name?: string | null;
+          phone?: string | null;
+          mobile_phone?: string | null;
+          municipal_registration?: string | null;
+          state_registration?: string | null;
+          email?: string | null;
+          contact_name?: string | null;
+          website?: string | null;
+          zip_code?: string | null;
+          state?: string | null;
+          city?: string | null;
+          street?: string | null;
+          neighborhood?: string | null;
+          address_complement?: string | null;
+          whatsapp_guardian_confirmation?: boolean;
+          whatsapp_professional_notification?: boolean;
+          appointment_notification_hours?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -860,6 +1210,17 @@ export type AgendaEventRow =
 
 export type AssessmentTemplateRow =
   Database["public"]["Tables"]["assessment_templates"]["Row"];
+
+export type ProgramRow = Database["public"]["Tables"]["programs"]["Row"];
+
+export type ProgramTargetRow =
+  Database["public"]["Tables"]["program_targets"]["Row"];
+
+export type ProgramCriterionRow =
+  Database["public"]["Tables"]["program_criteria"]["Row"];
+
+export type ProgramFileRow =
+  Database["public"]["Tables"]["program_files"]["Row"];
 
 export type AssessmentLevelRow =
   Database["public"]["Tables"]["assessment_levels"]["Row"];

@@ -71,6 +71,8 @@ export function ProfessionalCreatePageView() {
           | (typeof PROFESSIONAL_ROLES)[number]
           | "",
         professionalCouncil: String(formData.get("professionalCouncil") ?? ""),
+        cpf: String(formData.get("cpf") ?? ""),
+        birthDate: String(formData.get("birthDate") ?? ""),
       });
 
       if (!result.success) {
@@ -214,6 +216,26 @@ export function ProfessionalCreatePageView() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cpf">CPF</Label>
+            <Input
+              id="cpf"
+              name="cpf"
+              className={inputClassName}
+              placeholder="000.000.000-00"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="birth-date">Data de nascimento</Label>
+            <Input
+              id="birth-date"
+              name="birthDate"
+              type="date"
+              className={inputClassName}
+            />
           </div>
 
           <div className="space-y-2 sm:col-span-2">

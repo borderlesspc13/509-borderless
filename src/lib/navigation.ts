@@ -1,22 +1,19 @@
 import {
-  CalendarDays,
-  CalendarSearch,
-  ClipboardCheck,
-  FileBarChart,
-  FileStack,
-  FileText,
+  CalendarClock,
+  Database,
+  GraduationCap,
   LayoutDashboard,
   MessageSquare,
-  Monitor,
-  ScrollText,
+  PieChart,
   Settings,
-  UserCog,
-  Users,
+  SquarePlus,
+  Stethoscope,
   type LucideIcon,
 } from "lucide-react";
 
 import type { UserProfile } from "@/lib/auth";
 import { hasPermission, PERMISSIONS, type Permission } from "@/lib/rbac";
+import { getUnderDevelopmentHref } from "@/lib/under-development";
 
 export type NavLink = {
   kind: "link";
@@ -26,11 +23,18 @@ export type NavLink = {
   permission: Permission;
 };
 
+export type NavGroupItem = {
+  title: string;
+  href: string;
+  permission: Permission;
+  developed?: boolean;
+};
+
 export type NavGroup = {
   kind: "group";
   title: string;
   icon: LucideIcon;
-  items: Omit<NavLink, "kind">[];
+  items: NavGroupItem[];
 };
 
 export type NavEntry = NavLink | NavGroup;
@@ -46,82 +50,239 @@ export const mainNavEntries: NavEntry[] = [
   {
     kind: "group",
     title: "Cadastro",
-    icon: Users,
+    icon: SquarePlus,
     items: [
       {
-        title: "Aprendizes",
-        href: "/prontuario",
-        icon: Users,
-        permission: PERMISSIONS.PATIENTS_VIEW,
+        title: "Empresa",
+        href: "/dashboard/empresa",
+        permission: PERMISSIONS.SETTINGS_MANAGE,
       },
       {
         title: "Profissionais",
         href: "/dashboard/profissionais",
-        icon: UserCog,
         permission: PERMISSIONS.PROFESSIONALS_VIEW,
+      },
+      {
+        title: "Aprendizes",
+        href: "/dashboard/pacientes",
+        permission: PERMISSIONS.PATIENTS_VIEW,
       },
       {
         title: "Avaliações",
         href: "/dashboard/avaliacoes",
-        icon: ClipboardCheck,
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
+      },
+      {
+        title: "Critérios Padrão",
+        href: getUnderDevelopmentHref("Critérios Padrão"),
+        permission: PERMISSIONS.ASSESSMENTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Programas",
+        href: "/dashboard/programas",
+        permission: PERMISSIONS.ASSESSMENTS_VIEW,
+      },
+      {
+        title: "Pastas Curriculares",
+        href: getUnderDevelopmentHref("Pastas Curriculares"),
+        permission: PERMISSIONS.ASSESSMENTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Tipo Registro",
+        href: getUnderDevelopmentHref("Tipo Registro"),
+        permission: PERMISSIONS.PATIENTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Local Registro",
+        href: getUnderDevelopmentHref("Local Registro"),
+        permission: PERMISSIONS.PATIENTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Checklist",
+        href: getUnderDevelopmentHref("Checklist"),
+        permission: PERMISSIONS.PATIENTS_VIEW,
+        developed: false,
       },
     ],
   },
   {
     kind: "group",
     title: "Atendimento",
-    icon: ClipboardCheck,
+    icon: Stethoscope,
     items: [
       {
-        title: "Evolução Clínica",
-        href: "/evolucao",
-        icon: FileText,
+        title: "Anamnese",
+        href: getUnderDevelopmentHref("Anamnese"),
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+        developed: false,
+      },
+      {
+        title: "Evolução Diária",
+        href: "/dashboard/evolucao",
         permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
       },
       {
-        title: "Biblioteca de Modelos",
-        href: "/dashboard/modelos",
-        icon: FileStack,
-        permission: PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
+        title: "Sessão",
+        href: getUnderDevelopmentHref("Sessão"),
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+        developed: false,
+      },
+      {
+        title: "Plano Terapêutico",
+        href: getUnderDevelopmentHref("Plano Terapêutico"),
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+        developed: false,
+      },
+      {
+        title: "Avaliações",
+        href: "/dashboard/avaliacoes",
+        permission: PERMISSIONS.ASSESSMENTS_VIEW,
+      },
+      {
+        title: "Supervisões",
+        href: getUnderDevelopmentHref("Supervisões"),
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+        developed: false,
+      },
+      {
+        title: "Painel De Manutenções",
+        href: getUnderDevelopmentHref("Painel De Manutenções"),
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+        developed: false,
+      },
+      {
+        title: "Checklist",
+        href: getUnderDevelopmentHref("Checklist"),
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+        developed: false,
+      },
+    ],
+  },
+  {
+    kind: "group",
+    title: "Família/Escola",
+    icon: GraduationCap,
+    items: [
+      {
+        title: "Orientações/Dicas",
+        href: getUnderDevelopmentHref("Orientações/Dicas"),
+        permission: PERMISSIONS.PATIENTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Registros De Rotina",
+        href: getUnderDevelopmentHref("Registros De Rotina"),
+        permission: PERMISSIONS.PATIENTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Narrativas ABC",
+        href: getUnderDevelopmentHref("Narrativas ABC"),
+        permission: PERMISSIONS.PATIENTS_VIEW,
+        developed: false,
       },
     ],
   },
   {
     kind: "group",
     title: "Relatórios",
-    icon: FileBarChart,
+    icon: PieChart,
     items: [
       {
-        title: "Indicadores Clínicos",
+        title: "Desempenho Aprendiz",
         href: "/dashboard/relatorios",
-        icon: FileBarChart,
         permission: PERMISSIONS.REPORTS_VIEW,
+      },
+      {
+        title: "Evolução Critérios",
+        href: getUnderDevelopmentHref("Evolução Critérios"),
+        permission: PERMISSIONS.REPORTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Desempenho Aplicações",
+        href: getUnderDevelopmentHref("Desempenho Aplicações"),
+        permission: PERMISSIONS.REPORTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Desempenho Programas",
+        href: getUnderDevelopmentHref("Desempenho Programas"),
+        permission: PERMISSIONS.REPORTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Situação Estímulos",
+        href: getUnderDevelopmentHref("Situação Estímulos"),
+        permission: PERMISSIONS.REPORTS_VIEW,
+        developed: false,
+      },
+      {
+        title: "Gráfico 3D",
+        href: getUnderDevelopmentHref("Gráfico 3D"),
+        permission: PERMISSIONS.REPORTS_VIEW,
+        developed: false,
       },
     ],
   },
   {
     kind: "group",
     title: "Agenda",
-    icon: CalendarDays,
+    icon: CalendarClock,
     items: [
       {
-        title: "Agenda Diária",
+        title: "Realizar Agendamento",
         href: "/agenda",
-        icon: CalendarDays,
         permission: PERMISSIONS.AGENDA_VIEW,
       },
       {
         title: "Busca de Agenda",
         href: "/dashboard/busca-agenda",
-        icon: CalendarSearch,
         permission: PERMISSIONS.AGENDA_SEARCH,
       },
       {
-        title: "Painel de Chamada",
-        href: "/painel-chamada",
-        icon: Monitor,
+        title: "Local Agendamento",
+        href: getUnderDevelopmentHref("Local Agendamento"),
         permission: PERMISSIONS.AGENDA_VIEW,
+        developed: false,
+      },
+      {
+        title: "Hist. De Agendamento",
+        href: getUnderDevelopmentHref("Hist. De Agendamento"),
+        permission: PERMISSIONS.AGENDA_VIEW,
+        developed: false,
+      },
+      {
+        title: "Monitor",
+        href: "/painel-chamada",
+        permission: PERMISSIONS.AGENDA_VIEW,
+      },
+      {
+        title: "Biblioteca de Modelos",
+        href: "/dashboard/modelos",
+        permission: PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
+      },
+    ],
+  },
+  {
+    kind: "group",
+    title: "Auditoria",
+    icon: Database,
+    items: [
+      {
+        title: "Logs",
+        href: "/dashboard/auditoria",
+        permission: PERMISSIONS.AUDIT_LOGS_VIEW,
+      },
+      {
+        title: "Acessos",
+        href: getUnderDevelopmentHref("Acessos"),
+        permission: PERMISSIONS.AUDIT_LOGS_VIEW,
+        developed: false,
       },
     ],
   },
@@ -131,13 +292,6 @@ export const mainNavEntries: NavEntry[] = [
     href: "/chat",
     icon: MessageSquare,
     permission: PERMISSIONS.INTERNAL_MESSAGING,
-  },
-  {
-    kind: "link",
-    title: "Auditoria",
-    href: "/dashboard/auditoria",
-    icon: ScrollText,
-    permission: PERMISSIONS.AUDIT_LOGS_VIEW,
   },
   {
     kind: "link",
@@ -191,7 +345,6 @@ export function getNavItemsForProfile(
     return entry.items.map((item) => ({
       title: item.title,
       href: item.href,
-      icon: item.icon,
       permission: item.permission,
     }));
   });
@@ -200,6 +353,10 @@ export function getNavItemsForProfile(
 export function isNavHrefActive(pathname: string, href: string) {
   if (href === "/dashboard") {
     return pathname === "/dashboard";
+  }
+
+  if (href.startsWith("/em-desenvolvimento")) {
+    return pathname === "/em-desenvolvimento";
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);

@@ -36,6 +36,8 @@ export type CreateTeamMemberInput = {
   profile: UserProfile;
   professionalRole?: ProfessionalRole | "";
   professionalCouncil?: string;
+  cpf?: string;
+  birthDate?: string;
 };
 
 function isClinicalProfile(profile: UserProfile) {
@@ -418,6 +420,8 @@ export async function createTeamMemberAction(
       profile,
       professional_role: professionalRole,
       professional_council: input.professionalCouncil?.trim() || null,
+      cpf: normalizeOptionalText(input.cpf),
+      birth_date: normalizeOptionalText(input.birthDate),
       updated_at: new Date().toISOString(),
     })
     .eq("id", createdUser.user.id)
