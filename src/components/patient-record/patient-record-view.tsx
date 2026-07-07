@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowLeft,
+  BookOpen,
   CalendarDays,
   CheckCircle2,
   FileText,
@@ -25,6 +26,7 @@ import {
   RichTextEditor,
   buildDocumentTemplateVariables,
 } from "@/components/clinical-evolution/rich-text-editor";
+import { HomeActivitiesPanel } from "@/components/home-activities/home-activities-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -230,6 +232,7 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
           <TabsTrigger value="atendimentos">Histórico de Atendimentos</TabsTrigger>
           <TabsTrigger value="evolucoes">Evoluções</TabsTrigger>
           <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
+          <TabsTrigger value="atividades-casa">Atividades para Casa</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
         </TabsList>
 
@@ -571,6 +574,27 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
                   </TableBody>
                 </Table>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="atividades-casa" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="size-5 text-primary" />
+                Atividades para casa
+              </CardTitle>
+              <CardDescription>
+                Orientações e exercícios publicados pela psicopedagoga para
+                acompanhamento familiar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <HomeActivitiesPanel
+                patientId={patient.id}
+                patientName={patient.full_name}
+              />
             </CardContent>
           </Card>
         </TabsContent>

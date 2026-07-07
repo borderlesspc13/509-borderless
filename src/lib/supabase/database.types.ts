@@ -118,6 +118,85 @@ export type Database = {
           },
         ];
       };
+      home_activities: {
+        Row: {
+          id: string;
+          patient_id: string;
+          title: string;
+          description: string;
+          instructions: string | null;
+          created_by_name: string;
+          created_by_user_id: string | null;
+          is_published: boolean;
+          due_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          title: string;
+          description: string;
+          instructions?: string | null;
+          created_by_name: string;
+          created_by_user_id?: string | null;
+          is_published?: boolean;
+          due_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          title?: string;
+          description?: string;
+          instructions?: string | null;
+          created_by_name?: string;
+          created_by_user_id?: string | null;
+          is_published?: boolean;
+          due_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "home_activities_patient_id_fkey";
+            columns: ["patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      professional_patient_assignments: {
+        Row: {
+          id: string;
+          professional_id: string;
+          patient_id: string;
+          assigned_at: string;
+        };
+        Insert: {
+          id?: string;
+          professional_id: string;
+          patient_id: string;
+          assigned_at?: string;
+        };
+        Update: {
+          id?: string;
+          professional_id?: string;
+          patient_id?: string;
+          assigned_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "professional_patient_assignments_patient_id_fkey";
+            columns: ["patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       patients: {
         Row: {
           id: string;
@@ -1178,6 +1257,12 @@ export type PatientRow = Database["public"]["Tables"]["patients"]["Row"];
 
 export type FamilyPortalNoticeRow =
   Database["public"]["Tables"]["family_portal_notices"]["Row"];
+
+export type HomeActivityRow =
+  Database["public"]["Tables"]["home_activities"]["Row"];
+
+export type ProfessionalPatientAssignmentRow =
+  Database["public"]["Tables"]["professional_patient_assignments"]["Row"];
 
 export type EvaluationRow = Database["public"]["Tables"]["evaluations"]["Row"];
 

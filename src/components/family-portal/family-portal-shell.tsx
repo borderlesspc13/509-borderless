@@ -77,6 +77,7 @@ const NAV_ITEMS = [
   { id: "resumo", label: "Resumo" },
   { id: "evolucao", label: "Evolução" },
   { id: "progresso", label: "Progresso" },
+  { id: "atividades-casa", label: "Atividades" },
   { id: "avisos", label: "Avisos" },
 ] as const;
 

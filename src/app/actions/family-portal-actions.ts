@@ -1,5 +1,6 @@
 "use server";
 
+import type { HomeActivity } from "@/app/actions/home-activity-actions";
 import { requireFamilySession } from "@/lib/auth-guard";
 import {
   buildEvolutionSeries,
@@ -38,6 +39,7 @@ export type FamilyPortalHomeData = {
   evolutionPoints: EvaluationEvolutionPoint[];
   scoreTrend: number | null;
   notices: FamilyPortalNotice[];
+  homeActivities: HomeActivity[];
 };
 
 function formatNoticeDate(isoDate: string) {
@@ -73,6 +75,32 @@ function mapNotice(notice: FamilyPortalNoticeRow): FamilyPortalNotice {
   };
 }
 
+function mapHomeActivity(row: {
+  id: string;
+  patient_id: string;
+  title: string;
+  description: string;
+  instructions: string | null;
+  created_by_name: string;
+  is_published: boolean;
+  due_date: string | null;
+  created_at: string;
+}): HomeActivity {
+  return {
+    id: row.id,
+    patientId: row.patient_id,
+    title: row.title,
+    description: row.description,
+    instructions: row.instructions,
+    createdByName: row.created_by_name,
+    isPublished: row.is_published,
+    dueDate: row.due_date,
+    dueDateLabel: row.due_date ? formatNoticeDate(row.due_date) : null,
+    createdAt: row.created_at,
+    createdAtLabel: formatNoticeDate(row.created_at),
+  };
+}
+
 export async function getFamilyPortalHomeDataAction(): Promise<FamilyPortalHomeData | null> {
   const session = await requireFamilySession();
   const patientId = session.patientId;
@@ -87,7 +115,7 @@ export async function getFamilyPortalHomeDataAction(): Promise<FamilyPortalHomeD
     return null;
   }
 
-  const [patientResult, evolutionResult, evaluationsResult, noticesResult] =
+  const [patientResult, evolutionResult, evaluationsResult, noticesResult, activitiesResult] =
     await Promise.all([
       supabase
         .from("patients")
@@ -115,6 +143,13 @@ export async function getFamilyPortalHomeDataAction(): Promise<FamilyPortalHomeD
         .eq("is_published", true)
         .order("created_at", { ascending: false })
         .limit(10),
+      supabase
+        .from("home_activities")
+        .select("*")
+        .eq("patient_id", patientId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(20),
     ]);
 
   if (patientResult.error || !patientResult.data) {
@@ -131,5 +166,6 @@ export async function getFamilyPortalHomeDataAction(): Promise<FamilyPortalHomeD
     evolutionPoints,
     scoreTrend: calculateScoreTrend(evolutionPoints),
     notices: (noticesResult.data ?? []).map(mapNotice),
+    homeActivities: (activitiesResult.data ?? []).map(mapHomeActivity),
   };
 }

@@ -120,8 +120,14 @@ export const AI_AGENTS: Record<AiAgentId, AiAgentDefinition> = {
       "Explicar indicadores do período",
       "Resumir sessões da semana",
       "Sugerir pontos de atenção",
+      "Verificar padrão de escrita do relatório",
+      "Analisar foto de relatório clínico",
     ],
-    tools: ["get_dashboard_summary", "explain_clinical_metric"],
+    tools: [
+      "get_dashboard_summary",
+      "explain_clinical_metric",
+      "verify_writing_pattern",
+    ],
   },
   team: {
     id: "team",

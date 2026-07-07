@@ -143,14 +143,8 @@ export const mainNavEntries: NavEntry[] = [
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
       {
-        title: "Supervisões",
-        href: getUnderDevelopmentHref("Supervisões"),
-        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-        developed: false,
-      },
-      {
-        title: "Painel De Manutenções",
-        href: getUnderDevelopmentHref("Painel De Manutenções"),
+        title: "Supervisores",
+        href: getUnderDevelopmentHref("Supervisores"),
         permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
         developed: false,
       },

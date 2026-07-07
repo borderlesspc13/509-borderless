@@ -18,6 +18,7 @@ import {
 } from "@/components/team/professional-card";
 import { ProfessionalStatsRow } from "@/components/team/professional-stats-row";
 import { ProfessionalStatusDialog } from "@/components/team/professional-status-dialog";
+import { ProfessionalTeamDialog } from "@/components/team/professional-team-dialog";
 import { ProfessionalViewDialog } from "@/components/team/professional-view-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,6 +133,8 @@ export function ProfessionalList({ professionals }: ProfessionalListProps) {
     useState<TeamMember | null>(null);
   const [statusToggleProfessional, setStatusToggleProfessional] =
     useState<TeamMember | null>(null);
+  const [teamManageProfessional, setTeamManageProfessional] =
+    useState<TeamMember | null>(null);
 
   const filteredProfessionals = useMemo(() => {
     const normalizedQuery = normalizeSearchValue(searchQuery);
@@ -168,6 +171,16 @@ export function ProfessionalList({ professionals }: ProfessionalListProps) {
     }
   }
 
+  function handleManageTeamProfessional(professional: TeamMember) {
+    setTeamManageProfessional(professional);
+  }
+
+  function handleTeamDialogOpenChange(open: boolean) {
+    if (!open) {
+      setTeamManageProfessional(null);
+    }
+  }
+
   function handleProfessionalStatusChanged(updatedProfessional: TeamMember) {
     setProfessionalItems((current) =>
       current.map((professional) =>
@@ -191,6 +204,12 @@ export function ProfessionalList({ professionals }: ProfessionalListProps) {
         open={statusToggleProfessional !== null}
         onOpenChange={handleStatusDialogOpenChange}
         onStatusChanged={handleProfessionalStatusChanged}
+      />
+
+      <ProfessionalTeamDialog
+        professional={teamManageProfessional}
+        open={teamManageProfessional !== null}
+        onOpenChange={handleTeamDialogOpenChange}
       />
 
       <ProfessionalStatsRow professionals={professionalItems} />
@@ -345,13 +364,14 @@ export function ProfessionalList({ professionals }: ProfessionalListProps) {
           </p>
         </div>
       ) : viewMode === "grid" ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {filteredProfessionals.map((professional) => (
             <ProfessionalCard
               key={professional.id}
               professional={professional}
               onView={handleViewProfessional}
               onToggleStatus={handleToggleStatusProfessional}
+              onManageTeam={handleManageTeamProfessional}
             />
           ))}
         </div>
@@ -363,6 +383,7 @@ export function ProfessionalList({ professionals }: ProfessionalListProps) {
               professional={professional}
               onView={handleViewProfessional}
               onToggleStatus={handleToggleStatusProfessional}
+              onManageTeam={handleManageTeamProfessional}
             />
           ))}
         </div>

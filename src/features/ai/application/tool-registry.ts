@@ -172,6 +172,16 @@ export const AI_TOOL_REGISTRY: Record<string, AiToolDefinition> = {
         "Detalharia cálculo da métrica selecionada."
       ),
   },
+  verify_writing_pattern: {
+    name: "verify_writing_pattern",
+    description:
+      "Verifica aderência do texto a até 5 modelos clínicos de referência.",
+    simulate: () =>
+      buildTrace(
+        "verify_writing_pattern",
+        "Compararia o relatório com document_templates de relatórios e pareceres."
+      ),
+  },
   get_team_overview: {
     name: "get_team_overview",
     description: "Resume equipe clínica e cargos.",
@@ -214,6 +224,10 @@ export function inferToolsFromMessage(
     { keywords: ["avaliação", "instrumento", "habilidade"], tool: "list_assessment_templates" },
     { keywords: ["modelo", "documento", "template"], tool: "list_document_templates" },
     { keywords: ["indicador", "relatório", "métrica"], tool: "get_dashboard_summary" },
+    {
+      keywords: ["padrão", "escrita", "modelo", "conformidade", "verificar"],
+      tool: "verify_writing_pattern",
+    },
     { keywords: ["profissional", "equipe", "terapeuta"], tool: "get_team_overview" },
     { keywords: ["status", "confirmado", "espera"], tool: "explain_appointment_status" },
   ];

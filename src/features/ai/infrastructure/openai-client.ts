@@ -45,7 +45,7 @@ function buildMockReply(
     "document-templates":
       "Na Biblioteca de Modelos, posso sugerir adaptações de documentos clínicos.",
     reports:
-      "Em Relatórios, posso interpretar indicadores e destacar tendências do período.",
+      "Em Relatórios, posso interpretar indicadores, destacar tendências e verificar o padrão de escrita contra modelos clínicos.",
     team: "Em Profissionais, posso resumir a equipe clínica e filtrar por cargo.",
   };
 

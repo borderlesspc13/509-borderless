@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   CalendarDays,
   ClipboardList,
+  Home,
   LineChart,
   Megaphone,
   TrendingDown,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 
 import type { FamilyPortalHomeData } from "@/app/actions/family-portal-actions";
+import type { HomeActivity } from "@/app/actions/home-activity-actions";
 import { FamilyPortalNav } from "@/components/family-portal/family-portal-shell";
 import { FamilyPortalProgressChart } from "@/components/family-portal/family-portal-progress-chart";
 import { Badge } from "@/components/ui/badge";
@@ -135,8 +137,37 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
+function HomeActivityCard({ activity }: { activity: HomeActivity }) {
+  return (
+    <li className="rounded-xl border border-border/60 bg-muted/10 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-sm font-semibold text-foreground">
+          {activity.title}
+        </h3>
+        {activity.dueDateLabel ? (
+          <Badge variant="outline" className="text-[10px]">
+            Prazo: {activity.dueDateLabel}
+          </Badge>
+        ) : null}
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-foreground/85">
+        {activity.description}
+      </p>
+      {activity.instructions ? (
+        <p className="mt-3 rounded-lg border border-border/50 bg-background px-3 py-2.5 text-sm leading-relaxed text-muted-foreground">
+          {activity.instructions}
+        </p>
+      ) : null}
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Enviado por {activity.createdByName} · {activity.createdAtLabel}
+      </p>
+    </li>
+  );
+}
+
 export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
-  const { patient, lastEvolution, evolutionPoints, scoreTrend, notices } = data;
+  const { patient, lastEvolution, evolutionPoints, scoreTrend, notices, homeActivities } =
+    data;
   const [activeSection, setActiveSection] = useState("resumo");
 
   const scrollToSection = useCallback((sectionId: string) => {
@@ -148,7 +179,13 @@ export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ["resumo", "evolucao", "progresso", "avisos"] as const;
+    const sectionIds = [
+      "resumo",
+      "evolucao",
+      "progresso",
+      "atividades-casa",
+      "avisos",
+    ] as const;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -296,6 +333,23 @@ export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
           </div>
         </SectionPanel>
       </div>
+
+      <SectionPanel
+        id="atividades-casa"
+        title="Atividades para casa"
+        description="Exercícios e orientações enviados pela psicopedagoga para continuidade em casa."
+        icon={<Home className="size-4" aria-hidden />}
+      >
+        {homeActivities.length === 0 ? (
+          <EmptyState message="Nenhuma atividade publicada no momento." />
+        ) : (
+          <ul className="space-y-3">
+            {homeActivities.map((activity) => (
+              <HomeActivityCard key={activity.id} activity={activity} />
+            ))}
+          </ul>
+        )}
+      </SectionPanel>
 
       <SectionPanel
         id="avisos"
