@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil, ToggleLeft } from "lucide-react";
+import { ClipboardList, Pencil, ToggleLeft } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   getAssessmentToggleActionLabel,
   assessmentStatusLabels,
 } from "@/lib/assessment-format";
+import { PEDI_TEMPLATE_NAME } from "@/lib/pedi";
 import type { AssessmentTemplateRow } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +62,8 @@ export function AssessmentCard({ template, onToggleStatus }: AssessmentCardProps
   const editHref = `/dashboard/avaliacoes/${template.id}/editar`;
   const toggleLabel = getAssessmentToggleActionLabel(template.status);
   const initials = getAssessmentInitials(template.name);
+  const isPedi = template.name === PEDI_TEMPLATE_NAME;
+  const actionCols = isPedi ? "grid-cols-3" : "grid-cols-2";
 
   return (
     <article className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
@@ -92,7 +95,23 @@ export function AssessmentCard({ template, onToggleStatus }: AssessmentCardProps
         />
       </div>
 
-      <div className="grid grid-cols-2 border-t border-border/60 bg-muted/20">
+      <div
+        className={cn(
+          "grid border-t border-border/60 bg-muted/20",
+          actionCols
+        )}
+      >
+        {isPedi ? (
+          <Button
+            variant="ghost"
+            nativeButton={false}
+            className="h-auto flex-col gap-1.5 rounded-none border-r border-border/60 px-2 py-3 text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+            render={<Link href="/dashboard/avaliacoes/pedi" />}
+          >
+            <ClipboardList className="size-4" aria-hidden />
+            Aplicar
+          </Button>
+        ) : null}
         <Button
           variant="ghost"
           nativeButton={false}
@@ -122,6 +141,7 @@ export function AssessmentListRow({
   const editHref = `/dashboard/avaliacoes/${template.id}/editar`;
   const toggleLabel = getAssessmentToggleActionLabel(template.status);
   const initials = getAssessmentInitials(template.name);
+  const isPedi = template.name === PEDI_TEMPLATE_NAME;
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -142,6 +162,17 @@ export function AssessmentListRow({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        {isPedi ? (
+          <Button
+            variant="outline"
+            size="sm"
+            nativeButton={false}
+            render={<Link href="/dashboard/avaliacoes/pedi" />}
+          >
+            <ClipboardList className="size-4" aria-hidden />
+            Aplicar
+          </Button>
+        ) : null}
         <Button
           variant="outline"
           size="sm"

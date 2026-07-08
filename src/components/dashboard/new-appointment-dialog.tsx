@@ -45,6 +45,7 @@ import { formatFullDate } from "@/lib/calendar-utils";
 import type { AppointmentConflictType } from "@/lib/agenda-conflicts";
 import type { DailyAppointment } from "@/lib/agenda-types";
 import type { ProfessionalRole } from "@/lib/professionals-data";
+import type { CareType } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
 export type NewAppointmentDefaults = {
@@ -60,6 +61,7 @@ type NewAppointmentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaults?: NewAppointmentDefaults | null;
+  careType?: CareType;
   onCreated?: (appointment: DailyAppointment) => void;
 };
 
@@ -108,6 +110,7 @@ export function NewAppointmentDialog({
   open,
   onOpenChange,
   defaults,
+  careType = "ABA",
   onCreated,
 }: NewAppointmentDialogProps) {
   const { canForceAppointment } = useUserRole();
@@ -205,6 +208,7 @@ export function NewAppointmentDialog({
           eventDate: defaults!.eventDate!,
           startTime: defaults!.startTime!,
           endTime: defaults!.endTime!,
+          careType,
           force,
         }
       : {
@@ -214,6 +218,7 @@ export function NewAppointmentDialog({
           eventDate,
           startTime,
           endTime,
+          careType,
           force,
         };
 

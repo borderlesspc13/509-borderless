@@ -10,19 +10,27 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import type { AgendaIndividualFilter as AgendaIndividualFilterState } from "@/lib/agenda-individual-filter";
+import type { CareType } from "@/lib/supabase/database.types";
 
-export function AgendaPageView() {
+type AgendaPageViewProps = {
+  careType?: CareType;
+};
+
+export function AgendaPageView({ careType = "ABA" }: AgendaPageViewProps) {
   const [individualFilter, setIndividualFilter] =
     useState<AgendaIndividualFilterState | null>(null);
+
+  const title =
+    careType === "CONVENTIONAL" ? "Agenda Convencional" : "Agenda ABA";
 
   return (
     <PageContainer size="wide">
       <div className="space-y-4">
         <DashboardPageHeader
-          title="Agenda"
+          title={title}
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
-            { label: "Agenda" },
+            { label: title },
           ]}
           actions={
             <Button
@@ -50,7 +58,7 @@ export function AgendaPageView() {
       </div>
 
       <div className="mt-5">
-        <DailyAgenda individualFilter={individualFilter} />
+        <DailyAgenda individualFilter={individualFilter} careType={careType} />
       </div>
     </PageContainer>
   );

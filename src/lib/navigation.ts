@@ -121,9 +121,14 @@ export const mainNavEntries: NavEntry[] = [
         developed: false,
       },
       {
-        title: "Evolução Diária",
+        title: "Evolução Diária (ABA)",
         href: "/dashboard/evolucao",
         permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+      },
+      {
+        title: "Evolução Convencional",
+        href: "/dashboard/evolucao-convencional",
+        permission: PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
       },
       {
         title: "Sessão",
@@ -163,9 +168,8 @@ export const mainNavEntries: NavEntry[] = [
     items: [
       {
         title: "Orientações/Dicas",
-        href: getUnderDevelopmentHref("Orientações/Dicas"),
-        permission: PERMISSIONS.PATIENTS_VIEW,
-        developed: false,
+        href: "/dashboard/orientacoes-familia",
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
       },
       {
         title: "Registros De Rotina",
@@ -229,8 +233,13 @@ export const mainNavEntries: NavEntry[] = [
     icon: CalendarClock,
     items: [
       {
-        title: "Realizar Agendamento",
+        title: "Agenda ABA",
         href: "/agenda",
+        permission: PERMISSIONS.AGENDA_VIEW,
+      },
+      {
+        title: "Agenda Convencional",
+        href: "/agenda-convencional",
         permission: PERMISSIONS.AGENDA_VIEW,
       },
       {

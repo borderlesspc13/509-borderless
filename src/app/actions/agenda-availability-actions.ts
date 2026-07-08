@@ -12,6 +12,7 @@ import {
   type AvailableProfessional,
 } from "@/lib/agenda-availability";
 import type { DailyAppointment } from "@/lib/agenda-types";
+import type { CareType } from "@/lib/supabase/database.types";
 import type { ProfessionalRole } from "@/lib/professionals-data";
 import { CLINICAL_ROLES } from "@/lib/rbac";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -32,6 +33,7 @@ export type CreateAppointmentInput = {
   startTime: string;
   endTime: string;
   force?: boolean;
+  careType?: CareType;
 };
 
 export type UpdateAppointmentInput = CreateAppointmentInput & {
@@ -230,6 +232,7 @@ export async function createAppointmentAction(
     start_time: input.startTime,
     end_time: input.endTime,
     status: "agendado" as const,
+    care_type: input.careType ?? "ABA",
     created_at: now,
     updated_at: now,
   };

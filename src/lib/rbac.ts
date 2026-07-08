@@ -22,6 +22,8 @@ export const PERMISSIONS = {
   ASSESSMENTS_VIEW: "assessments:view",
   CLINICAL_EVOLUTION_VIEW: "clinical_evolution:view",
   CLINICAL_EVOLUTION_MANAGE: "clinical_evolution:manage",
+  CONVENTIONAL_EVOLUTION_VIEW: "conventional_evolution:view",
+  CONVENTIONAL_EVOLUTION_MANAGE: "conventional_evolution:manage",
   DOCUMENT_TEMPLATES_VIEW: "document_templates:view",
   DOCUMENT_TEMPLATES_MANAGE: "document_templates:manage",
   REPORTS_VIEW: "reports:view",
@@ -70,6 +72,8 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   [ROLES.AT1]: [
     ...BASE_THERAPIST_PERMISSIONS,
     PERMISSIONS.CLINICAL_EVOLUTION_MANAGE,
+    PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
+    PERMISSIONS.CONVENTIONAL_EVOLUTION_MANAGE,
   ],
   [ROLES.SUPERVISOR]: [
     ...BASE_THERAPIST_PERMISSIONS,
@@ -78,6 +82,8 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     PERMISSIONS.AGENDA_SEARCH,
     PERMISSIONS.PROFESSIONALS_VIEW,
     PERMISSIONS.REPORTS_VIEW,
+    PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
+    PERMISSIONS.CONVENTIONAL_EVOLUTION_MANAGE,
   ],
   [ROLES.ADMIN]: Object.values(PERMISSIONS),
 };
@@ -112,6 +118,9 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/dashboard/programas": PERMISSIONS.ASSESSMENTS_VIEW,
   "/evolucao": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
   "/dashboard/evolucao": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+  "/dashboard/orientacoes-familia": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+  "/agenda-convencional": PERMISSIONS.AGENDA_VIEW,
+  "/dashboard/evolucao-convencional": PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
   "/dashboard/modelos": PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
   "/dashboard/relatorios": PERMISSIONS.REPORTS_VIEW,
   "/dashboard/auditoria": PERMISSIONS.AUDIT_LOGS_VIEW,

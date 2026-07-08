@@ -2,17 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  CalendarDays,
-  ClipboardList,
+  FileText,
   Home,
+  Lightbulb,
   LineChart,
   Megaphone,
   TrendingDown,
   TrendingUp,
-  UserRound,
 } from "lucide-react";
 
-import type { FamilyPortalHomeData } from "@/app/actions/family-portal-actions";
+import type {
+  FamilyParentOrientation,
+  FamilyPortalHomeData,
+} from "@/app/actions/family-portal-actions";
 import type { HomeActivity } from "@/app/actions/home-activity-actions";
 import { FamilyPortalNav } from "@/components/family-portal/family-portal-shell";
 import { FamilyPortalProgressChart } from "@/components/family-portal/family-portal-progress-chart";
@@ -165,9 +167,57 @@ function HomeActivityCard({ activity }: { activity: HomeActivity }) {
   );
 }
 
+function OrientationCard({
+  orientation,
+}: {
+  orientation: FamilyParentOrientation;
+}) {
+  return (
+    <li className="rounded-xl border border-border/60 bg-muted/10 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-foreground">
+          {orientation.title}
+        </h3>
+        <time
+          dateTime={orientation.createdAt}
+          className="shrink-0 text-[11px] font-medium text-muted-foreground"
+        >
+          {orientation.createdAtLabel}
+        </time>
+      </div>
+      {orientation.contentHtml ? (
+        <div
+          className="prose prose-sm mt-2 max-w-none text-foreground/85 prose-p:my-1.5 prose-headings:my-2 prose-p:leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: orientation.contentHtml }}
+        />
+      ) : null}
+      {orientation.peiUrl ? (
+        <a
+          href={orientation.peiUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+        >
+          <FileText className="size-4" aria-hidden />
+          {orientation.peiLabel?.trim() || "Abrir PEI"}
+        </a>
+      ) : null}
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Publicado por {orientation.authorName}
+      </p>
+    </li>
+  );
+}
+
 export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
-  const { patient, lastEvolution, evolutionPoints, scoreTrend, notices, homeActivities } =
-    data;
+  const {
+    patient,
+    evolutionPoints,
+    scoreTrend,
+    notices,
+    homeActivities,
+    parentOrientations,
+  } = data;
   const [activeSection, setActiveSection] = useState("resumo");
 
   const scrollToSection = useCallback((sectionId: string) => {
@@ -181,7 +231,7 @@ export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
   useEffect(() => {
     const sectionIds = [
       "resumo",
-      "evolucao",
+      "orientacoes",
       "progresso",
       "atividades-casa",
       "avisos",
@@ -212,7 +262,7 @@ export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
   }, []);
 
   const evaluationCount = evolutionPoints.length;
-  const lastSessionLabel = lastEvolution?.sessionDateLabel ?? "—";
+  const orientationCount = parentOrientations.length;
 
   return (
     <div className="space-y-6">
@@ -260,9 +310,9 @@ export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
 
           <div className="relative mt-5 grid grid-cols-3 gap-2 sm:gap-3">
             <StatCard
-              label="Última sessão"
-              value={lastSessionLabel}
-              hint="Evolução finalizada"
+              label="Orientações"
+              value={String(orientationCount)}
+              hint="Da equipe"
             />
             <StatCard
               label="Avaliações"
@@ -285,36 +335,23 @@ export function FamilyPortalHome({ data }: FamilyPortalHomeProps) {
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-5">
         <SectionPanel
-          id="evolucao"
-          title="Última evolução clínica"
-          description="Resumo da sessão mais recente finalizada pela equipe."
-          icon={<ClipboardList className="size-4" aria-hidden />}
+          id="orientacoes"
+          title="Orientações da equipe"
+          description="Estratégias e demandas para reforçar o desenvolvimento em casa."
+          icon={<Lightbulb className="size-4" aria-hidden />}
           className="lg:order-1"
         >
-          {lastEvolution ? (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="gap-1 font-normal">
-                  <CalendarDays className="size-3" aria-hidden />
-                  {lastEvolution.sessionDateLabel}
-                </Badge>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <UserRound className="size-3.5" aria-hidden />
-                  {lastEvolution.professionalName} · {lastEvolution.professionalRole}
-                </span>
-              </div>
-
-              <div className="rounded-xl border-l-4 border-l-primary/70 bg-muted/25 px-4 py-3.5">
-                <div
-                  className="prose prose-sm max-w-none text-foreground/90 prose-p:my-1.5 prose-headings:my-2 prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: lastEvolution.contentHtml,
-                  }}
-                />
-              </div>
-            </div>
+          {parentOrientations.length === 0 ? (
+            <EmptyState message="Nenhuma orientação publicada no momento." />
           ) : (
-            <EmptyState message="Nenhuma evolução finalizada disponível no momento." />
+            <ul className="space-y-3">
+              {parentOrientations.map((orientation) => (
+                <OrientationCard
+                  key={orientation.id}
+                  orientation={orientation}
+                />
+              ))}
+            </ul>
           )}
         </SectionPanel>
 

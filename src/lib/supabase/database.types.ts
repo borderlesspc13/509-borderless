@@ -673,6 +673,7 @@ export type Database = {
           queue_number: number | null;
           room_name: string | null;
           called_at: string | null;
+          care_type: "ABA" | "CONVENTIONAL";
           created_at: string;
           updated_at: string;
         };
@@ -692,6 +693,7 @@ export type Database = {
           queue_number?: number | null;
           room_name?: string | null;
           called_at?: string | null;
+          care_type?: "ABA" | "CONVENTIONAL";
           created_at?: string;
           updated_at?: string;
         };
@@ -711,10 +713,114 @@ export type Database = {
           queue_number?: number | null;
           room_name?: string | null;
           called_at?: string | null;
+          care_type?: "ABA" | "CONVENTIONAL";
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
+      };
+      conventional_evolution_records: {
+        Row: {
+          id: string;
+          patient_id: string;
+          patient_name: string;
+          session_date: string;
+          content_html: string;
+          status: "draft" | "finalized";
+          professional_id: string;
+          professional_name: string;
+          professional_role: string;
+          professional_council: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          patient_name: string;
+          session_date: string;
+          content_html?: string;
+          status?: "draft" | "finalized";
+          professional_id: string;
+          professional_name: string;
+          professional_role: string;
+          professional_council?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          patient_name?: string;
+          session_date?: string;
+          content_html?: string;
+          status?: "draft" | "finalized";
+          professional_id?: string;
+          professional_name?: string;
+          professional_role?: string;
+          professional_council?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conventional_evolution_records_patient_id_fkey";
+            columns: ["patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      parent_orientations: {
+        Row: {
+          id: string;
+          patient_id: string;
+          title: string;
+          content_html: string;
+          pei_url: string | null;
+          pei_label: string | null;
+          author_name: string;
+          author_user_id: string | null;
+          is_published: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          title: string;
+          content_html?: string;
+          pei_url?: string | null;
+          pei_label?: string | null;
+          author_name: string;
+          author_user_id?: string | null;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          title?: string;
+          content_html?: string;
+          pei_url?: string | null;
+          pei_label?: string | null;
+          author_name?: string;
+          author_user_id?: string | null;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "parent_orientations_patient_id_fkey";
+            columns: ["patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       assessment_templates: {
         Row: {
@@ -856,6 +962,60 @@ export type Database = {
           score_type?: string | null;
           description?: string;
           value?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      pedi_continuous_scores: {
+        Row: {
+          id: string;
+          area: "self_care" | "mobility" | "social_function";
+          raw_score: number;
+          continuous_score: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          area: "self_care" | "mobility" | "social_function";
+          raw_score: number;
+          continuous_score: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          area?: "self_care" | "mobility" | "social_function";
+          raw_score?: number;
+          continuous_score?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      pedi_normative_scores: {
+        Row: {
+          id: string;
+          area: "self_care" | "mobility" | "social_function";
+          age_months_min: number;
+          age_months_max: number;
+          raw_score: number;
+          normative_score: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          area: "self_care" | "mobility" | "social_function";
+          age_months_min: number;
+          age_months_max: number;
+          raw_score: number;
+          normative_score: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          area?: "self_care" | "mobility" | "social_function";
+          age_months_min?: number;
+          age_months_max?: number;
+          raw_score?: number;
+          normative_score?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -1333,3 +1493,17 @@ export type ChatConversationMemberRow =
 
 export type ChatMessageRow =
   Database["public"]["Tables"]["chat_messages"]["Row"];
+
+export type ConventionalEvolutionRecordRow =
+  Database["public"]["Tables"]["conventional_evolution_records"]["Row"];
+
+export type ParentOrientationRow =
+  Database["public"]["Tables"]["parent_orientations"]["Row"];
+
+export type PediContinuousScoreRow =
+  Database["public"]["Tables"]["pedi_continuous_scores"]["Row"];
+
+export type PediNormativeScoreRow =
+  Database["public"]["Tables"]["pedi_normative_scores"]["Row"];
+
+export type CareType = "ABA" | "CONVENTIONAL";

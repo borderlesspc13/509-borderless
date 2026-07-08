@@ -174,14 +174,24 @@ export function AssessmentList({ templates }: AssessmentListProps) {
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button
-          size="lg"
-          nativeButton={false}
-          render={<Link href="/dashboard/avaliacoes/novo" />}
-        >
-          <Plus className="size-4" aria-hidden />
-          Nova Avaliação
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link href="/dashboard/avaliacoes/novo" />}
+          >
+            <Plus className="size-4" aria-hidden />
+            Nova Avaliação
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/dashboard/avaliacoes/pedi" />}
+          >
+            Aplicar PEDI
+          </Button>
+        </div>
 
         <div className="flex items-center gap-1 self-end sm:self-auto">
           <Button

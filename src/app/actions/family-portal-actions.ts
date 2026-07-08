@@ -10,19 +10,10 @@ import {
 } from "@/lib/clinical-reports";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type {
-  ClinicalEvolutionRecordRow,
   FamilyPortalNoticeRow,
+  ParentOrientationRow,
   PatientRow,
 } from "@/lib/supabase/database.types";
-
-export type FamilyPortalLastEvolution = {
-  id: string;
-  sessionDate: string;
-  sessionDateLabel: string;
-  professionalName: string;
-  professionalRole: string;
-  contentHtml: string;
-};
 
 export type FamilyPortalNotice = {
   id: string;
@@ -33,35 +24,33 @@ export type FamilyPortalNotice = {
   createdAtLabel: string;
 };
 
+export type FamilyParentOrientation = {
+  id: string;
+  title: string;
+  contentHtml: string;
+  peiUrl: string | null;
+  peiLabel: string | null;
+  authorName: string;
+  createdAt: string;
+  createdAtLabel: string;
+};
+
 export type FamilyPortalHomeData = {
   patient: Pick<PatientRow, "id" | "full_name" | "diagnosis">;
-  lastEvolution: FamilyPortalLastEvolution | null;
   evolutionPoints: EvaluationEvolutionPoint[];
   scoreTrend: number | null;
   notices: FamilyPortalNotice[];
   homeActivities: HomeActivity[];
+  parentOrientations: FamilyParentOrientation[];
 };
 
-function formatNoticeDate(isoDate: string) {
+function formatDate(isoDate: string) {
   const date = new Date(isoDate);
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
-}
-
-function mapLastEvolution(
-  record: ClinicalEvolutionRecordRow
-): FamilyPortalLastEvolution {
-  return {
-    id: record.id,
-    sessionDate: record.session_date,
-    sessionDateLabel: formatEvaluationDateLabel(record.session_date),
-    professionalName: record.professional_name,
-    professionalRole: record.professional_role,
-    contentHtml: record.content_html,
-  };
 }
 
 function mapNotice(notice: FamilyPortalNoticeRow): FamilyPortalNotice {
@@ -71,7 +60,22 @@ function mapNotice(notice: FamilyPortalNoticeRow): FamilyPortalNotice {
     content: notice.content,
     authorName: notice.author_name,
     createdAt: notice.created_at,
-    createdAtLabel: formatNoticeDate(notice.created_at),
+    createdAtLabel: formatDate(notice.created_at),
+  };
+}
+
+function mapParentOrientation(
+  row: ParentOrientationRow
+): FamilyParentOrientation {
+  return {
+    id: row.id,
+    title: row.title,
+    contentHtml: row.content_html,
+    peiUrl: row.pei_url,
+    peiLabel: row.pei_label,
+    authorName: row.author_name,
+    createdAt: row.created_at,
+    createdAtLabel: formatDate(row.created_at),
   };
 }
 
@@ -95,9 +99,9 @@ function mapHomeActivity(row: {
     createdByName: row.created_by_name,
     isPublished: row.is_published,
     dueDate: row.due_date,
-    dueDateLabel: row.due_date ? formatNoticeDate(row.due_date) : null,
+    dueDateLabel: row.due_date ? formatDate(row.due_date) : null,
     createdAt: row.created_at,
-    createdAtLabel: formatNoticeDate(row.created_at),
+    createdAtLabel: formatDate(row.created_at),
   };
 }
 
@@ -115,42 +119,46 @@ export async function getFamilyPortalHomeDataAction(): Promise<FamilyPortalHomeD
     return null;
   }
 
-  const [patientResult, evolutionResult, evaluationsResult, noticesResult, activitiesResult] =
-    await Promise.all([
-      supabase
-        .from("patients")
-        .select("id, full_name, diagnosis")
-        .eq("id", patientId)
-        .maybeSingle(),
-      supabase
-        .from("clinical_evolution_records")
-        .select("*")
-        .eq("patient_id", patientId)
-        .eq("status", "finalized")
-        .order("session_date", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from("evaluations")
-        .select("id, evaluation_date, title, content_html, total_score")
-        .eq("patient_id", patientId)
-        .eq("status", "finalized")
-        .order("evaluation_date", { ascending: true }),
-      supabase
-        .from("family_portal_notices")
-        .select("*")
-        .eq("patient_id", patientId)
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabase
-        .from("home_activities")
-        .select("*")
-        .eq("patient_id", patientId)
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
+  const [
+    patientResult,
+    evaluationsResult,
+    noticesResult,
+    activitiesResult,
+    parentOrientationsResult,
+  ] = await Promise.all([
+    supabase
+      .from("patients")
+      .select("id, full_name, diagnosis")
+      .eq("id", patientId)
+      .maybeSingle(),
+    supabase
+      .from("evaluations")
+      .select("id, evaluation_date, title, content_html, total_score")
+      .eq("patient_id", patientId)
+      .eq("status", "finalized")
+      .order("evaluation_date", { ascending: true }),
+    supabase
+      .from("family_portal_notices")
+      .select("*")
+      .eq("patient_id", patientId)
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("home_activities")
+      .select("*")
+      .eq("patient_id", patientId)
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("parent_orientations")
+      .select("*")
+      .eq("patient_id", patientId)
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
 
   if (patientResult.error || !patientResult.data) {
     return null;
@@ -160,12 +168,12 @@ export async function getFamilyPortalHomeDataAction(): Promise<FamilyPortalHomeD
 
   return {
     patient: patientResult.data,
-    lastEvolution: evolutionResult.data
-      ? mapLastEvolution(evolutionResult.data)
-      : null,
     evolutionPoints,
     scoreTrend: calculateScoreTrend(evolutionPoints),
     notices: (noticesResult.data ?? []).map(mapNotice),
     homeActivities: (activitiesResult.data ?? []).map(mapHomeActivity),
+    parentOrientations: (parentOrientationsResult.data ?? []).map(
+      mapParentOrientation
+    ),
   };
 }

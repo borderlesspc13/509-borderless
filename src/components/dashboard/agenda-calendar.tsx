@@ -36,14 +36,17 @@ import {
   getWeekdayLabels,
   toDateKey,
 } from "@/lib/calendar-utils";
+import type { CareType } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
 type AgendaCalendarProps = {
   individualFilter?: AgendaIndividualFilter | null;
+  careType?: CareType;
 };
 
 export function AgendaCalendar({
   individualFilter = null,
+  careType = "ABA",
 }: AgendaCalendarProps) {
   const { isAgendaReadOnly, canDragAppointments, canManageAgenda } =
     useUserRole();
@@ -55,7 +58,7 @@ export function AgendaCalendar({
     isLoading,
     addAppointment,
     refetch,
-  } = useAgendaEvents();
+  } = useAgendaEvents(careType);
   const { professionals, isLoading: isProfessionalsLoading } =
     useAgendaProfessionals();
   const today = new Date();
@@ -429,6 +432,7 @@ export function AgendaCalendar({
         open={isAppointmentDialogOpen}
         onOpenChange={setIsAppointmentDialogOpen}
         defaults={appointmentDefaults}
+        careType={careType}
         onCreated={(appointment) => {
           addAppointment(appointment);
           void refetch();
