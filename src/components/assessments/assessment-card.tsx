@@ -11,7 +11,10 @@ import {
   getAssessmentToggleActionLabel,
   assessmentStatusLabels,
 } from "@/lib/assessment-format";
-import { PEDI_TEMPLATE_NAME } from "@/lib/pedi";
+import {
+  getAssessmentApplyRoute,
+  hasAssessmentApplyRoute,
+} from "@/lib/assessment-apply-routes";
 import type { AssessmentTemplateRow } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
@@ -62,8 +65,9 @@ export function AssessmentCard({ template, onToggleStatus }: AssessmentCardProps
   const editHref = `/dashboard/avaliacoes/${template.id}/editar`;
   const toggleLabel = getAssessmentToggleActionLabel(template.status);
   const initials = getAssessmentInitials(template.name);
-  const isPedi = template.name === PEDI_TEMPLATE_NAME;
-  const actionCols = isPedi ? "grid-cols-3" : "grid-cols-2";
+  const applyHref = getAssessmentApplyRoute(template.name);
+  const canApply = hasAssessmentApplyRoute(template.name);
+  const actionCols = canApply ? "grid-cols-3" : "grid-cols-2";
 
   return (
     <article className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
@@ -101,12 +105,12 @@ export function AssessmentCard({ template, onToggleStatus }: AssessmentCardProps
           actionCols
         )}
       >
-        {isPedi ? (
+        {canApply && applyHref ? (
           <Button
             variant="ghost"
             nativeButton={false}
             className="h-auto flex-col gap-1.5 rounded-none border-r border-border/60 px-2 py-3 text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-            render={<Link href="/dashboard/avaliacoes/pedi" />}
+            render={<Link href={applyHref} />}
           >
             <ClipboardList className="size-4" aria-hidden />
             Aplicar
@@ -141,7 +145,8 @@ export function AssessmentListRow({
   const editHref = `/dashboard/avaliacoes/${template.id}/editar`;
   const toggleLabel = getAssessmentToggleActionLabel(template.status);
   const initials = getAssessmentInitials(template.name);
-  const isPedi = template.name === PEDI_TEMPLATE_NAME;
+  const applyHref = getAssessmentApplyRoute(template.name);
+  const canApply = hasAssessmentApplyRoute(template.name);
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -162,12 +167,12 @@ export function AssessmentListRow({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        {isPedi ? (
+        {canApply && applyHref ? (
           <Button
             variant="outline"
             size="sm"
             nativeButton={false}
-            render={<Link href="/dashboard/avaliacoes/pedi" />}
+            render={<Link href={applyHref} />}
           >
             <ClipboardList className="size-4" aria-hidden />
             Aplicar

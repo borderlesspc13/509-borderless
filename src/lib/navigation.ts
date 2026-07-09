@@ -196,6 +196,11 @@ export const mainNavEntries: NavEntry[] = [
         permission: PERMISSIONS.REPORTS_VIEW,
       },
       {
+        title: "Treinamento IA — Relatórios",
+        href: "/dashboard/relatorios/treinamento-ia",
+        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
+      },
+      {
         title: "Evolução Critérios",
         href: getUnderDevelopmentHref("Evolução Critérios"),
         permission: PERMISSIONS.REPORTS_VIEW,

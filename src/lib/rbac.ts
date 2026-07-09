@@ -123,6 +123,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/dashboard/evolucao-convencional": PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
   "/dashboard/modelos": PERMISSIONS.DOCUMENT_TEMPLATES_VIEW,
   "/dashboard/relatorios": PERMISSIONS.REPORTS_VIEW,
+  "/dashboard/relatorios/treinamento-ia": PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
   "/dashboard/auditoria": PERMISSIONS.AUDIT_LOGS_VIEW,
   "/chat": PERMISSIONS.INTERNAL_MESSAGING,
   "/dashboard/empresa": PERMISSIONS.SETTINGS_MANAGE,

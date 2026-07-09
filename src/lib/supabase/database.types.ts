@@ -1020,6 +1020,144 @@ export type Database = {
         };
         Relationships: [];
       };
+      sensory_profile_normative_table: {
+        Row: {
+          id: string;
+          age_band:
+            | "infant_0_6m"
+            | "toddler_7_35m"
+            | "child_3_14y"
+            | "school";
+          quadrant: "seeking" | "avoiding" | "sensitivity" | "registration";
+          mean_score: number;
+          sd_score: number;
+          typical_max_sd: number;
+          definite_min_sd: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          age_band:
+            | "infant_0_6m"
+            | "toddler_7_35m"
+            | "child_3_14y"
+            | "school";
+          quadrant: "seeking" | "avoiding" | "sensitivity" | "registration";
+          mean_score: number;
+          sd_score: number;
+          typical_max_sd?: number;
+          definite_min_sd?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          age_band?:
+            | "infant_0_6m"
+            | "toddler_7_35m"
+            | "child_3_14y"
+            | "school";
+          quadrant?: "seeking" | "avoiding" | "sensitivity" | "registration";
+          mean_score?: number;
+          sd_score?: number;
+          typical_max_sd?: number;
+          definite_min_sd?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      ebai_normative_table: {
+        Row: {
+          id: string;
+          raw_score: number;
+          t_score: number;
+          classification: "leve" | "moderado" | "severo";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          raw_score: number;
+          t_score: number;
+          classification: "leve" | "moderado" | "severo";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          raw_score?: number;
+          t_score?: number;
+          classification?: "leve" | "moderado" | "severo";
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      clinical_area_report_training_samples: {
+        Row: {
+          id: string;
+          clinical_area: string;
+          sort_order: number;
+          title: string;
+          body_text: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          clinical_area: string;
+          sort_order: number;
+          title: string;
+          body_text: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          clinical_area?: string;
+          sort_order?: number;
+          title?: string;
+          body_text?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      clinical_area_ai_memory: {
+        Row: {
+          clinical_area: string;
+          pattern_summary: string;
+          style_guidelines: string;
+          section_outline: string;
+          sample_count: number;
+          status: "not_started" | "collecting" | "ready" | "stale";
+          trained_at: string | null;
+          trained_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          clinical_area: string;
+          pattern_summary?: string;
+          style_guidelines?: string;
+          section_outline?: string;
+          sample_count?: number;
+          status?: "not_started" | "collecting" | "ready" | "stale";
+          trained_at?: string | null;
+          trained_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          clinical_area?: string;
+          pattern_summary?: string;
+          style_guidelines?: string;
+          section_outline?: string;
+          sample_count?: number;
+          status?: "not_started" | "collecting" | "ready" | "stale";
+          trained_at?: string | null;
+          trained_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       document_templates: {
         Row: {
           id: string;
@@ -1505,5 +1643,17 @@ export type PediContinuousScoreRow =
 
 export type PediNormativeScoreRow =
   Database["public"]["Tables"]["pedi_normative_scores"]["Row"];
+
+export type SensoryProfileNormativeRow =
+  Database["public"]["Tables"]["sensory_profile_normative_table"]["Row"];
+
+export type EbaiNormativeRow =
+  Database["public"]["Tables"]["ebai_normative_table"]["Row"];
+
+export type ClinicalAreaReportTrainingSampleRow =
+  Database["public"]["Tables"]["clinical_area_report_training_samples"]["Row"];
+
+export type ClinicalAreaAiMemoryRow =
+  Database["public"]["Tables"]["clinical_area_ai_memory"]["Row"];
 
 export type CareType = "ABA" | "CONVENTIONAL";

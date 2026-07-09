@@ -2,7 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "@supabase/supabase-js",
+      "@supabase/ssr",
+    ],
   },
   async rewrites() {
     return [

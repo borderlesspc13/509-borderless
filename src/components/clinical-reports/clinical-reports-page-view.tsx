@@ -11,6 +11,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { EvaluationComparisonChart } from "@/components/clinical-reports/evaluation-comparison-chart";
 import { EvaluationEvolutionChart } from "@/components/clinical-reports/evaluation-evolution-chart";
 import { ReassessmentAlertsPanel } from "@/components/clinical-reports/reassessment-alerts-panel";
+import { AiReportTrainingEntryCard } from "@/components/clinical-reports/ai-report-training-entry-card";
 import { ReportWritingPatternPanel } from "@/components/clinical-reports/report-writing-pattern-panel";
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
@@ -374,6 +375,8 @@ export function ClinicalReportsPageView() {
         </div>
 
         <ReassessmentAlertsPanel alerts={data.reassessmentAlerts} />
+
+        <AiReportTrainingEntryCard />
 
         <ReportWritingPatternPanel />
       </div>

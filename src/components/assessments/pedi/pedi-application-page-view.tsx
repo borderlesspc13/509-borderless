@@ -37,10 +37,12 @@ import {
   getClinicalPatient,
   type ClinicalPatient,
 } from "@/lib/clinical-evolution-data";
+import { AiWritingTrainingWidget } from "@/components/ai-writing-training/ai-writing-training-widget";
 import {
   createEmptyPediAnswers,
   PEDI_AREA_LABELS,
   PEDI_AREAS,
+  PEDI_INSTRUMENT,
   type PediArea,
   type PediCapability,
   type PediScoreResult,
@@ -331,6 +333,8 @@ export function PediApplicationPageView({
       </div>
 
       {scores ? <PediScoreResults scores={scores} /> : null}
+
+      <AiWritingTrainingWidget trainingContextKey={PEDI_INSTRUMENT} />
 
       <PediItemMap items={items} />
     </PageContainer>
