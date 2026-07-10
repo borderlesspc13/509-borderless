@@ -34,6 +34,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AGENDA_APPOINTMENT_TYPE_LABELS,
+  AGENDA_APPOINTMENT_TYPES,
+  type AgendaAppointmentType,
+} from "@/lib/agenda-filter-utils";
 import { useUserRole } from "@/hooks/use-user-role";
 import {
   getEndTimeOptions,
@@ -134,6 +139,8 @@ export function NewAppointmentDialog({
     null
   );
   const [isLoadingProfessionals, setIsLoadingProfessionals] = useState(false);
+  const [appointmentType, setAppointmentType] =
+    useState<AgendaAppointmentType>("sessao");
 
   const startTimeOptions = useMemo(() => getTimeSlotOptions(), []);
   const endTimeOptions = useMemo(
@@ -174,6 +181,7 @@ export function NewAppointmentDialog({
     setError(null);
     setConflictType(null);
     setSuccessMessage(null);
+    setAppointmentType("sessao");
     setProfessionalName(defaults?.professionalName ?? "");
     setProfessionalUserId(defaults?.professionalUserId ?? null);
     setEventDate(defaults?.eventDate ?? getTodayDateKey());
@@ -209,6 +217,7 @@ export function NewAppointmentDialog({
           startTime: defaults!.startTime!,
           endTime: defaults!.endTime!,
           careType,
+          appointmentType,
           force,
         }
       : {
@@ -219,6 +228,7 @@ export function NewAppointmentDialog({
           startTime,
           endTime,
           careType,
+          appointmentType,
           force,
         };
 
@@ -326,6 +336,33 @@ export function NewAppointmentDialog({
                 autoFocus
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="appointment-type">Tipo de agendamento</Label>
+              <Select
+                value={appointmentType}
+                items={AGENDA_APPOINTMENT_TYPES.map((type) => ({
+                  label: AGENDA_APPOINTMENT_TYPE_LABELS[type],
+                  value: type,
+                }))}
+                onValueChange={(value) =>
+                  setAppointmentType((value as AgendaAppointmentType) ?? "sessao")
+                }
+              >
+                <SelectTrigger id="appointment-type" className="h-10 w-full">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {AGENDA_APPOINTMENT_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {AGENDA_APPOINTMENT_TYPE_LABELS[type]}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
 
             {prefilled ? (

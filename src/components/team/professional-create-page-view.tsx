@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
 
+import { uploadProfessionalAvatarAction } from "@/app/actions/entity-avatar-actions";
 import { createTeamMemberAction } from "@/app/actions/team-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
+import { EntityAvatarField } from "@/components/shared/entity-avatar-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +54,7 @@ export function ProfessionalCreatePageView() {
   const toast = useAppToast();
   const [selectedProfile, setSelectedProfile] = useState<UserProfile>(ROLES.AT1);
   const [selectedProfessionalRole, setSelectedProfessionalRole] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -82,6 +85,22 @@ export function ProfessionalCreatePageView() {
           description: result.error ?? "Não foi possível cadastrar o profissional.",
         });
         return;
+      }
+
+      if (avatarFile && result.data?.member.id) {
+        const avatarFormData = new FormData();
+        avatarFormData.set("avatar", avatarFile);
+        const avatarResult = await uploadProfessionalAvatarAction(
+          result.data.member.id,
+          avatarFormData
+        );
+
+        if (!avatarResult.success) {
+          toast.warning({
+            title: "Profissional cadastrado sem foto",
+            description: avatarResult.error,
+          });
+        }
       }
 
       const fullName = String(formData.get("fullName") ?? "");
@@ -130,6 +149,12 @@ export function ProfessionalCreatePageView() {
         </div>
 
         <form className="grid gap-6 sm:grid-cols-2" onSubmit={handleSubmit}>
+          <EntityAvatarField
+            avatarUrl={null}
+            onFileSelected={setAvatarFile}
+            className="sm:col-span-2"
+          />
+
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="full-name">Nome completo *</Label>
             <Input

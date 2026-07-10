@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 
-import { AgendaFilters } from "@/components/dashboard/agenda-filters";
+import { AgendaToolbar } from "@/components/dashboard/agenda-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useAgendaAudit } from "@/hooks/use-agenda-audit";
@@ -20,14 +20,16 @@ import {
 } from "@/components/dashboard/new-appointment-dialog";
 import { Button } from "@/components/ui/button";
 import {
+  collectAgendaLocations,
   countVacantSlotsForDate,
   DEFAULT_AGENDA_FILTERS,
-  filterAppointmentsByRole,
+  filterAppointmentsByAgendaFilters,
   type AgendaFilters as AgendaFiltersState,
 } from "@/lib/agenda-filter-utils";
 import {
-  filterAppointmentsByIndividualFilter,
-  type AgendaIndividualFilter,
+  EMPTY_AGENDA_PERSON_FILTERS,
+  filterAppointmentsByPersonFilters,
+  type AgendaPersonFilters,
 } from "@/lib/agenda-individual-filter";
 import type { DailyAppointment } from "@/lib/agenda-types";
 import {
@@ -40,14 +42,10 @@ import type { CareType } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
 type AgendaCalendarProps = {
-  individualFilter?: AgendaIndividualFilter | null;
   careType?: CareType;
 };
 
-export function AgendaCalendar({
-  individualFilter = null,
-  careType = "ABA",
-}: AgendaCalendarProps) {
+export function AgendaCalendar({ careType = "ABA" }: AgendaCalendarProps) {
   const { isAgendaReadOnly, canDragAppointments, canManageAgenda } =
     useUserRole();
   const { recordAuditLogs } = useAgendaAudit();
@@ -68,6 +66,9 @@ export function AgendaCalendar({
   );
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [personFilters, setPersonFilters] = useState<AgendaPersonFilters>(
+    EMPTY_AGENDA_PERSON_FILTERS
+  );
   const [filters, setFilters] =
     useState<AgendaFiltersState>(DEFAULT_AGENDA_FILTERS);
   const [appointmentDefaults, setAppointmentDefaults] =
@@ -75,20 +76,32 @@ export function AgendaCalendar({
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
 
   const scopedProfessionals = useMemo(() => {
-    if (individualFilter?.type === "professional") {
+    if (personFilters.professional) {
       return professionals.filter(
-        (professional) => professional.id === individualFilter.id
+        (professional) => professional.id === personFilters.professional?.id
       );
     }
 
     return professionals;
-  }, [individualFilter, professionals]);
+  }, [personFilters.professional, professionals]);
 
-  const visibleAppointments = useMemo(
-    () =>
-      filterAppointmentsByIndividualFilter(appointments, individualFilter),
-    [appointments, individualFilter]
+  const locations = useMemo(
+    () => collectAgendaLocations(appointments),
+    [appointments]
   );
+
+  const visibleAppointments = useMemo(() => {
+    const byPerson = filterAppointmentsByPersonFilters(
+      appointments,
+      personFilters
+    );
+
+    return filterAppointmentsByAgendaFilters(
+      byPerson,
+      filters,
+      scopedProfessionals
+    );
+  }, [appointments, personFilters, filters, scopedProfessionals]);
 
   const calendarDays = useMemo(
     () =>
@@ -115,14 +128,14 @@ export function AgendaCalendar({
   }, [visibleAppointments]);
 
   const selectedAppointments = selectedDateKey
-    ? filterAppointmentsByRole(
-        appointmentsByDate.get(selectedDateKey) ?? [],
-        filters.role,
-        scopedProfessionals
-      )
+    ? appointmentsByDate.get(selectedDateKey) ?? []
     : [];
 
   const showVacantOnly = filters.availability === "vacant";
+
+  const hasPersonFilter = Boolean(
+    personFilters.patient || personFilters.professional
+  );
 
   function openDay(dateKey: string) {
     setSelectedDateKey(dateKey);
@@ -206,84 +219,76 @@ export function AgendaCalendar({
   }
 
   return (
-    <div className="space-y-5">
-      <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            {individualFilter ? (
-              <Badge variant="secondary" className="gap-1">
-                {individualFilter.type === "patient" ? "Paciente" : "Profissional"}
-                : {individualFilter.name}
-              </Badge>
-            ) : null}
-            {isAgendaReadOnly ? (
-              <Badge
-                variant="outline"
-                className="gap-1 border-muted-foreground/30 text-muted-foreground"
-              >
-                <Eye className="size-3" aria-hidden />
-                Somente leitura
-              </Badge>
-            ) : null}
-          </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {individualFilter
-              ? `Exibindo atendimentos de ${individualFilter.name}.`
-              : isAgendaReadOnly
-              ? "Visualize os atendimentos do dia. Seu perfil não permite alterações na agenda."
-              : "Toque em um dia para ver os atendimentos agendados ou arraste sessões entre datas."}
-          </p>
+    <div className="space-y-3">
+      <AgendaToolbar
+        personFilters={personFilters}
+        onPersonFiltersChange={setPersonFilters}
+        filters={filters}
+        onFiltersChange={setFilters}
+        locations={locations}
+        canCreateAppointment={canManageAgenda}
+        onCreateAppointment={() => {
+          setAppointmentDefaults({
+            eventDate: selectedDateKey ?? toDateKey(today),
+          });
+          setIsAppointmentDialogOpen(true);
+        }}
+      />
+
+      {(hasPersonFilter || isAgendaReadOnly) && (
+        <div className="flex flex-wrap items-center gap-2 px-0.5">
+          {personFilters.patient ? (
+            <Badge variant="secondary" className="h-6 gap-1 text-xs">
+              Aprendiz: {personFilters.patient.name}
+            </Badge>
+          ) : null}
+          {personFilters.professional ? (
+            <Badge variant="secondary" className="h-6 gap-1 text-xs">
+              Profissional: {personFilters.professional.name}
+            </Badge>
+          ) : null}
+          {isAgendaReadOnly ? (
+            <Badge
+              variant="outline"
+              className="h-6 gap-1 border-muted-foreground/30 text-xs text-muted-foreground"
+            >
+              <Eye className="size-3" aria-hidden />
+              Somente leitura
+            </Badge>
+          ) : null}
         </div>
-
-        {canManageAgenda ? (
-          <Button
-            type="button"
-            className="h-11 w-full shrink-0 sm:w-auto"
-            onClick={() => {
-              setAppointmentDefaults({
-                eventDate: selectedDateKey ?? toDateKey(today),
-              });
-              setIsAppointmentDialogOpen(true);
-            }}
-          >
-            <Plus className="size-4" aria-hidden />
-            Novo agendamento
-          </Button>
-        ) : null}
-      </section>
-
-      <AgendaFilters filters={filters} onFiltersChange={setFilters} />
+      )}
 
       {isLoading || isProfessionalsLoading ? (
         <p className="text-sm text-muted-foreground">Carregando agenda...</p>
       ) : null}
 
       <section className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm">
-        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-3 sm:px-4">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5 sm:px-4">
+          <div className="flex items-center gap-0.5">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="size-10"
+              className="size-8"
               onClick={goToPreviousMonth}
               aria-label="Mês anterior"
             >
-              <ChevronLeft className="size-5" />
+              <ChevronLeft className="size-4" />
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="size-10"
+              className="size-8"
               onClick={goToNextMonth}
               aria-label="Próximo mês"
             >
-              <ChevronRight className="size-5" />
+              <ChevronRight className="size-4" />
             </Button>
           </div>
 
-          <h2 className="min-w-0 flex-1 text-center text-base font-semibold capitalize sm:text-lg">
+          <h2 className="min-w-0 flex-1 text-center text-sm font-semibold capitalize sm:text-base">
             {formatMonthYear(visibleMonth)}
           </h2>
 
@@ -291,7 +296,7 @@ export function AgendaCalendar({
             type="button"
             variant="outline"
             size="sm"
-            className="h-10 shrink-0"
+            className="h-8 shrink-0"
             onClick={goToToday}
           >
             Hoje
@@ -312,11 +317,7 @@ export function AgendaCalendar({
 
         <div className="grid grid-cols-7">
           {calendarDays.map((day) => {
-            const dayAppointments = filterAppointmentsByRole(
-              appointmentsByDate.get(day.dateKey) ?? [],
-              filters.role,
-              scopedProfessionals
-            );
+            const dayAppointments = appointmentsByDate.get(day.dateKey) ?? [];
             const vacantCount = countVacantSlotsForDate(
               day.dateKey,
               appointments,

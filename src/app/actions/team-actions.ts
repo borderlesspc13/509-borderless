@@ -26,6 +26,7 @@ export type TeamMember = {
   cpf: string | null;
   status: "active" | "inactive";
   isMaster: boolean;
+  avatarUrl: string | null;
   createdAt: string;
 };
 
@@ -63,6 +64,7 @@ function mapTeamMember(
     cpf: row.cpf ?? null,
     status: row.status ?? "active",
     isMaster: row.is_master,
+    avatarUrl: row.avatar_url ?? null,
     createdAt: row.created_at,
   };
 }

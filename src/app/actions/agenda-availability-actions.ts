@@ -14,6 +14,10 @@ import {
 import type { DailyAppointment } from "@/lib/agenda-types";
 import type { CareType } from "@/lib/supabase/database.types";
 import type { ProfessionalRole } from "@/lib/professionals-data";
+import {
+  getWeekdayFromDateKey,
+  isTimeRangeWithinWindows,
+} from "@/lib/professional-availability";
 import { CLINICAL_ROLES } from "@/lib/rbac";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -34,6 +38,15 @@ export type CreateAppointmentInput = {
   endTime: string;
   force?: boolean;
   careType?: CareType;
+  appointmentType?:
+    | "avaliacao"
+    | "evolucao_diaria"
+    | "planejamento"
+    | "sessao"
+    | "supervisao"
+    | "suporte_escolar"
+    | "visita"
+    | null;
 };
 
 export type UpdateAppointmentInput = CreateAppointmentInput & {
@@ -77,6 +90,57 @@ export async function searchAvailableProfessionalsAction(
     })
   );
 
+  const professionalIds = professionals.map((professional) => professional.id);
+  const weekday = getWeekdayFromDateKey(input.date);
+  const windowsByUser = new Map<
+    string,
+    Array<{ startTime: string; endTime: string }>
+  >();
+  const usersWithAvailability = new Set<string>();
+
+  if (professionalIds.length > 0) {
+    const { data: availabilityRows, error: availabilityError } = await supabase
+      .from("professional_availability")
+      .select("user_id, weekday, start_time, end_time")
+      .in("user_id", professionalIds);
+
+    if (availabilityError) {
+      return { success: false, error: availabilityError.message };
+    }
+
+    for (const row of availabilityRows ?? []) {
+      usersWithAvailability.add(row.user_id);
+
+      if (row.weekday !== weekday) {
+        continue;
+      }
+
+      const current = windowsByUser.get(row.user_id) ?? [];
+      current.push({
+        startTime: String(row.start_time).slice(0, 5),
+        endTime: String(row.end_time).slice(0, 5),
+      });
+      windowsByUser.set(row.user_id, current);
+    }
+  }
+
+  const withinWorkload = professionals.filter((professional) => {
+    if (!usersWithAvailability.has(professional.id)) {
+      return true;
+    }
+
+    const windows = windowsByUser.get(professional.id) ?? [];
+
+    if (windows.length === 0) {
+      return false;
+    }
+
+    return isTimeRangeWithinWindows(
+      { startTime: input.startTime, endTime: input.endTime },
+      windows
+    );
+  });
+
   const { data: eventRows, error: eventsError } = await supabase
     .from("agenda_events")
     .select(
@@ -97,7 +161,7 @@ export async function searchAvailableProfessionalsAction(
   }));
 
   const availableProfessionals = filterAvailableProfessionals(
-    professionals,
+    withinWorkload,
     busyEvents,
     {
       startTime: input.startTime,
@@ -233,6 +297,7 @@ export async function createAppointmentAction(
     end_time: input.endTime,
     status: "agendado" as const,
     care_type: input.careType ?? "ABA",
+    appointment_type: input.appointmentType ?? null,
     created_at: now,
     updated_at: now,
   };

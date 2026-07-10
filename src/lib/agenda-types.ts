@@ -7,6 +7,15 @@ export type AppointmentStatus =
 
 export type PaymentStatus = "pendente" | "pago" | "cancelado";
 
+export type AgendaAppointmentTypeValue =
+  | "avaliacao"
+  | "evolucao_diaria"
+  | "planejamento"
+  | "sessao"
+  | "supervisao"
+  | "suporte_escolar"
+  | "visita";
+
 export type DailyAppointment = {
   id: string;
   date: string;
@@ -15,6 +24,7 @@ export type DailyAppointment = {
   patient: string;
   professional: string;
   status: AppointmentStatus;
+  appointmentType?: AgendaAppointmentTypeValue | null;
   sessionAmount?: number | null;
   paymentStatus?: PaymentStatus;
   paymentLinkUrl?: string | null;

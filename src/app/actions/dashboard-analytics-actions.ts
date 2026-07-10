@@ -354,6 +354,11 @@ export async function listAgendaProfessionalsAction(): Promise<
       id: string;
       fullName: string;
       professionalRole: ProfessionalRole | null;
+      slotDurationMinutes: number;
+      windowsByWeekday: Record<
+        number,
+        Array<{ startTime: string; endTime: string }>
+      >;
     }>;
   }>
 > {
@@ -367,13 +372,43 @@ export async function listAgendaProfessionalsAction(): Promise<
 
   const { data, error } = await supabase
     .from("user_profiles")
-    .select("id, full_name, professional_role, status, profile")
+    .select(
+      "id, full_name, professional_role, status, profile, slot_duration_minutes"
+    )
     .eq("status", "active")
     .in("profile", [...CLINICAL_ROLES])
     .order("full_name");
 
   if (error) {
     return { success: false, error: error.message };
+  }
+
+  const professionalIds = (data ?? []).map((row) => row.id);
+  const windowsByUser = new Map<
+    string,
+    Record<number, Array<{ startTime: string; endTime: string }>>
+  >();
+
+  if (professionalIds.length > 0) {
+    const { data: availabilityRows, error: availabilityError } = await supabase
+      .from("professional_availability")
+      .select("user_id, weekday, start_time, end_time")
+      .in("user_id", professionalIds);
+
+    if (availabilityError) {
+      return { success: false, error: availabilityError.message };
+    }
+
+    for (const row of availabilityRows ?? []) {
+      const current = windowsByUser.get(row.user_id) ?? {};
+      const weekdayWindows = current[row.weekday] ?? [];
+      weekdayWindows.push({
+        startTime: String(row.start_time).slice(0, 5),
+        endTime: String(row.end_time).slice(0, 5),
+      });
+      current[row.weekday] = weekdayWindows;
+      windowsByUser.set(row.user_id, current);
+    }
   }
 
   return {
@@ -385,6 +420,8 @@ export async function listAgendaProfessionalsAction(): Promise<
         professionalRole: isProfessionalRole(row.professional_role)
           ? row.professional_role
           : null,
+        slotDurationMinutes: row.slot_duration_minutes ?? 60,
+        windowsByWeekday: windowsByUser.get(row.id) ?? {},
       })),
     },
   };

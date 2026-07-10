@@ -1,4 +1,5 @@
 import type { DailyAppointment } from "@/lib/agenda-types";
+import { isAgendaAppointmentType } from "@/lib/agenda-filter-utils";
 import type { AgendaEventRow } from "@/lib/supabase/database.types";
 
 export function mapAgendaEventToDailyAppointment(
@@ -12,6 +13,9 @@ export function mapAgendaEventToDailyAppointment(
     patient: event.patient_name,
     professional: event.professional_name,
     status: event.status,
+    appointmentType: isAgendaAppointmentType(event.appointment_type)
+      ? event.appointment_type
+      : null,
     sessionAmount: event.valor_sessao,
     paymentStatus: event.payment_status,
     paymentLinkUrl: event.payment_link_url,

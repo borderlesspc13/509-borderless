@@ -17,7 +17,15 @@ export function useAgendaProfessionals() {
 
     if (result.success && result.data) {
       setProfessionals(
-        result.data.professionals.map(mapAgendaProfessionalOption)
+        result.data.professionals.map((professional) =>
+          mapAgendaProfessionalOption({
+            id: professional.id,
+            fullName: professional.fullName,
+            professionalRole: professional.professionalRole,
+            slotDurationMinutes: professional.slotDurationMinutes,
+            windowsByWeekday: professional.windowsByWeekday,
+          })
+        )
       );
       setError(null);
     } else {

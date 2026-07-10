@@ -72,6 +72,9 @@ create table if not exists public.patients (
   updated_at timestamptz not null default now()
 );
 
+alter table public.patients add column if not exists avatar_url text;
+alter table public.user_profiles add column if not exists avatar_url text;
+
 create table if not exists public.evaluations (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references public.patients (id) on delete cascade,
@@ -149,6 +152,21 @@ alter table public.user_profiles
     (profile = 'FAMILIA' and patient_id is not null)
     or (profile <> 'FAMILIA' and patient_id is null)
   );
+
+alter table public.user_profiles
+  add column if not exists slot_duration_minutes integer not null default 60;
+
+create table if not exists public.professional_availability (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  weekday smallint not null check (weekday between 0 and 6),
+  start_time time not null,
+  end_time time not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint professional_availability_time_range_check
+    check (start_time < end_time)
+);
 
 create table if not exists public.family_portal_notices (
   id uuid primary key default gen_random_uuid(),

@@ -27,6 +27,8 @@ export type Database = {
           cpf: string | null;
           status: "active" | "inactive";
           patient_id: string | null;
+          slot_duration_minutes: number;
+          avatar_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -47,6 +49,8 @@ export type Database = {
           cpf?: string | null;
           status?: "active" | "inactive";
           patient_id?: string | null;
+          slot_duration_minutes?: number;
+          avatar_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,6 +71,8 @@ export type Database = {
           cpf?: string | null;
           status?: "active" | "inactive";
           patient_id?: string | null;
+          slot_duration_minutes?: number;
+          avatar_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -76,6 +82,44 @@ export type Database = {
             columns: ["patient_id"];
             isOneToOne: false;
             referencedRelation: "patients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      professional_availability: {
+        Row: {
+          id: string;
+          user_id: string;
+          weekday: number;
+          start_time: string;
+          end_time: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          weekday: number;
+          start_time: string;
+          end_time: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          weekday?: number;
+          start_time?: string;
+          end_time?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "professional_availability_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "user_profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -228,6 +272,7 @@ export type Database = {
           health_plan_identifier: string | null;
           support_level: string | null;
           status: "active" | "inactive" | "discharged";
+          avatar_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -261,6 +306,7 @@ export type Database = {
           health_plan_identifier?: string | null;
           support_level?: string | null;
           status?: "active" | "inactive" | "discharged";
+          avatar_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -294,6 +340,7 @@ export type Database = {
           health_plan_identifier?: string | null;
           support_level?: string | null;
           status?: "active" | "inactive" | "discharged";
+          avatar_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -674,6 +721,15 @@ export type Database = {
           room_name: string | null;
           called_at: string | null;
           care_type: "ABA" | "CONVENTIONAL";
+          appointment_type:
+            | "avaliacao"
+            | "evolucao_diaria"
+            | "planejamento"
+            | "sessao"
+            | "supervisao"
+            | "suporte_escolar"
+            | "visita"
+            | null;
           created_at: string;
           updated_at: string;
         };
@@ -694,6 +750,15 @@ export type Database = {
           room_name?: string | null;
           called_at?: string | null;
           care_type?: "ABA" | "CONVENTIONAL";
+          appointment_type?:
+            | "avaliacao"
+            | "evolucao_diaria"
+            | "planejamento"
+            | "sessao"
+            | "supervisao"
+            | "suporte_escolar"
+            | "visita"
+            | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -714,6 +779,15 @@ export type Database = {
           room_name?: string | null;
           called_at?: string | null;
           care_type?: "ABA" | "CONVENTIONAL";
+          appointment_type?:
+            | "avaliacao"
+            | "evolucao_diaria"
+            | "planejamento"
+            | "sessao"
+            | "supervisao"
+            | "suporte_escolar"
+            | "visita"
+            | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1550,6 +1624,9 @@ export type Database = {
 };
 
 export type UserProfileRow = Database["public"]["Tables"]["user_profiles"]["Row"];
+
+export type ProfessionalAvailabilityRow =
+  Database["public"]["Tables"]["professional_availability"]["Row"];
 
 export type PatientRow = Database["public"]["Tables"]["patients"]["Row"];
 

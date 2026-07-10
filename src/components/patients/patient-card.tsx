@@ -78,8 +78,17 @@ export function PatientCard({ patient, onView, onToggleStatus }: PatientCardProp
     <article className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
       <div className="flex items-start justify-between gap-3 border-b border-border/60 bg-muted/30 px-4 py-4">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground">
-            <UserRound className="size-6" aria-hidden />
+          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-background text-muted-foreground">
+            {patient.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={patient.avatar_url}
+                alt=""
+                className="size-full object-cover rounded-full"
+              />
+            ) : (
+              <UserRound className="size-6" aria-hidden />
+            )}
           </div>
           <div className="min-w-0 space-y-1">
             <h3 className="truncate text-sm font-semibold text-foreground">

@@ -1,6 +1,7 @@
 "use client";
 
-import { Filter, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Filter } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,214 +15,350 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
+  AGENDA_APPOINTMENT_TYPE_LABELS,
+  AGENDA_APPOINTMENT_TYPES,
+  AGENDA_STATUS_FILTER_OPTIONS,
   countActiveFilters,
   DEFAULT_AGENDA_FILTERS,
+  type AgendaAppointmentType,
   type AgendaAvailabilityFilter,
   type AgendaFilters,
 } from "@/lib/agenda-filter-utils";
+import type { AppointmentStatus } from "@/lib/agenda-types";
 import { PROFESSIONAL_ROLES } from "@/lib/professionals-data";
-
-const availabilityOptions: {
-  value: AgendaAvailabilityFilter;
-  label: string;
-}[] = [
-  { value: "all", label: "Todos os horários" },
-  { value: "vacant", label: "Apenas horários vagos" },
-];
-
-const roleSelectItems = [
-  { label: "Todos os cargos", value: "all" },
-  ...PROFESSIONAL_ROLES.map((role) => ({ label: role, value: role })),
-];
-
-const availabilitySelectItems = availabilityOptions.map((option) => ({
-  label: option.label,
-  value: option.value,
-}));
+import { cn } from "@/lib/utils";
 
 type AgendaFiltersProps = {
   filters: AgendaFilters;
   onFiltersChange: (filters: AgendaFilters) => void;
-};
-
-type FilterFieldsProps = {
-  filters: AgendaFilters;
-  onRoleChange: (role: AgendaFilters["role"]) => void;
-  onAvailabilityChange: (availability: AgendaAvailabilityFilter) => void;
+  locations: string[];
   className?: string;
 };
 
-function FilterFields({
-  filters,
-  onRoleChange,
-  onAvailabilityChange,
-  className,
-}: FilterFieldsProps) {
-  return (
-    <div className={className}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="agenda-role-filter">Cargo do Profissional</Label>
-          <Select
-            value={filters.role}
-            items={roleSelectItems}
-            onValueChange={(value) =>
-              onRoleChange(value as AgendaFilters["role"])
-            }
-          >
-            <SelectTrigger
-              id="agenda-role-filter"
-              className="h-10 w-full"
-              size="default"
-            >
-              <SelectValue placeholder="Todos os cargos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="all">Todos os cargos</SelectItem>
-                {PROFESSIONAL_ROLES.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="agenda-availability-filter">Disponibilidade</Label>
-          <Select
-            value={filters.availability}
-            items={availabilitySelectItems}
-            onValueChange={(value) =>
-              onAvailabilityChange(value as AgendaAvailabilityFilter)
-            }
-          >
-            <SelectTrigger
-              id="agenda-availability-filter"
-              className="h-10 w-full"
-              size="default"
-            >
-              <SelectValue placeholder="Todos os horários" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {availabilityOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
-  );
-}
+const availabilityOptions: Array<{
+  value: AgendaAvailabilityFilter;
+  label: string;
+}> = [
+  { value: "all", label: "Todos os horários" },
+  { value: "vacant", label: "Apenas horários vagos" },
+];
 
 export function AgendaFilters({
   filters,
   onFiltersChange,
+  locations,
+  className,
 }: AgendaFiltersProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [draft, setDraft] = useState<AgendaFilters>(filters);
+
+  useEffect(() => {
+    if (isOpen) {
+      setDraft(filters);
+    }
+  }, [filters, isOpen]);
+
   const activeFilterCount = countActiveFilters(filters);
   const hasActiveFilters = activeFilterCount > 0;
 
-  function updateRole(role: AgendaFilters["role"]) {
-    onFiltersChange({ ...filters, role });
+  const appointmentTypeItems = useMemo(
+    () => [
+      { label: "Todos", value: "all" },
+      ...AGENDA_APPOINTMENT_TYPES.map((type) => ({
+        label: AGENDA_APPOINTMENT_TYPE_LABELS[type],
+        value: type,
+      })),
+    ],
+    []
+  );
+
+  const roleItems = useMemo(
+    () => [
+      { label: "Todos", value: "all" },
+      ...PROFESSIONAL_ROLES.map((role) => ({ label: role, value: role })),
+    ],
+    []
+  );
+
+  const locationItems = useMemo(
+    () => [
+      { label: "Todos", value: "all" },
+      ...locations.map((location) => ({ label: location, value: location })),
+    ],
+    [locations]
+  );
+
+  const statusItems = useMemo(
+    () => [
+      { label: "Todas", value: "all" },
+      ...AGENDA_STATUS_FILTER_OPTIONS.map((option) => ({
+        label: option.label,
+        value: option.value,
+      })),
+    ],
+    []
+  );
+
+  const availabilityItems = availabilityOptions.map((option) => ({
+    label: option.label,
+    value: option.value,
+  }));
+
+  function applyDraft() {
+    onFiltersChange(draft);
+    setIsOpen(false);
   }
 
-  function updateAvailability(availability: AgendaAvailabilityFilter) {
-    onFiltersChange({ ...filters, availability });
-  }
-
-  function clearFilters() {
+  function clearDraft() {
+    setDraft(DEFAULT_AGENDA_FILTERS);
     onFiltersChange(DEFAULT_AGENDA_FILTERS);
+    setIsOpen(false);
   }
 
   return (
-    <section className="rounded-xl border border-border/80 bg-card shadow-sm">
-      <div className="hidden gap-4 p-4 sm:flex sm:items-end">
-        <FilterFields
-          filters={filters}
-          onRoleChange={updateRole}
-          onAvailabilityChange={updateAvailability}
-          className="min-w-0 flex-1"
-        />
+    <div className={cn("relative flex flex-wrap items-end gap-3", className)}>
+      <div className="min-w-[11rem] flex-1 space-y-2 sm:max-w-[14rem]">
+        <Label htmlFor="agenda-event-type-filter">Tipo de Evento</Label>
+        <Select
+          value={filters.appointmentType}
+          items={appointmentTypeItems}
+          onValueChange={(value) =>
+            onFiltersChange({
+              ...filters,
+              appointmentType: (value ?? "all") as AgendaAppointmentType | "all",
+            })
+          }
+        >
+          <SelectTrigger id="agenda-event-type-filter" className="h-10 w-full">
+            <SelectValue placeholder="Todos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">Todos</SelectItem>
+              {AGENDA_APPOINTMENT_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {AGENDA_APPOINTMENT_TYPE_LABELS[type]}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {hasActiveFilters ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-10 shrink-0 gap-1.5 text-muted-foreground"
-            onClick={clearFilters}
-          >
-            <X className="size-4" aria-hidden />
-            Limpar filtros
-          </Button>
+      <div className="relative">
+        <Button
+          type="button"
+          variant={hasActiveFilters ? "default" : "outline"}
+          className="h-10 gap-2"
+          onClick={() => setIsOpen((current) => !current)}
+          aria-expanded={isOpen}
+        >
+          <Filter className="size-4" aria-hidden />
+          Filtros
+          {hasActiveFilters ? (
+            <Badge
+              variant="secondary"
+              className="size-5 justify-center px-0 text-[0.65rem]"
+            >
+              {activeFilterCount}
+            </Badge>
+          ) : null}
+        </Button>
+
+        {isOpen ? (
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-40 cursor-default"
+              aria-label="Fechar filtros"
+              onClick={() => setIsOpen(false)}
+            />
+            <div className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-4 shadow-lg">
+              <div className="mb-3 border-b border-border/70 pb-2">
+                <h3 className="text-sm font-semibold">Filtros</h3>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="agenda-appointment-type-filter">
+                    Tipo Agendamento
+                  </Label>
+                  <Select
+                    value={draft.appointmentType}
+                    items={appointmentTypeItems}
+                    onValueChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        appointmentType: (value ??
+                          "all") as AgendaAppointmentType | "all",
+                      }))
+                    }
+                  >
+                    <SelectTrigger
+                      id="agenda-appointment-type-filter"
+                      className="h-10 w-full"
+                    >
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">Todos</SelectItem>
+                        {AGENDA_APPOINTMENT_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {AGENDA_APPOINTMENT_TYPE_LABELS[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="agenda-specialty-filter">Especialidade</Label>
+                  <Select
+                    value={draft.role}
+                    items={roleItems}
+                    onValueChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        role: (value ?? "all") as AgendaFilters["role"],
+                      }))
+                    }
+                  >
+                    <SelectTrigger
+                      id="agenda-specialty-filter"
+                      className="h-10 w-full"
+                    >
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">Todos</SelectItem>
+                        {PROFESSIONAL_ROLES.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="agenda-location-filter">
+                    Local Agendamento
+                  </Label>
+                  <Select
+                    value={draft.location}
+                    items={locationItems}
+                    onValueChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        location: value ?? "all",
+                      }))
+                    }
+                  >
+                    <SelectTrigger
+                      id="agenda-location-filter"
+                      className="h-10 w-full"
+                    >
+                      <SelectValue placeholder="Busque o local do agendamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">Todos</SelectItem>
+                        {locations.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="agenda-status-filter">Situação</Label>
+                  <Select
+                    value={draft.status}
+                    items={statusItems}
+                    onValueChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        status: (value ?? "all") as AppointmentStatus | "all",
+                      }))
+                    }
+                  >
+                    <SelectTrigger
+                      id="agenda-status-filter"
+                      className="h-10 w-full"
+                    >
+                      <SelectValue placeholder="Insira a situação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">Todas</SelectItem>
+                        {AGENDA_STATUS_FILTER_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="agenda-availability-filter">
+                    Disponibilidade
+                  </Label>
+                  <Select
+                    value={draft.availability}
+                    items={availabilityItems}
+                    onValueChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        availability: (value ??
+                          "all") as AgendaAvailabilityFilter,
+                      }))
+                    }
+                  >
+                    <SelectTrigger
+                      id="agenda-availability-filter"
+                      className="h-10 w-full"
+                    >
+                      <SelectValue placeholder="Todos os horários" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {availabilityOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 pt-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-9 px-2"
+                  onClick={clearDraft}
+                >
+                  Limpar
+                </Button>
+                <Button type="button" className="h-9" onClick={applyDraft}>
+                  Aplicar
+                </Button>
+              </div>
+            </div>
+          </>
         ) : null}
       </div>
-
-      <div className="flex items-center gap-2 p-3 sm:hidden">
-        <Sheet>
-          <SheetTrigger
-            render={
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 flex-1 justify-between gap-2"
-              />
-            }
-          >
-            <span className="inline-flex items-center gap-2">
-              <Filter className="size-4" aria-hidden />
-              Filtros avançados
-            </span>
-            {hasActiveFilters ? (
-              <Badge variant="secondary" className="size-5 justify-center px-0">
-                {activeFilterCount}
-              </Badge>
-            ) : null}
-          </SheetTrigger>
-
-          <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-6">
-            <SheetHeader className="px-0 text-left">
-              <SheetTitle>Filtros da agenda</SheetTitle>
-              <SheetDescription>
-                Encontre horários vagos por cargo e disponibilidade.
-              </SheetDescription>
-            </SheetHeader>
-
-            <FilterFields
-              filters={filters}
-              onRoleChange={updateRole}
-              onAvailabilityChange={updateAvailability}
-              className="px-0 py-2"
-            />
-
-            {hasActiveFilters ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4 h-11 w-full"
-                onClick={clearFilters}
-              >
-                Limpar filtros
-              </Button>
-            ) : null}
-          </SheetContent>
-        </Sheet>
-      </div>
-    </section>
+    </div>
   );
 }

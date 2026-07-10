@@ -2,8 +2,12 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { CheckCircle2, Pencil, UserRound } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
+import {
+  removeProfessionalAvatarAction,
+  uploadProfessionalAvatarAction,
+} from "@/app/actions/entity-avatar-actions";
 import {
   updateProfessionalAction,
   type TeamMember,
@@ -11,6 +15,7 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
+import { EntityAvatarField } from "@/components/shared/entity-avatar-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,9 +108,51 @@ export function ProfessionalEditPageView({
   );
   const toast = useAppToast();
   const [profile, setProfile] = useState<UserProfile>(professional.profile);
+  const [avatarUrl, setAvatarUrl] = useState(professional.avatarUrl);
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  async function handleAvatarSelected(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setIsAvatarUploading(true);
+    const formData = new FormData();
+    formData.set("avatar", file);
+    const result = await uploadProfessionalAvatarAction(professional.id, formData);
+    setIsAvatarUploading(false);
+
+    if (!result.success || !result.data) {
+      toast.error({
+        title: "Falha no upload da foto",
+        description: result.success ? undefined : result.error,
+      });
+      return;
+    }
+
+    setAvatarUrl(result.data.avatarUrl);
+    toast.success({ title: "Foto atualizada" });
+  }
+
+  async function handleAvatarRemove() {
+    setIsAvatarUploading(true);
+    const result = await removeProfessionalAvatarAction(professional.id);
+    setIsAvatarUploading(false);
+
+    if (!result.success) {
+      toast.error({
+        title: "Não foi possível remover a foto",
+        description: result.error,
+      });
+      return;
+    }
+
+    setAvatarUrl(null);
+    toast.success({ title: "Foto removida" });
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -181,14 +228,13 @@ export function ProfessionalEditPageView({
 
             <TabsContent value="geral" className="mt-0 px-6 py-8 sm:px-8">
               <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
-                <div className="relative mx-auto shrink-0 xl:mx-0">
-                  <div className="flex size-32 items-center justify-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground">
-                    <UserRound className="size-14" aria-hidden />
-                  </div>
-                  <div className="absolute right-1 bottom-1 flex size-8 items-center justify-center rounded-full border border-border/70 bg-clinical-warning text-foreground shadow-sm">
-                    <Pencil className="size-3.5" aria-hidden />
-                  </div>
-                </div>
+                <EntityAvatarField
+                  avatarUrl={avatarUrl}
+                  onFileSelected={handleAvatarSelected}
+                  onRemove={handleAvatarRemove}
+                  isUploading={isAvatarUploading}
+                  className="mx-auto xl:mx-0"
+                />
 
                 <div className="min-w-0 flex-1">
                   <FormColumns

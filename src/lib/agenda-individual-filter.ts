@@ -1,11 +1,18 @@
 import type { DailyAppointment } from "@/lib/agenda-types";
 
-export type AgendaIndividualFilterType = "patient" | "professional";
-
-export type AgendaIndividualFilter = {
-  type: AgendaIndividualFilterType;
+export type AgendaPersonSelection = {
   id: string;
   name: string;
+};
+
+export type AgendaPersonFilters = {
+  patient: AgendaPersonSelection | null;
+  professional: AgendaPersonSelection | null;
+};
+
+export const EMPTY_AGENDA_PERSON_FILTERS: AgendaPersonFilters = {
+  patient: null,
+  professional: null,
 };
 
 function namesMatch(left: string, right: string) {
@@ -14,6 +21,47 @@ function namesMatch(left: string, right: string) {
   );
 }
 
+export function filterAppointmentsByPersonFilters(
+  appointments: DailyAppointment[],
+  filters: AgendaPersonFilters
+) {
+  return appointments.filter((appointment) => {
+    if (filters.patient) {
+      const matchesPatient =
+        appointment.patientId === filters.patient.id ||
+        (!appointment.patientId &&
+          namesMatch(appointment.patient, filters.patient.name));
+
+      if (!matchesPatient) {
+        return false;
+      }
+    }
+
+    if (filters.professional) {
+      const matchesProfessional =
+        appointment.professionalUserId === filters.professional.id ||
+        namesMatch(appointment.professional, filters.professional.name);
+
+      if (!matchesProfessional) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+}
+
+/** @deprecated Use AgendaPersonFilters */
+export type AgendaIndividualFilterType = "patient" | "professional";
+
+/** @deprecated Use AgendaPersonFilters */
+export type AgendaIndividualFilter = {
+  type: AgendaIndividualFilterType;
+  id: string;
+  name: string;
+};
+
+/** @deprecated Use filterAppointmentsByPersonFilters */
 export function filterAppointmentsByIndividualFilter(
   appointments: DailyAppointment[],
   filter: AgendaIndividualFilter | null
@@ -22,17 +70,14 @@ export function filterAppointmentsByIndividualFilter(
     return appointments;
   }
 
-  if (filter.type === "patient") {
-    return appointments.filter(
-      (appointment) =>
-        appointment.patientId === filter.id ||
-        (!appointment.patientId && namesMatch(appointment.patient, filter.name))
-    );
-  }
-
-  return appointments.filter(
-    (appointment) =>
-      appointment.professionalUserId === filter.id ||
-      namesMatch(appointment.professional, filter.name)
-  );
+  return filterAppointmentsByPersonFilters(appointments, {
+    patient:
+      filter.type === "patient"
+        ? { id: filter.id, name: filter.name }
+        : null,
+    professional:
+      filter.type === "professional"
+        ? { id: filter.id, name: filter.name }
+        : null,
+  });
 }

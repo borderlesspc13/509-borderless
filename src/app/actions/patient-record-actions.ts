@@ -7,11 +7,25 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type {
   AgendaEventRow,
   ClinicalEvolutionRecordRow,
+  ConventionalEvolutionRecordRow,
   EvaluationRow,
+  HomeActivityRow,
+  ParentOrientationRow,
   PatientDocumentRow,
   PatientRow,
+  ProgramRow,
   TherapeuticPlanRow,
 } from "@/lib/supabase/database.types";
+import {
+  buildPatientTimeline,
+  type PatientTimelineItem,
+} from "@/lib/patient-timeline";
+import {
+  buildPatientDocumentStoragePath,
+  CLINICAL_FILES_BUCKET,
+  PATIENT_DOCUMENT_ALLOWED_MIME_TYPES,
+  PATIENT_DOCUMENT_MAX_BYTES,
+} from "@/lib/clinical-files";
 
 type ActionResult<T> = {
   success: boolean;
@@ -22,10 +36,15 @@ type ActionResult<T> = {
 export type PatientRecordData = {
   patient: PatientRow;
   evolutions: ClinicalEvolutionRecordRow[];
+  conventionalEvolutions: ConventionalEvolutionRecordRow[];
   evaluations: EvaluationRow[];
   therapeuticPlans: TherapeuticPlanRow[];
   documents: PatientDocumentRow[];
   attendances: AgendaEventRow[];
+  homeActivities: HomeActivityRow[];
+  parentOrientations: ParentOrientationRow[];
+  programs: ProgramRow[];
+  timeline: PatientTimelineItem[];
 };
 
 export async function listPatientsAction(): Promise<
@@ -354,13 +373,22 @@ export async function getPatientRecordAction(
 
   const [
     evolutionsResult,
+    conventionalEvolutionsResult,
     evaluationsResult,
     plansResult,
     documentsResult,
     attendancesResult,
+    homeActivitiesResult,
+    parentOrientationsResult,
+    programsResult,
   ] = await Promise.all([
     supabase
       .from("clinical_evolution_records")
+      .select("*")
+      .eq("patient_id", patientId)
+      .order("session_date", { ascending: false }),
+    supabase
+      .from("conventional_evolution_records")
       .select("*")
       .eq("patient_id", patientId)
       .order("session_date", { ascending: false }),
@@ -384,11 +412,33 @@ export async function getPatientRecordAction(
       .select("*")
       .eq("patient_id", patientId)
       .order("event_date", { ascending: false })
-      .limit(50),
+      .limit(100),
+    supabase
+      .from("home_activities")
+      .select("*")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("parent_orientations")
+      .select("*")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("programs")
+      .select("*")
+      .eq("patient_id", patientId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (evolutionsResult.error) {
     return { success: false, error: evolutionsResult.error.message };
+  }
+
+  if (conventionalEvolutionsResult.error) {
+    return {
+      success: false,
+      error: conventionalEvolutionsResult.error.message,
+    };
   }
 
   if (evaluationsResult.error) {
@@ -407,17 +457,170 @@ export async function getPatientRecordAction(
     return { success: false, error: attendancesResult.error.message };
   }
 
+  if (homeActivitiesResult.error) {
+    return { success: false, error: homeActivitiesResult.error.message };
+  }
+
+  if (parentOrientationsResult.error) {
+    return { success: false, error: parentOrientationsResult.error.message };
+  }
+
+  if (programsResult.error) {
+    return { success: false, error: programsResult.error.message };
+  }
+
+  const evolutions = evolutionsResult.data ?? [];
+  const conventionalEvolutions = conventionalEvolutionsResult.data ?? [];
+  const evaluations = evaluationsResult.data ?? [];
+  const therapeuticPlans = plansResult.data ?? [];
+  const documents = documentsResult.data ?? [];
+  const attendances = attendancesResult.data ?? [];
+  const homeActivities = homeActivitiesResult.data ?? [];
+  const parentOrientations = parentOrientationsResult.data ?? [];
+  const programs = programsResult.data ?? [];
+
   return {
     success: true,
     data: {
       patient,
-      evolutions: evolutionsResult.data ?? [],
-      evaluations: evaluationsResult.data ?? [],
-      therapeuticPlans: plansResult.data ?? [],
-      documents: documentsResult.data ?? [],
-      attendances: attendancesResult.data ?? [],
+      evolutions,
+      conventionalEvolutions,
+      evaluations,
+      therapeuticPlans,
+      documents,
+      attendances,
+      homeActivities,
+      parentOrientations,
+      programs,
+      timeline: buildPatientTimeline({
+        attendances,
+        evolutions,
+        conventionalEvolutions,
+        evaluations,
+        therapeuticPlans,
+        documents,
+        homeActivities,
+        parentOrientations,
+        programs,
+      }),
     },
   };
+}
+
+export type UploadPatientDocumentInput = {
+  patientId: string;
+  title: string;
+  documentType: string;
+  notes?: string;
+};
+
+export async function uploadPatientDocumentAction(
+  input: UploadPatientDocumentInput,
+  formData: FormData
+): Promise<ActionResult<{ document: PatientDocumentRow }>> {
+  const session = await requirePermission(PERMISSIONS.PATIENTS_VIEW);
+
+  const title = input.title.trim();
+  const documentType = input.documentType.trim() || "anexo";
+  const file = formData.get("file");
+
+  if (!title) {
+    return { success: false, error: "Informe o título do documento." };
+  }
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false, error: "Selecione um arquivo válido." };
+  }
+
+  if (file.size > PATIENT_DOCUMENT_MAX_BYTES) {
+    return {
+      success: false,
+      error: "O arquivo deve ter no máximo 10 MB.",
+    };
+  }
+
+  if (
+    file.type &&
+    !PATIENT_DOCUMENT_ALLOWED_MIME_TYPES.includes(
+      file.type as (typeof PATIENT_DOCUMENT_ALLOWED_MIME_TYPES)[number]
+    )
+  ) {
+    return {
+      success: false,
+      error: "Formato não suportado. Use PDF, imagem ou documento Office.",
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const storagePath = buildPatientDocumentStoragePath(
+    input.patientId,
+    file.name
+  );
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+  const { error: uploadError } = await supabase.storage
+    .from(CLINICAL_FILES_BUCKET)
+    .upload(storagePath, fileBuffer, {
+      upsert: false,
+      contentType: file.type || "application/octet-stream",
+    });
+
+  if (uploadError) {
+    return { success: false, error: uploadError.message };
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(CLINICAL_FILES_BUCKET).getPublicUrl(storagePath);
+
+  const notes = input.notes?.trim() ? input.notes.trim() : null;
+
+  const { data, error } = await supabase
+    .from("patient_documents")
+    .insert({
+      patient_id: input.patientId,
+      title,
+      document_type: documentType,
+      file_url: publicUrl,
+      notes,
+      uploaded_by: session.fullName,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data: { document: data } };
+}
+
+export async function deletePatientDocumentAction(
+  documentId: string
+): Promise<ActionResult<{ deleted: true }>> {
+  await requirePermission(PERMISSIONS.PATIENTS_VIEW);
+
+  const supabase = await createServerSupabaseClient();
+
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { error } = await supabase
+    .from("patient_documents")
+    .delete()
+    .eq("id", documentId);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data: { deleted: true } };
 }
 
 export type SavePatientEvolutionInput = {

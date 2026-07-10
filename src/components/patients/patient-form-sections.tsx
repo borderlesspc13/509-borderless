@@ -1,7 +1,6 @@
 "use client";
 
-import { Pencil, UserRound } from "lucide-react";
-
+import { EntityAvatarField } from "@/components/shared/entity-avatar-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -76,7 +75,10 @@ type PatientFormSectionsProps = {
     value: PatientFormState[K]
   ) => void;
   showAvatar?: boolean;
-  showAvatarBadge?: boolean;
+  avatarUrl?: string | null;
+  onAvatarFileSelected?: (file: File | null) => void;
+  onAvatarRemove?: () => void;
+  isAvatarUploading?: boolean;
   requireFullName?: boolean;
 };
 
@@ -84,22 +86,22 @@ export function PatientGeralSection({
   values,
   onChange,
   showAvatar = false,
-  showAvatarBadge = false,
+  avatarUrl = null,
+  onAvatarFileSelected,
+  onAvatarRemove,
+  isAvatarUploading = false,
   requireFullName = false,
 }: PatientFormSectionsProps) {
   return (
     <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
       {showAvatar ? (
-        <div className="relative mx-auto shrink-0 xl:mx-0">
-          <div className="flex size-32 items-center justify-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground">
-            <UserRound className="size-14" aria-hidden />
-          </div>
-          {showAvatarBadge ? (
-            <div className="absolute right-1 bottom-1 flex size-8 items-center justify-center rounded-full border border-border/70 bg-clinical-warning text-foreground shadow-sm">
-              <Pencil className="size-3.5" aria-hidden />
-            </div>
-          ) : null}
-        </div>
+        <EntityAvatarField
+          avatarUrl={avatarUrl}
+          onFileSelected={onAvatarFileSelected}
+          onRemove={onAvatarRemove}
+          isUploading={isAvatarUploading}
+          className="mx-auto xl:mx-0"
+        />
       ) : null}
 
       <div className="min-w-0 flex-1">

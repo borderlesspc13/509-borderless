@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 
 import { updatePatientAction } from "@/app/actions/patient-record-actions";
+import {
+  removePatientAvatarAction,
+  uploadPatientAvatarAction,
+} from "@/app/actions/entity-avatar-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { useAiEntityContext } from "@/features/ai/presentation/hooks/use-ai-entity-context";
@@ -64,6 +68,8 @@ function QuickLinkCard({
 
 export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
   const [values, setValues] = useState(() => patientRowToFormState(patient));
+  const [avatarUrl, setAvatarUrl] = useState(patient.avatar_url);
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const toast = useAppToast();
   const [defineAccess, setDefineAccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +86,46 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
     value: (typeof values)[K]
   ) {
     setValues((current) => ({ ...current, [field]: value }));
+  }
+
+  async function handleAvatarSelected(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setIsAvatarUploading(true);
+    const formData = new FormData();
+    formData.set("avatar", file);
+    const result = await uploadPatientAvatarAction(patient.id, formData);
+    setIsAvatarUploading(false);
+
+    if (!result.success || !result.data) {
+      toast.error({
+        title: "Falha no upload da foto",
+        description: result.success ? undefined : result.error,
+      });
+      return;
+    }
+
+    setAvatarUrl(result.data.avatarUrl);
+    toast.success({ title: "Foto atualizada" });
+  }
+
+  async function handleAvatarRemove() {
+    setIsAvatarUploading(true);
+    const result = await removePatientAvatarAction(patient.id);
+    setIsAvatarUploading(false);
+
+    if (!result.success) {
+      toast.error({
+        title: "Não foi possível remover a foto",
+        description: result.error,
+      });
+      return;
+    }
+
+    setAvatarUrl(null);
+    toast.success({ title: "Foto removida" });
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -172,7 +218,10 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
                 values={values}
                 onChange={handleChange}
                 showAvatar
-                showAvatarBadge
+                avatarUrl={avatarUrl}
+                onAvatarFileSelected={handleAvatarSelected}
+                onAvatarRemove={handleAvatarRemove}
+                isAvatarUploading={isAvatarUploading}
                 requireFullName
               />
 

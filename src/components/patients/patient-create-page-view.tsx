@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
 
+import { uploadPatientAvatarAction } from "@/app/actions/entity-avatar-actions";
 import { createPatientAction } from "@/app/actions/patient-record-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
@@ -23,6 +24,7 @@ export function PatientCreatePageView() {
   const router = useRouter();
   const toast = useAppToast();
   const [values, setValues] = useState(emptyPatientFormState);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -40,11 +42,27 @@ export function PatientCreatePageView() {
     startTransition(async () => {
       const result = await createPatientAction(formStateToActionInput(values));
 
-      if (!result.success) {
+      if (!result.success || !result.data?.patient) {
         const message = result.error ?? "Não foi possível cadastrar o aprendiz.";
         setError(message);
         toast.error({ title: "Falha no cadastro", description: message });
         return;
+      }
+
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.set("avatar", avatarFile);
+        const avatarResult = await uploadPatientAvatarAction(
+          result.data.patient.id,
+          formData
+        );
+
+        if (!avatarResult.success) {
+          toast.warning({
+            title: "Aprendiz cadastrado sem foto",
+            description: avatarResult.error,
+          });
+        }
       }
 
       toast.success({
@@ -123,6 +141,8 @@ export function PatientCreatePageView() {
               <PatientGeralSection
                 values={values}
                 onChange={handleChange}
+                showAvatar
+                onAvatarFileSelected={setAvatarFile}
                 requireFullName
               />
             </TabsContent>

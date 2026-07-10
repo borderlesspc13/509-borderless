@@ -107,6 +107,7 @@ export const FAMILIA_ALLOWED_PATHS = [FAMILIA_HOME_PATH] as const;
 
 export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   "/agenda": PERMISSIONS.AGENDA_VIEW,
+  "/agenda/configuracoes": PERMISSIONS.AGENDA_VIEW,
   "/painel-chamada": PERMISSIONS.AGENDA_VIEW,
   "/dashboard": PERMISSIONS.DASHBOARD_VIEW,
   "/dashboard/busca-agenda": PERMISSIONS.AGENDA_SEARCH,

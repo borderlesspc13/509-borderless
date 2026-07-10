@@ -265,6 +265,11 @@ export const mainNavEntries: NavEntry[] = [
         developed: false,
       },
       {
+        title: "Configurações",
+        href: "/agenda/configuracoes",
+        permission: PERMISSIONS.AGENDA_VIEW,
+      },
+      {
         title: "Monitor",
         href: "/painel-chamada",
         permission: PERMISSIONS.AGENDA_VIEW,
