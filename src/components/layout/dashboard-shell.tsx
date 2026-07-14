@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import { AccessDeniedBanner } from "@/components/layout/access-denied-banner";
 import { PatientWaitingBanner } from "@/components/internal-communication/patient-waiting-banner";
 import { AiModuleCopilot } from "@/features/ai/presentation/components/ai-assistants";
+import { TermsAlert } from "@/components/shared/terms-alert";
 import { AppLogo } from "@/components/layout/app-logo";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
@@ -56,6 +57,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <div className="page-content">{children}</div>
         </main>
 
+        <TermsAlert />
         <AiModuleCopilot />
       </div>
 

@@ -35,6 +35,7 @@ import {
   buildDocumentTemplateVariables,
 } from "@/components/clinical-evolution/rich-text-editor";
 import { HomeActivitiesPanel } from "@/components/home-activities/home-activities-panel";
+import { PatientAnamnesesTab } from "@/components/patient-record/patient-anamneses-tab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -354,6 +355,7 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
           <TabsTrigger value="cadastro">Dados Cadastrais</TabsTrigger>
           <TabsTrigger value="atendimentos">Histórico de Atendimentos</TabsTrigger>
           <TabsTrigger value="evolucoes">Evoluções</TabsTrigger>
+          <TabsTrigger value="anamneses">Anamneses</TabsTrigger>
           <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
           <TabsTrigger value="orientacoes">Orientações à família</TabsTrigger>
           <TabsTrigger value="programas">Programas</TabsTrigger>
@@ -704,6 +706,10 @@ export function PatientRecordView({ record }: PatientRecordViewProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="anamneses">
+          <PatientAnamnesesTab patientId={patient.id} />
         </TabsContent>
 
         <TabsContent value="relatorios" className="space-y-4">

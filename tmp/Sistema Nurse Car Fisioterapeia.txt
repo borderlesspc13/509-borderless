@@ -1,0 +1,26 @@
+
+Sistema Nurse Care
+Solicitação de Desenvolvimento – Módulo de Representação Gráfica de Lesões
+Uma funcionalidade que permita a visualização anatômica em modelo tridimensional do corpo humano, com o objetivo de registrar e demonstrar graficamente as regiões acometidas por lesões dos aprendizes atendidos.
+A funcionalidade deverá disponibilizar um modelo anatômico 3D (masculino e feminino), permitindo ao profissional selecionar a região do corpo correspondente à lesão. Após a seleção, a área deverá ser destacada em vermelho, facilitando a identificação visual da localização da lesão.
+Além da marcação da região, o sistema deverá permitir:
+Inserção de descrição da lesão;
+Identificação do lado acometido (direito, esquerdo ou bilateral);
+Registro de observações e cuidados específicos relacionados à região lesionada;
+Associação da imagem ao prontuário do aprendiz, para consulta e atualização sempre que necessário.
+A visualização deverá ter como finalidade facilitar a comunicação entre os profissionais da equipe multidisciplinar, permitindo rápida identificação das áreas que necessitam de maior cuidado durante os atendimentos, manuseios e intervenções terapêuticas.
+Exemplo de utilização:
+O aprendiz apresenta uma lesão na mão direita e no antebraço direito. O profissional selecionará essas regiões no modelo anatômico, que serão automaticamente destacadas em vermelho. Abaixo da imagem, será possível registrar informações como: tipo da lesão, data de início, restrições, cuidados durante o atendimento e demais observações relevantes.
+O objetivo da funcionalidade é tornar a identificação das lesões mais intuitiva, padronizada e de fácil compreensão para todos os profissionais que acessam o prontuário do aprendiz.
+
+Campo para Planejamento Terapêutico por Prazos
+Solicito a criação de um espaço específico no prontuário para o registro dos objetivos terapêuticos, organizados em três categorias:
+Objetivos de curto prazo;
+Objetivos de médio prazo;
+Objetivos de longo prazo.
+Essa funcionalidade tem como finalidade padronizar o planejamento terapêutico e facilitar a continuidade do acompanhamento pelos demais profissionais da equipe, inclusive aqueles que não realizam os atendimentos regulares do aprendiz.
+O registro organizado dos objetivos permitirá que qualquer profissional compreenda rapidamente o planejamento estabelecido, garantindo maior continuidade das intervenções, alinhamento entre os atendimentos e redução do tempo gasto na elaboração ou consulta do plano terapêutico.
+Além disso, essa organização otimiza o tempo de planejamento, especialmente em situações em que o aprendiz já se encontra na sala de atendimento, permitindo que o profissional acesse rapidamente os objetivos previamente definidos e inicie a sessão com maior agilidade e eficiência.
+
+
+
