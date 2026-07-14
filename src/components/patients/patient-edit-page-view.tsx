@@ -3,11 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
-  BookOpen,
   CheckCircle2,
-  Flag,
-  Settings,
-  Users,
 } from "lucide-react";
 
 import { updatePatientAction } from "@/app/actions/patient-record-actions";
@@ -35,36 +31,6 @@ type PatientEditPageViewProps = {
   patient: PatientRow;
 };
 
-const quickLinks = [
-  { title: "Equipe Terapêutica", icon: Users },
-  { title: "Reforçadores", icon: Flag },
-  { title: "Comportamentos Interferentes", icon: BookOpen },
-  { title: "Parâmetros de Evolução", icon: Settings },
-] as const;
-
-function QuickLinkCard({
-  title,
-  icon: Icon,
-}: {
-  title: string;
-  icon: (typeof quickLinks)[number]["icon"];
-}) {
-  return (
-    <button
-      type="button"
-      disabled
-      title={`${title} em breve`}
-      className="flex min-h-[7.5rem] w-full flex-col items-center justify-center gap-3 rounded-xl border border-border/70 bg-card px-5 py-6 text-center shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      <div className="flex size-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
-        <Icon className="size-6" aria-hidden />
-      </div>
-      <span className="text-sm font-semibold leading-snug text-foreground">
-        {title}
-      </span>
-    </button>
-  );
-}
 
 export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
   const [values, setValues] = useState(() => patientRowToFormState(patient));
@@ -175,11 +141,6 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {quickLinks.map((link) => (
-          <QuickLinkCard key={link.title} {...link} />
-        ))}
-      </div>
 
       <form onSubmit={handleSubmit}>
         <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">

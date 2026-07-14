@@ -239,9 +239,7 @@ export function PatientListRow({
           <ToggleLeft className="size-4" aria-hidden />
           {toggleLabel}
         </Button>
-        <Button variant="outline" size="icon-sm" disabled title="Mais opções em breve">
-          <MoreHorizontal className="size-4" aria-hidden />
-        </Button>
+
       </div>
     </div>
   );

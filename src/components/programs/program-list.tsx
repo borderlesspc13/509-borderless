@@ -145,12 +145,7 @@ export function ProgramList({ programs: initialPrograms }: ProgramListProps) {
     });
   }
 
-  function showComingSoon(feature: string) {
-    toast.info({
-      title: "Em desenvolvimento",
-      description: `${feature} estará disponível em breve.`,
-    });
-  }
+
 
   return (
     <div className="space-y-5">
@@ -158,22 +153,6 @@ export function ProgramList({ programs: initialPrograms }: ProgramListProps) {
         <Button nativeButton={false} render={<Link href="/dashboard/programas/novo" />}>
           <Plus className="size-4" />
           Novo Programa
-        </Button>
-        <Button variant="outline" onClick={() => showComingSoon("Programas Públicos")}>
-          <List className="size-4" />
-          Programas Públicos
-        </Button>
-        <Button variant="outline" onClick={() => showComingSoon("Importação")}>
-          <Download className="size-4" />
-          Importar
-        </Button>
-        <Button variant="outline" onClick={() => showComingSoon("Copiar Programas")}>
-          <Copy className="size-4" />
-          Copiar Programas
-        </Button>
-        <Button variant="outline" onClick={() => showComingSoon("Gerar Programa com IA")}>
-          <Sparkles className="size-4" />
-          Gerar Programa com IA
         </Button>
       </div>
 

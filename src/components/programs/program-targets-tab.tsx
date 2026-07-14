@@ -104,10 +104,6 @@ export function ProgramTargetsTab({ details, onSaved }: ProgramTargetsTabProps) 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" onClick={() => toast.info({ title: "Em desenvolvimento", description: "Importação de alvos estará disponível em breve." })}>
-          <Download className="size-4" />
-          Importação
-        </Button>
       </div>
 
       <form
