@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   try {
@@ -32,7 +32,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: "Mensagem não reconhecida como confirmação." });
     }
 
-    const supabase = await createServerClient();
+    const supabase = await createServerSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
 
     // 3. Buscar o paciente correspondente pelo número de telefone
     // O banco armazena o telefone na coluna guardian_phone ou phone

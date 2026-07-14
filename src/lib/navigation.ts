@@ -84,7 +84,11 @@ export const mainNavEntries: NavEntry[] = [
       
     ],
   },
-  
+  {
+    kind: "group",
+    title: "Evolução",
+    icon: Stethoscope,
+    items: [
       {
         title: "Evolução Diária (ABA)",
         href: "/dashboard/evolucao",
@@ -95,15 +99,11 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/evolucao-convencional",
         permission: PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
       },
-      
-      
       {
         title: "Avaliações",
         href: "/dashboard/avaliacoes",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
-      
-      
     ],
   },
   {
