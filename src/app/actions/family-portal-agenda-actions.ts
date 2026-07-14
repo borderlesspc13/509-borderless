@@ -28,7 +28,7 @@ export async function getFamilyPortalAgendaAction(): Promise<FamilyAgendaEvent[]
 
   const today = new Date().toISOString().split("T")[0];
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("agenda_events")
     .select("id, patient_id, title, professional_name, event_date, start_time, end_time, status, room_name")
     .eq("patient_id", patientId)
@@ -40,7 +40,7 @@ export async function getFamilyPortalAgendaAction(): Promise<FamilyAgendaEvent[]
     return [];
   }
 
-  return data.map((row) => ({
+  return data.map((row: any) => ({
     id: row.id,
     patientId: row.patient_id,
     title: row.title,

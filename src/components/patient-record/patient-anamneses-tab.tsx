@@ -48,7 +48,7 @@ export function PatientAnamnesesTab({ patientId }: { patientId: string }) {
               </Button>
             </div>
             <div className="mt-4 max-w-sm">
-              <Select value={selectedType} onValueChange={setSelectedType}>
+              <Select value={selectedType} onValueChange={(val) => { if (val) setSelectedType(val); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>

@@ -13,7 +13,6 @@ import {
 
 import type { UserProfile } from "@/lib/auth";
 import { hasPermission, PERMISSIONS, type Permission } from "@/lib/rbac";
-import { getUnderDevelopmentHref } from "@/lib/under-development";
 
 export type NavLink = {
   kind: "link";
