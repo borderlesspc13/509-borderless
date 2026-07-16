@@ -13,7 +13,6 @@ import {
 
 import type { UserProfile } from "@/lib/auth";
 import { hasPermission, PERMISSIONS, type Permission } from "@/lib/rbac";
-import { getUnderDevelopmentHref } from "@/lib/under-development";
 
 export type NavLink = {
   kind: "link";
@@ -72,54 +71,23 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/avaliacoes",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
-      {
-        title: "Critérios Padrão",
-        href: getUnderDevelopmentHref("Critérios Padrão"),
-        permission: PERMISSIONS.ASSESSMENTS_VIEW,
-        developed: false,
-      },
+      
       {
         title: "Programas",
         href: "/dashboard/programas",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
-      {
-        title: "Pastas Curriculares",
-        href: getUnderDevelopmentHref("Pastas Curriculares"),
-        permission: PERMISSIONS.ASSESSMENTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Tipo Registro",
-        href: getUnderDevelopmentHref("Tipo Registro"),
-        permission: PERMISSIONS.PATIENTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Local Registro",
-        href: getUnderDevelopmentHref("Local Registro"),
-        permission: PERMISSIONS.PATIENTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Checklist",
-        href: getUnderDevelopmentHref("Checklist"),
-        permission: PERMISSIONS.PATIENTS_VIEW,
-        developed: false,
-      },
+      
+      
+      
+      
     ],
   },
   {
     kind: "group",
-    title: "Atendimento",
+    title: "Evolução",
     icon: Stethoscope,
     items: [
-      {
-        title: "Anamnese",
-        href: getUnderDevelopmentHref("Anamnese"),
-        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-        developed: false,
-      },
       {
         title: "Evolução Diária (ABA)",
         href: "/dashboard/evolucao",
@@ -131,33 +99,9 @@ export const mainNavEntries: NavEntry[] = [
         permission: PERMISSIONS.CONVENTIONAL_EVOLUTION_VIEW,
       },
       {
-        title: "Sessão",
-        href: getUnderDevelopmentHref("Sessão"),
-        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-        developed: false,
-      },
-      {
-        title: "Plano Terapêutico",
-        href: getUnderDevelopmentHref("Plano Terapêutico"),
-        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-        developed: false,
-      },
-      {
         title: "Avaliações",
         href: "/dashboard/avaliacoes",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
-      },
-      {
-        title: "Supervisores",
-        href: getUnderDevelopmentHref("Supervisores"),
-        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-        developed: false,
-      },
-      {
-        title: "Checklist",
-        href: getUnderDevelopmentHref("Checklist"),
-        permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
-        developed: false,
       },
     ],
   },
@@ -171,18 +115,8 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/orientacoes-familia",
         permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
       },
-      {
-        title: "Registros De Rotina",
-        href: getUnderDevelopmentHref("Registros De Rotina"),
-        permission: PERMISSIONS.PATIENTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Narrativas ABC",
-        href: getUnderDevelopmentHref("Narrativas ABC"),
-        permission: PERMISSIONS.PATIENTS_VIEW,
-        developed: false,
-      },
+      
+      
     ],
   },
   {
@@ -200,36 +134,11 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/relatorios/treinamento-ia",
         permission: PERMISSIONS.CLINICAL_EVOLUTION_VIEW,
       },
-      {
-        title: "Evolução Critérios",
-        href: getUnderDevelopmentHref("Evolução Critérios"),
-        permission: PERMISSIONS.REPORTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Desempenho Aplicações",
-        href: getUnderDevelopmentHref("Desempenho Aplicações"),
-        permission: PERMISSIONS.REPORTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Desempenho Programas",
-        href: getUnderDevelopmentHref("Desempenho Programas"),
-        permission: PERMISSIONS.REPORTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Situação Estímulos",
-        href: getUnderDevelopmentHref("Situação Estímulos"),
-        permission: PERMISSIONS.REPORTS_VIEW,
-        developed: false,
-      },
-      {
-        title: "Gráfico 3D",
-        href: getUnderDevelopmentHref("Gráfico 3D"),
-        permission: PERMISSIONS.REPORTS_VIEW,
-        developed: false,
-      },
+      
+      
+      
+      
+      
     ],
   },
   {
@@ -252,18 +161,8 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/busca-agenda",
         permission: PERMISSIONS.AGENDA_SEARCH,
       },
-      {
-        title: "Local Agendamento",
-        href: getUnderDevelopmentHref("Local Agendamento"),
-        permission: PERMISSIONS.AGENDA_VIEW,
-        developed: false,
-      },
-      {
-        title: "Hist. De Agendamento",
-        href: getUnderDevelopmentHref("Hist. De Agendamento"),
-        permission: PERMISSIONS.AGENDA_VIEW,
-        developed: false,
-      },
+      
+      
       {
         title: "Configurações",
         href: "/agenda/configuracoes",
@@ -291,12 +190,7 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/auditoria",
         permission: PERMISSIONS.AUDIT_LOGS_VIEW,
       },
-      {
-        title: "Acessos",
-        href: getUnderDevelopmentHref("Acessos"),
-        permission: PERMISSIONS.AUDIT_LOGS_VIEW,
-        developed: false,
-      },
+      
     ],
   },
   {

@@ -9,11 +9,10 @@ export function CompanyAccreditationTab() {
         <Construction className="size-8" aria-hidden />
       </div>
       <h3 className="mt-6 text-lg font-semibold text-foreground">
-        Credenciamento em desenvolvimento
+        Módulo de Credenciamento
       </h3>
       <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-        O módulo de credenciamento estará disponível em breve para gerenciar
-        convênios, documentação e habilitações da empresa.
+        Nenhum dado disponível no momento.
       </p>
     </section>
   );

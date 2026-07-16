@@ -27,7 +27,7 @@ export async function hasUserAcceptedTerm(
 
   if (!supabase) return false;
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("user_terms")
     .select("id")
     .eq("user_id", userId)
@@ -59,10 +59,12 @@ export async function acceptTermAction(termType: string = DEFAULT_TERM_TYPE) {
 
   if (!supabase) return { success: false, error: "Falha na conexão" };
 
-  const { error } = await supabase.from("user_terms").insert({
-    user_id: session.id,
-    term_type: termType,
-  });
+  const { error } = await (supabase as any)
+    .from("user_terms")
+    .insert({
+      user_id: session.id,
+      term_type: termType,
+    });
 
   if (error) {
     console.error("Error accepting term:", error);

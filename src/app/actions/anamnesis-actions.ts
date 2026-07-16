@@ -29,7 +29,7 @@ export async function saveAnamnesisAction({
   
   if (!supabase) return { success: false, error: "Falha na conexão" };
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("patient_anamnesis")
     .insert({
       patient_id: patientId,
@@ -53,7 +53,7 @@ export async function getAnamnesisListAction(patientId: string): Promise<Anamnes
   const supabase = await createServerSupabaseClient();
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("patient_anamnesis")
     .select("*")
     .eq("patient_id", patientId)
@@ -61,7 +61,7 @@ export async function getAnamnesisListAction(patientId: string): Promise<Anamnes
 
   if (error || !data) return [];
 
-  return data.map(row => ({
+  return data.map((row: any) => ({
     id: row.id,
     patientId: row.patient_id,
     professionalId: row.professional_id,

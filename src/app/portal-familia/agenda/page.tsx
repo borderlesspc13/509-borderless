@@ -12,7 +12,7 @@ export default async function FamilyAgendaPage() {
   const events = await getFamilyPortalAgendaAction();
 
   return (
-    <PageContainer size="base" className="space-y-6">
+    <PageContainer size="default" className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold text-foreground">Agenda de Sessões</h1>
         <p className="text-sm text-muted-foreground">
