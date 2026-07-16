@@ -1,10 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Suspense, useState } from "react";
 
 import { AccessDeniedBanner } from "@/components/layout/access-denied-banner";
 import { PatientWaitingBanner } from "@/components/internal-communication/patient-waiting-banner";
-import { AiModuleCopilot } from "@/features/ai/presentation/components/ai-assistants";
 import { TermsAlert } from "@/components/shared/terms-alert";
 import { AppLogo } from "@/components/layout/app-logo";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
@@ -19,11 +19,23 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
+const AiModuleCopilot = dynamic(
+  () =>
+    import("@/features/ai/presentation/components/ai-assistants").then(
+      (mod) => ({ default: mod.AiModuleCopilot })
+    ),
+  { ssr: false }
+);
+
 type DashboardShellProps = {
   children: React.ReactNode;
+  needsTermsAcceptance?: boolean;
 };
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({
+  children,
+  needsTermsAcceptance = false,
+}: DashboardShellProps) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
@@ -57,7 +69,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <div className="page-content">{children}</div>
         </main>
 
-        <TermsAlert />
+        {needsTermsAcceptance ? (
+          <TermsAlert initialNeedsAcceptance />
+        ) : null}
         <AiModuleCopilot />
       </div>
 

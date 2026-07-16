@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import {
   FileText,
@@ -17,9 +18,21 @@ import type {
 } from "@/app/actions/family-portal-actions";
 import type { HomeActivity } from "@/app/actions/home-activity-actions";
 import { FamilyPortalNav } from "@/components/family-portal/family-portal-shell";
-import { FamilyPortalProgressChart } from "@/components/family-portal/family-portal-progress-chart";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+const FamilyPortalProgressChart = dynamic(
+  () =>
+    import("@/components/family-portal/family-portal-progress-chart").then(
+      (mod) => ({ default: mod.FamilyPortalProgressChart })
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 animate-pulse rounded-lg bg-muted/60" aria-hidden />
+    ),
+  }
+);
 
 type FamilyPortalHomeProps = {
   data: FamilyPortalHomeData;

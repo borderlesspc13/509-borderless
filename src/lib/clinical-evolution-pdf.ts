@@ -1,6 +1,3 @@
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-
 import {
   CLINIC_REPORT_HEADER,
   formatPatientBirthDate,
@@ -120,6 +117,8 @@ function buildIsolatedReportDocument(html: string) {
 }
 
 async function renderReportToCanvas(reportElement: HTMLElement) {
+  const html2canvas = (await import("html2canvas")).default;
+
   return html2canvas(reportElement, {
     scale: 2,
     backgroundColor: "#ffffff",
@@ -140,10 +139,11 @@ function stripHtmlToText(html: string) {
   return container.textContent?.trim() ?? "";
 }
 
-function generatePdfWithTextLayout(
+async function generatePdfWithTextLayout(
   input: ClinicalEvolutionPdfInput,
   fileName: string
 ) {
+  const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const margin = 15;
   const maxWidth = pdf.internal.pageSize.getWidth() - margin * 2;
@@ -206,7 +206,8 @@ function generatePdfWithTextLayout(
   pdf.save(fileName);
 }
 
-function addCanvasToPdf(canvas: HTMLCanvasElement, fileName: string) {
+async function addCanvasToPdf(canvas: HTMLCanvasElement, fileName: string) {
+  const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -277,10 +278,10 @@ export async function generateClinicalEvolutionPdf(
 
     try {
       const canvas = await renderReportToCanvas(reportElement);
-      addCanvasToPdf(canvas, fileName);
+      await addCanvasToPdf(canvas, fileName);
     } catch (canvasError) {
       console.warn("[evolucao-pdf] html2canvas falhou, usando layout textual.", canvasError);
-      generatePdfWithTextLayout(input, fileName);
+      await generatePdfWithTextLayout(input, fileName);
     }
   } finally {
     document.body.removeChild(iframe);

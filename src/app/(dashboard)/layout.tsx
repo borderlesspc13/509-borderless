@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { hasUserAcceptedTerm } from "@/app/actions/terms-actions";
 import { DashboardProviders } from "@/components/layout/dashboard-providers";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { requireServerUserSession } from "@/lib/auth-server";
@@ -16,9 +17,13 @@ export default async function DashboardLayout({
     redirect(FAMILIA_HOME_PATH);
   }
 
+  const needsTermsAcceptance = !(await hasUserAcceptedTerm(session.id));
+
   return (
     <DashboardProviders session={session}>
-      <DashboardShell>{children}</DashboardShell>
+      <DashboardShell needsTermsAcceptance={needsTermsAcceptance}>
+        {children}
+      </DashboardShell>
     </DashboardProviders>
   );
 }

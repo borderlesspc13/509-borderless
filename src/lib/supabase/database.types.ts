@@ -703,6 +703,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_terms: {
+        Row: {
+          id: string;
+          user_id: string;
+          term_type: string;
+          accepted_at: string;
+          ip_address: string | null;
+          user_agent: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          term_type: string;
+          accepted_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          term_type?: string;
+          accepted_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+        };
+        Relationships: [];
+      };
       agenda_events: {
         Row: {
           id: string;

@@ -33,7 +33,7 @@ export async function saveAnamnesisAction({
     .from("patient_anamnesis")
     .insert({
       patient_id: patientId,
-      professional_id: session.user.id,
+      professional_id: session.id,
       anamnesis_type: anamnesisType,
       form_data: formData,
     })

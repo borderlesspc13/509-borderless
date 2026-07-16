@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { GitCompareArrows, LineChart as LineChartIcon, TrendingDown, TrendingUp } from "lucide-react";
 
@@ -8,8 +9,6 @@ import {
   type ClinicalReportsQuery,
 } from "@/app/actions/clinical-reports-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { EvaluationComparisonChart } from "@/components/clinical-reports/evaluation-comparison-chart";
-import { EvaluationEvolutionChart } from "@/components/clinical-reports/evaluation-evolution-chart";
 import { ReassessmentAlertsPanel } from "@/components/clinical-reports/reassessment-alerts-panel";
 import { AiReportTrainingEntryCard } from "@/components/clinical-reports/ai-report-training-entry-card";
 import { ReportWritingPatternPanel } from "@/components/clinical-reports/report-writing-pattern-panel";
@@ -34,6 +33,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ClinicalReportsData } from "@/app/actions/clinical-reports-actions";
+
+const EvaluationComparisonChart = dynamic(
+  () =>
+    import("@/components/clinical-reports/evaluation-comparison-chart").then(
+      (mod) => ({ default: mod.EvaluationComparisonChart })
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-72 animate-pulse rounded-lg bg-muted/60" aria-hidden />
+    ),
+  }
+);
+
+const EvaluationEvolutionChart = dynamic(
+  () =>
+    import("@/components/clinical-reports/evaluation-evolution-chart").then(
+      (mod) => ({ default: mod.EvaluationEvolutionChart })
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-72 animate-pulse rounded-lg bg-muted/60" aria-hidden />
+    ),
+  }
+);
 
 const filterFieldClassName = "min-w-0 space-y-2";
 const filterControlClassName = "!h-11 w-full min-w-0";

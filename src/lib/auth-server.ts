@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
@@ -70,11 +71,17 @@ async function ensureUserProfile(
   return inserted;
 }
 
-export async function getServerUserSession(): Promise<AppUserSession | null> {
+type ResolvedServerAuth =
+  | { status: "ok"; session: AppUserSession }
+  | { status: "no-supabase" }
+  | { status: "unauthenticated" }
+  | { status: "no-profile" };
+
+const resolveServerAuth = cache(async (): Promise<ResolvedServerAuth> => {
   const supabase = await createServerSupabaseClient();
 
   if (!supabase) {
-    return null;
+    return { status: "no-supabase" };
   }
 
   const {
@@ -82,7 +89,7 @@ export async function getServerUserSession(): Promise<AppUserSession | null> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return null;
+    return { status: "unauthenticated" };
   }
 
   let profile = await supabase
@@ -97,41 +104,29 @@ export async function getServerUserSession(): Promise<AppUserSession | null> {
   }
 
   if (!profile) {
-    return null;
+    return { status: "no-profile" };
   }
 
-  return mapUserProfileRow(user, profile);
-}
+  return { status: "ok", session: mapUserProfileRow(user, profile) };
+});
+
+export const getServerUserSession = cache(
+  async (): Promise<AppUserSession | null> => {
+    const result = await resolveServerAuth();
+    return result.status === "ok" ? result.session : null;
+  }
+);
 
 export async function requireServerUserSession() {
-  const supabase = await createServerSupabaseClient();
+  const result = await resolveServerAuth();
 
-  if (!supabase) {
+  if (result.status === "no-supabase" || result.status === "unauthenticated") {
     redirect("/login");
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  let profile = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle()
-    .then(({ data }) => data);
-
-  if (!profile) {
-    profile = await ensureUserProfile(user);
-  }
-
-  if (!profile) {
+  if (result.status === "no-profile") {
     redirect("/login?erro=perfil-pendente");
   }
 
-  return mapUserProfileRow(user, profile);
+  return result.session;
 }
