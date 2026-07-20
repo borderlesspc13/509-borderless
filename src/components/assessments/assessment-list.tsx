@@ -39,7 +39,6 @@ import {
   assessmentStatusLabels,
   assessmentTypeLabels,
 } from "@/lib/assessment-format";
-import { APPLICABLE_ASSESSMENTS } from "@/lib/assessment-apply-routes";
 import type { AssessmentTemplateRow } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
@@ -184,17 +183,6 @@ export function AssessmentList({ templates }: AssessmentListProps) {
             <Plus className="size-4" aria-hidden />
             Nova Avaliação
           </Button>
-          {APPLICABLE_ASSESSMENTS.map((instrument) => (
-            <Button
-              key={instrument.name}
-              size="lg"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href={instrument.href} />}
-            >
-              {instrument.buttonLabel}
-            </Button>
-          ))}
         </div>
 
         <div className="flex items-center gap-1 self-end sm:self-auto">

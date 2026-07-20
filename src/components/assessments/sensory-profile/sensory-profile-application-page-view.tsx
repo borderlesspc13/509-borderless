@@ -190,8 +190,8 @@ export function SensoryProfileApplicationPageView({
         title="Perfil Sensorial II"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
-          { label: "Cadastro" },
-          { label: "Avaliações", href: "/dashboard/avaliacoes" },
+          { label: "Evolução" },
+          { label: "Avaliações", href: "/dashboard/avaliacoes/aplicar" },
           { label: "Perfil Sensorial II" },
         ]}
         actions={
@@ -199,7 +199,7 @@ export function SensoryProfileApplicationPageView({
             variant="outline"
             size="sm"
             nativeButton={false}
-            render={<Link href="/dashboard/avaliacoes" />}
+            render={<Link href="/dashboard/avaliacoes/aplicar" />}
           >
             <ArrowLeft className="size-4" aria-hidden />
             Voltar

@@ -171,8 +171,8 @@ export function EbaiApplicationPageView({
         title="Escala EBAI"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
-          { label: "Cadastro" },
-          { label: "Avaliações", href: "/dashboard/avaliacoes" },
+          { label: "Evolução" },
+          { label: "Avaliações", href: "/dashboard/avaliacoes/aplicar" },
           { label: "EBAI" },
         ]}
         actions={
@@ -180,7 +180,7 @@ export function EbaiApplicationPageView({
             variant="outline"
             size="sm"
             nativeButton={false}
-            render={<Link href="/dashboard/avaliacoes" />}
+            render={<Link href="/dashboard/avaliacoes/aplicar" />}
           >
             <ArrowLeft className="size-4" aria-hidden />
             Voltar

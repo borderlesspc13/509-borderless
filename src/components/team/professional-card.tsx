@@ -180,7 +180,7 @@ export function ProfessionalCard({
             onClick={() => onManageTeam?.(professional)}
           >
             <Users className="size-4 shrink-0" aria-hidden />
-            <span className="text-center">Gerenciar Equipe</span>
+            <span className="text-center">Equipe terapêutica</span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -261,7 +261,7 @@ export function ProfessionalListRow({
           onClick={() => onManageTeam?.(professional)}
         >
           <Users className="size-4" aria-hidden />
-          Gerenciar Equipe
+          Equipe terapêutica
         </Button>
         <Button
           variant="outline"

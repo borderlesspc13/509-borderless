@@ -3,6 +3,7 @@ import type { DocumentTemplateRow } from "@/lib/supabase/database.types";
 export const documentTemplateCategories = [
   { value: "evolucao_clinica", label: "Evolução clínica" },
   { value: "relatorio", label: "Relatório" },
+  { value: "anamnese", label: "Anamnese" },
   { value: "parecer", label: "Parecer" },
   { value: "encaminhamento", label: "Encaminhamento" },
   { value: "outro", label: "Outro" },

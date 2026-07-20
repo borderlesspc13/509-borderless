@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 
 type ProfessionalListProps = {
   professionals: TeamMember[];
+  mode?: "cadastro" | "equipe";
 };
 
 type ViewMode = "grid" | "list";
@@ -123,7 +124,10 @@ function exportProfessionalsToCsv(professionals: TeamMember[]) {
   URL.revokeObjectURL(url);
 }
 
-export function ProfessionalList({ professionals }: ProfessionalListProps) {
+export function ProfessionalList({
+  professionals,
+  mode = "cadastro",
+}: ProfessionalListProps) {
   const [professionalItems, setProfessionalItems] = useState(professionals);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -215,14 +219,20 @@ export function ProfessionalList({ professionals }: ProfessionalListProps) {
       <ProfessionalStatsRow professionals={professionalItems} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button
-          size="lg"
-          nativeButton={false}
-          render={<Link href="/dashboard/profissionais/novo" />}
-        >
-          <Plus className="size-4" aria-hidden />
-          Novo Profissional
-        </Button>
+        {mode === "cadastro" ? (
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link href="/dashboard/profissionais/novo" />}
+          >
+            <Plus className="size-4" aria-hidden />
+            Novo Profissional
+          </Button>
+        ) : (
+          <p className="text-sm font-medium text-foreground">
+            Selecione um profissional para gerenciar a equipe terapêutica
+          </p>
+        )}
 
         <div className="flex items-center gap-1 self-end sm:self-auto">
           <Button

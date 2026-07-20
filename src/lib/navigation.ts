@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { isAssessmentApplyPath } from "@/lib/assessment-apply-routes";
 import type { UserProfile } from "@/lib/auth";
 import { hasPermission, PERMISSIONS, type Permission } from "@/lib/rbac";
 
@@ -62,6 +63,11 @@ export const mainNavEntries: NavEntry[] = [
         permission: PERMISSIONS.PROFESSIONALS_VIEW,
       },
       {
+        title: "Equipe terapêutica",
+        href: "/dashboard/profissionais?aba=equipe",
+        permission: PERMISSIONS.PROFESSIONALS_VIEW,
+      },
+      {
         title: "Aprendizes",
         href: "/dashboard/pacientes",
         permission: PERMISSIONS.PATIENTS_VIEW,
@@ -71,16 +77,11 @@ export const mainNavEntries: NavEntry[] = [
         href: "/dashboard/avaliacoes",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
-      
       {
         title: "Programas",
         href: "/dashboard/programas",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
-      
-      
-      
-      
     ],
   },
   {
@@ -100,7 +101,7 @@ export const mainNavEntries: NavEntry[] = [
       },
       {
         title: "Avaliações",
-        href: "/dashboard/avaliacoes",
+        href: "/dashboard/avaliacoes/aplicar",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
       },
     ],
@@ -266,5 +267,28 @@ export function isNavHrefActive(pathname: string, href: string) {
     return pathname === "/em-desenvolvimento";
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const hrefPath = href.split("?")[0] ?? href;
+
+  // Cadastro → Avaliações: templates (não inclui aplicar/instrumentos)
+  if (hrefPath === "/dashboard/avaliacoes") {
+    if (isAssessmentApplyPath(pathname)) {
+      return false;
+    }
+
+    return pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
+  }
+
+  // Evolução → Avaliações: hub e instrumentos de aplicação
+  if (hrefPath === "/dashboard/avaliacoes/aplicar") {
+    return isAssessmentApplyPath(pathname);
+  }
+
+  // Cadastro → Profissionais / Equipe terapêutica compartilham a rota base
+  if (hrefPath === "/dashboard/profissionais") {
+    return (
+      pathname === hrefPath || pathname.startsWith(`${hrefPath}/`)
+    );
+  }
+
+  return pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
 }

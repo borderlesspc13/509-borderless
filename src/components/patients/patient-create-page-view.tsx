@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
 
 import { uploadPatientAvatarAction } from "@/app/actions/entity-avatar-actions";
+import { createPatientBodyMarksBatchAction } from "@/app/actions/body-map-actions";
 import { createPatientAction } from "@/app/actions/patient-record-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
@@ -16,6 +17,10 @@ import {
   PatientGeralSection,
   formStateToActionInput,
 } from "@/components/patients/patient-form-sections";
+import {
+  PatientBodyMapPanel,
+  type DraftBodyMark,
+} from "@/components/patients/patient-body-map-panel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { emptyPatientFormState } from "@/lib/patient-form";
@@ -25,6 +30,7 @@ export function PatientCreatePageView() {
   const toast = useAppToast();
   const [values, setValues] = useState(emptyPatientFormState);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [draftBodyMarks, setDraftBodyMarks] = useState<DraftBodyMark[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -65,6 +71,20 @@ export function PatientCreatePageView() {
         }
       }
 
+      if (draftBodyMarks.length > 0) {
+        const marksResult = await createPatientBodyMarksBatchAction(
+          result.data.patient.id,
+          draftBodyMarks.map(({ localId: _localId, ...mark }) => mark)
+        );
+
+        if (!marksResult.success) {
+          toast.warning({
+            title: "Aprendiz cadastrado sem mapa corporal",
+            description: marksResult.error,
+          });
+        }
+      }
+
       toast.success({
         title: "Aprendiz cadastrado",
         description: values.fullName
@@ -72,7 +92,7 @@ export function PatientCreatePageView() {
           : "O aprendiz foi adicionado com sucesso.",
       });
 
-      router.push("/dashboard/pacientes");
+      router.push(`/dashboard/pacientes/${result.data.patient.id}/editar`);
       router.refresh();
     });
   }
@@ -115,7 +135,7 @@ export function PatientCreatePageView() {
 
           <Tabs defaultValue="geral" className="gap-0">
             <div className="border-b border-border/60 bg-muted/25 px-6 py-4 sm:px-8">
-              <TabsList className="grid h-auto w-full grid-cols-3 gap-2 bg-transparent p-0">
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 sm:grid-cols-4">
                 <TabsTrigger
                   value="geral"
                   className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
@@ -133,6 +153,12 @@ export function PatientCreatePageView() {
                   className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
                 >
                   Endereço
+                </TabsTrigger>
+                <TabsTrigger
+                  value="mapa"
+                  className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
+                >
+                  Mapa corporal
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -153,6 +179,13 @@ export function PatientCreatePageView() {
 
             <TabsContent value="endereco" className="mt-0 px-6 py-8 sm:px-8">
               <PatientEnderecoSection values={values} onChange={handleChange} />
+            </TabsContent>
+
+            <TabsContent value="mapa" className="mt-0 px-6 py-8 sm:px-8">
+              <PatientBodyMapPanel
+                draftMarks={draftBodyMarks}
+                onDraftMarksChange={setDraftBodyMarks}
+              />
             </TabsContent>
 
             {error ? (

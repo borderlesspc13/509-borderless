@@ -217,8 +217,8 @@ export function DemucaApplicationPageView({
         title="Escala DEMUCA 2.0"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
-          { label: "Cadastro" },
-          { label: "Avaliações", href: "/dashboard/avaliacoes" },
+          { label: "Evolução" },
+          { label: "Avaliações", href: "/dashboard/avaliacoes/aplicar" },
           { label: "DEMUCA" },
         ]}
         actions={
@@ -226,7 +226,7 @@ export function DemucaApplicationPageView({
             variant="outline"
             size="sm"
             nativeButton={false}
-            render={<Link href="/dashboard/avaliacoes" />}
+            render={<Link href="/dashboard/avaliacoes/aplicar" />}
           >
             <ArrowLeft className="size-4" aria-hidden />
             Voltar

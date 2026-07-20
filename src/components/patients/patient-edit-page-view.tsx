@@ -21,6 +21,7 @@ import {
   PatientGeralSection,
   formStateToActionInput,
 } from "@/components/patients/patient-form-sections";
+import { PatientBodyMapPanel } from "@/components/patients/patient-body-map-panel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { patientRowToFormState } from "@/lib/patient-form";
@@ -146,7 +147,7 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
         <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
           <Tabs defaultValue="geral" className="gap-0">
             <div className="border-b border-border/60 bg-muted/25 px-6 py-4 sm:px-8">
-              <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 sm:grid-cols-4">
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 sm:grid-cols-5">
                 <TabsTrigger
                   value="geral"
                   className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
@@ -164,6 +165,12 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
                   className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
                 >
                   Endereço
+                </TabsTrigger>
+                <TabsTrigger
+                  value="mapa"
+                  className="rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground data-active:border-transparent data-active:bg-primary data-active:text-primary-foreground sm:text-sm"
+                >
+                  Mapa corporal
                 </TabsTrigger>
                 <TabsTrigger
                   value="anexos"
@@ -220,6 +227,10 @@ export function PatientEditPageView({ patient }: PatientEditPageViewProps) {
 
             <TabsContent value="endereco" className="mt-0 px-6 py-8 sm:px-8">
               <PatientEnderecoSection values={values} onChange={handleChange} />
+            </TabsContent>
+
+            <TabsContent value="mapa" className="mt-0 px-6 py-8 sm:px-8">
+              <PatientBodyMapPanel patientId={patient.id} />
             </TabsContent>
 
             <TabsContent value="anexos" className="mt-0 px-6 py-8 sm:px-8">

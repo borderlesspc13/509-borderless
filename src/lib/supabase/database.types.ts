@@ -466,6 +466,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      patient_body_marks: {
+        Row: {
+          id: string;
+          patient_id: string;
+          view_side: "front" | "back";
+          x_pct: number;
+          y_pct: number;
+          mark_type: "pain" | "lesion" | "missing_limb" | "scar" | "other";
+          severity: number | null;
+          notes: string | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          view_side: "front" | "back";
+          x_pct: number;
+          y_pct: number;
+          mark_type: "pain" | "lesion" | "missing_limb" | "scar" | "other";
+          severity?: number | null;
+          notes?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          view_side?: "front" | "back";
+          x_pct?: number;
+          y_pct?: number;
+          mark_type?: "pain" | "lesion" | "missing_limb" | "scar" | "other";
+          severity?: number | null;
+          notes?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       clinical_evolution_records: {
         Row: {
           id: string;
@@ -1723,6 +1768,9 @@ export type AssessmentScoreRow =
 
 export type DocumentTemplateRow =
   Database["public"]["Tables"]["document_templates"]["Row"];
+
+export type PatientBodyMarkRow =
+  Database["public"]["Tables"]["patient_body_marks"]["Row"];
 
 export type ClinicSettingsRow =
   Database["public"]["Tables"]["clinic_settings"]["Row"];

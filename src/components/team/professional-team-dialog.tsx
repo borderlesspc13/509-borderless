@@ -168,7 +168,7 @@ export function ProfessionalTeamDialog({
         <DialogHeader className="border-b border-border/60 px-6 py-5">
           <DialogTitle className="flex items-center gap-2">
             <Users className="size-5 text-primary" aria-hidden />
-            Gerenciar Equipe
+            Equipe terapêutica
           </DialogTitle>
           <DialogDescription>
             {professional ? (

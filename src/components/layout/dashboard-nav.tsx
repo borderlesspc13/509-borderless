@@ -17,6 +17,56 @@ type DashboardNavProps = {
   onNavigate?: () => void;
 };
 
+function getHrefPath(href: string) {
+  return href.split("?")[0] ?? href;
+}
+
+function getHrefSearchParams(href: string) {
+  const queryIndex = href.indexOf("?");
+  if (queryIndex === -1) {
+    return null;
+  }
+
+  return new URLSearchParams(href.slice(queryIndex + 1));
+}
+
+function isNavItemActive(
+  pathname: string,
+  href: string,
+  searchParams: URLSearchParams
+) {
+  if (href.startsWith("/em-desenvolvimento")) {
+    const activeTitle = searchParams.get("titulo");
+    return (
+      pathname === "/em-desenvolvimento" &&
+      activeTitle === getHrefSearchParams(href)?.get("titulo")
+    );
+  }
+
+  const hrefPath = getHrefPath(href);
+  const hrefParams = getHrefSearchParams(href);
+
+  if (hrefPath === "/dashboard/profissionais") {
+    const isProfessionalsPath =
+      pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
+
+    if (!isProfessionalsPath) {
+      return false;
+    }
+
+    const currentAba = searchParams.get("aba");
+    const hrefAba = hrefParams?.get("aba") ?? null;
+
+    if (hrefAba === "equipe") {
+      return currentAba === "equipe";
+    }
+
+    return currentAba !== "equipe";
+  }
+
+  return isNavHrefActive(pathname, href);
+}
+
 function NavGroupSection({
   entry,
   pathname,
@@ -27,16 +77,9 @@ function NavGroupSection({
   onNavigate?: () => void;
 }) {
   const searchParams = useSearchParams();
-  const activeTitle = searchParams.get("titulo");
-  const hasActiveChild = entry.items.some((item) => {
-    if (item.href.startsWith("/em-desenvolvimento")) {
-      return (
-        pathname === "/em-desenvolvimento" && activeTitle === item.title
-      );
-    }
-
-    return isNavHrefActive(pathname, item.href);
-  });
+  const hasActiveChild = entry.items.some((item) =>
+    isNavItemActive(pathname, item.href, searchParams)
+  );
   const [isOpen, setIsOpen] = useState(hasActiveChild);
   const Icon = entry.icon;
 
@@ -65,9 +108,7 @@ function NavGroupSection({
       {isOpen ? (
         <div className="space-y-0.5 py-1 pl-11 pr-1">
           {entry.items.map((item) => {
-            const isActive = item.href.startsWith("/em-desenvolvimento")
-              ? pathname === "/em-desenvolvimento" && activeTitle === item.title
-              : isNavHrefActive(pathname, item.href);
+            const isActive = isNavItemActive(pathname, item.href, searchParams);
 
             return (
               <Link
