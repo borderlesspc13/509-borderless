@@ -6,13 +6,14 @@ export type ClinicalPatient = {
   diagnosis: string;
 };
 
+/** @deprecated Preferir getDocumentBrandingAction / DocumentBranding */
 export const CLINIC_REPORT_HEADER = {
   name: "Nurse Care",
-  legalName: "Nurse Care Soluções em Saúde Ltda.",
-  cnpj: "00.000.000/0001-00",
-  address: "Av. Paulista, 1000 — São Paulo, SP",
-  phone: "(11) 3000-0000",
-  email: "contato@nursecare.com.br",
+  legalName: "Nurse Care Soluções em Saúde",
+  cnpj: "",
+  address: "",
+  phone: "",
+  email: "",
 } as const;
 
 type PatientLike = {

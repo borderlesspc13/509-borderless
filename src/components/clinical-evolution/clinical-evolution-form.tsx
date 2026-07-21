@@ -38,6 +38,7 @@ import {
   getClinicalPatient,
   type ClinicalPatient,
 } from "@/lib/clinical-evolution-data";
+import { getDocumentBrandingAction } from "@/app/actions/document-branding-actions";
 import { generateClinicalEvolutionPdf } from "@/lib/clinical-evolution-pdf";
 import { toDateKey } from "@/lib/calendar-utils";
 import type { ClinicalEvolutionRecordRow } from "@/lib/supabase/database.types";
@@ -191,6 +192,7 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
     setFeedback(null);
 
     try {
+      const brandingResult = await getDocumentBrandingAction();
       await generateClinicalEvolutionPdf({
         patient: selectedPatient,
         sessionDate,
@@ -198,6 +200,10 @@ export function ClinicalEvolutionForm({ patients }: ClinicalEvolutionFormProps) 
         professionalName: userName,
         professionalRole: displayRole,
         professionalCouncil: professionalCouncil ?? undefined,
+        branding:
+          brandingResult.success && brandingResult.data
+            ? brandingResult.data
+            : undefined,
       });
     } catch (error) {
       console.error("[evolucao-pdf]", error);

@@ -21,8 +21,7 @@ export function AvaliacoesAplicarPageView() {
       />
 
       <p className="max-w-2xl text-sm text-muted-foreground">
-        Selecione o instrumento para avaliar o paciente. O cadastro e a edição
-        dos testes ficam em Cadastro → Avaliações.
+        Selecione o instrumento para avaliar o paciente.
       </p>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

@@ -105,7 +105,7 @@ export function buildPatientTimeline(
         .filter(Boolean)
         .join(" · "),
       professionalName: item.professional_name,
-      href: "/dashboard/avaliacoes",
+      href: "/dashboard/avaliacoes/aplicar",
     })),
     ...sources.therapeuticPlans.map((item) => ({
       id: `plan-${item.id}`,

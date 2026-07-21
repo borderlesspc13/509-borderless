@@ -73,11 +73,6 @@ export const mainNavEntries: NavEntry[] = [
         permission: PERMISSIONS.PATIENTS_VIEW,
       },
       {
-        title: "Avaliações",
-        href: "/dashboard/avaliacoes",
-        permission: PERMISSIONS.ASSESSMENTS_VIEW,
-      },
-      {
         title: "Programas",
         href: "/dashboard/programas",
         permission: PERMISSIONS.ASSESSMENTS_VIEW,
@@ -268,15 +263,6 @@ export function isNavHrefActive(pathname: string, href: string) {
   }
 
   const hrefPath = href.split("?")[0] ?? href;
-
-  // Cadastro → Avaliações: templates (não inclui aplicar/instrumentos)
-  if (hrefPath === "/dashboard/avaliacoes") {
-    if (isAssessmentApplyPath(pathname)) {
-      return false;
-    }
-
-    return pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
-  }
 
   // Evolução → Avaliações: hub e instrumentos de aplicação
   if (hrefPath === "/dashboard/avaliacoes/aplicar") {

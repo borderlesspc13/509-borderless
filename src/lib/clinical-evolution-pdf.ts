@@ -1,8 +1,16 @@
 import {
-  CLINIC_REPORT_HEADER,
   formatPatientBirthDate,
   type ClinicalPatient,
 } from "@/lib/clinical-evolution-data";
+import {
+  buildDocumentFooterHtml,
+  buildDocumentHeaderHtml,
+  DEFAULT_DOCUMENT_BRANDING,
+  DOCUMENT_BRAND_COLORS,
+  escapeDocumentHtml,
+  resolveDocumentLogoUrl,
+  type DocumentBranding,
+} from "@/lib/document-branding";
 
 export type ClinicalEvolutionPdfInput = {
   patient: ClinicalPatient;
@@ -11,6 +19,7 @@ export type ClinicalEvolutionPdfInput = {
   professionalName: string;
   professionalRole: string;
   professionalCouncil?: string;
+  branding?: DocumentBranding;
 };
 
 function formatSessionDate(sessionDate: string) {
@@ -35,18 +44,45 @@ function formatGeneratedAt() {
   }).format(new Date());
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url, { cache: "force-cache" });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const blob = await response.blob();
+
+    return await new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(typeof reader.result === "string" ? reader.result : null);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
 }
 
-function buildReportHtml(input: ClinicalEvolutionPdfInput) {
+function buildMetaCell(label: string, value: string) {
+  return `
+    <div style="padding:10px 12px;background:#F7FAFC;border:1px solid ${DOCUMENT_BRAND_COLORS.border};border-radius:8px;">
+      <p style="margin:0 0 4px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${DOCUMENT_BRAND_COLORS.muted};font-family:Helvetica,Arial,sans-serif;">${escapeDocumentHtml(label)}</p>
+      <p style="margin:0;font-size:13px;color:${DOCUMENT_BRAND_COLORS.text};font-family:Georgia,'Times New Roman',serif;">${escapeDocumentHtml(value)}</p>
+    </div>
+  `;
+}
+
+function buildReportHtml(
+  input: ClinicalEvolutionPdfInput,
+  branding: DocumentBranding,
+  logoDataUrl: string
+) {
   const councilLine = input.professionalCouncil
-    ? `<p style="margin:8px 0 0;font-size:13px;"><strong>Registro profissional:</strong> ${escapeHtml(input.professionalCouncil)}</p>`
+    ? buildMetaCell("Registro profissional", input.professionalCouncil)
     : "";
 
   const narrativeContent =
@@ -54,41 +90,53 @@ function buildReportHtml(input: ClinicalEvolutionPdfInput) {
       ? input.contentHtml
       : "<p><em>Sem conteúdo registrado.</em></p>";
 
+  const generatedAt = formatGeneratedAt();
+
   return `
-    <div id="clinical-evolution-report" style="width:794px;padding:48px;font-family:Georgia,'Times New Roman',serif;color:#111827;background:#ffffff;line-height:1.6;">
-      <header style="border-bottom:2px solid #1d4ed8;padding-bottom:20px;margin-bottom:28px;">
-        <h1 style="margin:0 0 6px;font-size:24px;color:#1d4ed8;">${escapeHtml(CLINIC_REPORT_HEADER.name)}</h1>
-        <p style="margin:0;font-size:12px;color:#4b5563;">${escapeHtml(CLINIC_REPORT_HEADER.legalName)} · CNPJ ${escapeHtml(CLINIC_REPORT_HEADER.cnpj)}</p>
-        <p style="margin:4px 0 0;font-size:12px;color:#4b5563;">${escapeHtml(CLINIC_REPORT_HEADER.address)}</p>
-        <p style="margin:4px 0 0;font-size:12px;color:#4b5563;">${escapeHtml(CLINIC_REPORT_HEADER.phone)} · ${escapeHtml(CLINIC_REPORT_HEADER.email)}</p>
-      </header>
+    <div id="clinical-evolution-report" style="width:794px;padding:40px 44px;font-family:Georgia,'Times New Roman',serif;color:${DOCUMENT_BRAND_COLORS.text};background:${DOCUMENT_BRAND_COLORS.background};line-height:1.65;">
+      ${buildDocumentHeaderHtml(branding, {
+        logoUrl: logoDataUrl,
+        documentTitle: "Relatório de Evolução Clínica",
+      })}
 
-      <section style="margin-bottom:24px;">
-        <h2 style="margin:0 0 12px;font-size:16px;text-transform:uppercase;letter-spacing:0.04em;color:#111827;">Relatório de Evolução Clínica</h2>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;">
-          <p style="margin:0;"><strong>Paciente:</strong> ${escapeHtml(input.patient.name)}</p>
-          <p style="margin:0;"><strong>Data de nascimento:</strong> ${escapeHtml(formatPatientBirthDate(input.patient.birthDate))}</p>
-          <p style="margin:0;"><strong>Responsável:</strong> ${escapeHtml(input.patient.guardian)}</p>
-          <p style="margin:0;"><strong>Diagnóstico:</strong> ${escapeHtml(input.patient.diagnosis)}</p>
-          <p style="margin:0;"><strong>Data da sessão:</strong> ${escapeHtml(formatSessionDate(input.sessionDate))}</p>
-          <p style="margin:0;"><strong>Profissional:</strong> ${escapeHtml(input.professionalName)}</p>
+      <section style="margin-bottom:28px;">
+        <h2 style="margin:0 0 14px;font-size:15px;font-family:Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:0.05em;color:${DOCUMENT_BRAND_COLORS.navy};">
+          Dados do atendimento
+        </h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          ${buildMetaCell("Paciente", input.patient.name)}
+          ${buildMetaCell("Data de nascimento", formatPatientBirthDate(input.patient.birthDate))}
+          ${buildMetaCell("Responsável", input.patient.guardian)}
+          ${buildMetaCell("Diagnóstico", input.patient.diagnosis)}
+          ${buildMetaCell("Data da sessão", formatSessionDate(input.sessionDate))}
+          ${buildMetaCell("Profissional", input.professionalName)}
+          ${buildMetaCell("Cargo", input.professionalRole)}
+          ${councilLine}
         </div>
-        <p style="margin:8px 0 0;font-size:13px;"><strong>Cargo:</strong> ${escapeHtml(input.professionalRole)}</p>
-        ${councilLine}
       </section>
 
-      <section style="margin-bottom:36px;">
-        <h3 style="margin:0 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:0.04em;color:#374151;">Evolução narrativa</h3>
-        <div style="font-size:14px;color:#111827;">${narrativeContent}</div>
+      <section style="margin-bottom:32px;">
+        <h3 style="margin:0 0 12px;font-size:13px;font-family:Helvetica,Arial,sans-serif;text-transform:uppercase;letter-spacing:0.05em;color:${DOCUMENT_BRAND_COLORS.navy};">
+          Evolução narrativa
+        </h3>
+        <div style="padding:16px 18px;border:1px solid ${DOCUMENT_BRAND_COLORS.border};border-left:4px solid ${DOCUMENT_BRAND_COLORS.teal};border-radius:8px;font-size:14px;color:${DOCUMENT_BRAND_COLORS.text};background:#FBFDFF;">
+          ${narrativeContent}
+        </div>
       </section>
 
-      <footer style="margin-top:48px;padding-top:24px;border-top:1px solid #d1d5db;">
-        <p style="margin:0 0 48px;font-size:13px;color:#4b5563;">Documento gerado em ${escapeHtml(formatGeneratedAt())}.</p>
-        <div style="width:280px;border-top:1px solid #111827;padding-top:8px;">
-          <p style="margin:0;font-size:14px;font-weight:600;">${escapeHtml(input.professionalName)}</p>
-          <p style="margin:4px 0 0;font-size:12px;color:#4b5563;">${escapeHtml(input.professionalRole)}${input.professionalCouncil ? ` · ${escapeHtml(input.professionalCouncil)}` : ""}</p>
-          <p style="margin:16px 0 0;font-size:11px;color:#6b7280;">Assinatura do profissional responsável</p>
+      <footer style="margin-top:40px;">
+        <div style="width:300px;margin-top:56px;border-top:1px solid ${DOCUMENT_BRAND_COLORS.navy};padding-top:10px;">
+          <p style="margin:0;font-size:14px;font-weight:700;font-family:Helvetica,Arial,sans-serif;color:${DOCUMENT_BRAND_COLORS.navy};">
+            ${escapeDocumentHtml(input.professionalName)}
+          </p>
+          <p style="margin:4px 0 0;font-size:12px;color:${DOCUMENT_BRAND_COLORS.muted};font-family:Helvetica,Arial,sans-serif;">
+            ${escapeDocumentHtml(input.professionalRole)}${input.professionalCouncil ? ` · ${escapeDocumentHtml(input.professionalCouncil)}` : ""}
+          </p>
+          <p style="margin:14px 0 0;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:${DOCUMENT_BRAND_COLORS.muted};font-family:Helvetica,Arial,sans-serif;">
+            Assinatura do profissional responsável
+          </p>
         </div>
+        ${buildDocumentFooterHtml(generatedAt)}
       </footer>
     </div>
   `;
@@ -105,11 +153,12 @@ function buildIsolatedReportDocument(html: string) {
         margin: 0;
         padding: 0;
         background: #ffffff;
-        color: #111827;
+        color: ${DOCUMENT_BRAND_COLORS.text};
       }
       h1, h2, h3, p, ul, ol, li, strong, em {
         color: inherit;
       }
+      img { max-width: 100%; }
     </style>
   </head>
   <body>${html}</body>
@@ -124,11 +173,12 @@ async function renderReportToCanvas(reportElement: HTMLElement) {
     backgroundColor: "#ffffff",
     logging: false,
     useCORS: true,
+    allowTaint: false,
     foreignObjectRendering: false,
     onclone: (clonedDocument) => {
       clonedDocument.documentElement.style.background = "#ffffff";
       clonedDocument.body.style.background = "#ffffff";
-      clonedDocument.body.style.color = "#111827";
+      clonedDocument.body.style.color = DOCUMENT_BRAND_COLORS.text;
     },
   });
 }
@@ -141,11 +191,13 @@ function stripHtmlToText(html: string) {
 
 async function generatePdfWithTextLayout(
   input: ClinicalEvolutionPdfInput,
-  fileName: string
+  branding: DocumentBranding,
+  fileName: string,
+  logoDataUrl: string | null
 ) {
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const margin = 15;
+  const margin = 16;
   const maxWidth = pdf.internal.pageSize.getWidth() - margin * 2;
   let cursorY = margin;
 
@@ -158,27 +210,64 @@ async function generatePdfWithTextLayout(
     }
   }
 
-  function writeLine(text: string, fontSize = 11, fontStyle: "normal" | "bold" = "normal") {
+  function writeLine(
+    text: string,
+    fontSize = 11,
+    fontStyle: "normal" | "bold" = "normal",
+    color: [number, number, number] = [17, 24, 39]
+  ) {
+    pdf.setTextColor(...color);
     pdf.setFont("helvetica", fontStyle);
     pdf.setFontSize(fontSize);
     const lines = pdf.splitTextToSize(text, maxWidth);
 
     lines.forEach((line: string) => {
-      ensureSpace(fontSize * 0.45);
+      ensureSpace(fontSize * 0.5);
       pdf.text(line, margin, cursorY);
-      cursorY += fontSize * 0.45;
+      cursorY += fontSize * 0.5;
     });
   }
 
-  writeLine(CLINIC_REPORT_HEADER.name, 16, "bold");
-  writeLine(`${CLINIC_REPORT_HEADER.legalName} · CNPJ ${CLINIC_REPORT_HEADER.cnpj}`, 9);
-  writeLine(CLINIC_REPORT_HEADER.address, 9);
-  writeLine(`${CLINIC_REPORT_HEADER.phone} · ${CLINIC_REPORT_HEADER.email}`, 9);
-  cursorY += 4;
+  if (logoDataUrl) {
+    try {
+      pdf.addImage(logoDataUrl, "PNG", margin, cursorY - 2, 42, 14);
+      cursorY += 16;
+    } catch {
+      // segue sem logo no fallback textual
+    }
+  }
 
-  writeLine("Relatório de Evolução Clínica", 13, "bold");
+  writeLine(branding.clinicName, 15, "bold", [27, 42, 74]);
+
+  if (branding.legalName && branding.legalName !== branding.clinicName) {
+    writeLine(branding.legalName, 9, "normal", [91, 100, 114]);
+  }
+
+  if (branding.cnpjFormatted) {
+    writeLine(`CNPJ ${branding.cnpjFormatted}`, 9, "normal", [91, 100, 114]);
+  }
+
+  if (branding.address) {
+    writeLine(branding.address, 9, "normal", [91, 100, 114]);
+  }
+
+  const contact = [branding.phone, branding.email].filter(Boolean).join(" · ");
+  if (contact) {
+    writeLine(contact, 9, "normal", [91, 100, 114]);
+  }
+
+  cursorY += 3;
+  pdf.setDrawColor(91, 158, 166);
+  pdf.setLineWidth(0.6);
+  pdf.line(margin, cursorY, margin + maxWidth, cursorY);
+  cursorY += 8;
+
+  writeLine("Relatório de Evolução Clínica", 13, "bold", [27, 42, 74]);
+  cursorY += 2;
   writeLine(`Paciente: ${input.patient.name}`);
-  writeLine(`Data de nascimento: ${formatPatientBirthDate(input.patient.birthDate)}`);
+  writeLine(
+    `Data de nascimento: ${formatPatientBirthDate(input.patient.birthDate)}`
+  );
   writeLine(`Responsável: ${input.patient.guardian}`);
   writeLine(`Diagnóstico: ${input.patient.diagnosis}`);
   writeLine(`Data da sessão: ${formatSessionDate(input.sessionDate)}`);
@@ -190,18 +279,24 @@ async function generatePdfWithTextLayout(
   }
 
   cursorY += 4;
-  writeLine("Evolução narrativa", 12, "bold");
+  writeLine("Evolução narrativa", 12, "bold", [27, 42, 74]);
   writeLine(stripHtmlToText(input.contentHtml) || "Sem conteúdo registrado.");
-  cursorY += 8;
+  cursorY += 10;
 
-  writeLine(`Documento gerado em ${formatGeneratedAt()}.`, 9);
-  cursorY += 12;
-  writeLine(input.professionalName, 11, "bold");
+  writeLine(`Documento gerado em ${formatGeneratedAt()}.`, 9, "normal", [
+    91, 100, 114,
+  ]);
+  cursorY += 14;
+  writeLine(input.professionalName, 11, "bold", [27, 42, 74]);
   writeLine(
     `${input.professionalRole}${input.professionalCouncil ? ` · ${input.professionalCouncil}` : ""}`,
-    9
+    9,
+    "normal",
+    [91, 100, 114]
   );
-  writeLine("Assinatura do profissional responsável", 8);
+  writeLine("Assinatura do profissional responsável", 8, "normal", [
+    91, 100, 114,
+  ]);
 
   pdf.save(fileName);
 }
@@ -211,7 +306,7 @@ async function addCanvasToPdf(canvas: HTMLCanvasElement, fileName: string) {
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 10;
+  const margin = 8;
   const printableWidth = pageWidth - margin * 2;
   const printableHeight = pageHeight - margin * 2;
   const imageData = canvas.toDataURL("image/png");
@@ -244,6 +339,13 @@ async function addCanvasToPdf(canvas: HTMLCanvasElement, fileName: string) {
 export async function generateClinicalEvolutionPdf(
   input: ClinicalEvolutionPdfInput
 ) {
+  const branding = input.branding ?? DEFAULT_DOCUMENT_BRANDING;
+  const logoUrl = resolveDocumentLogoUrl(branding);
+  const logoDataUrl =
+    (await loadImageAsDataUrl(logoUrl)) ??
+    (await loadImageAsDataUrl(resolveDocumentLogoUrl(DEFAULT_DOCUMENT_BRANDING))) ??
+    logoUrl;
+
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   iframe.style.cssText =
@@ -259,7 +361,11 @@ export async function generateClinicalEvolutionPdf(
     }
 
     doc.open();
-    doc.write(buildIsolatedReportDocument(buildReportHtml(input)));
+    doc.write(
+      buildIsolatedReportDocument(
+        buildReportHtml(input, branding, logoDataUrl)
+      )
+    );
     doc.close();
 
     await new Promise<void>((resolve) => {
@@ -280,8 +386,16 @@ export async function generateClinicalEvolutionPdf(
       const canvas = await renderReportToCanvas(reportElement);
       await addCanvasToPdf(canvas, fileName);
     } catch (canvasError) {
-      console.warn("[evolucao-pdf] html2canvas falhou, usando layout textual.", canvasError);
-      await generatePdfWithTextLayout(input, fileName);
+      console.warn(
+        "[evolucao-pdf] html2canvas falhou, usando layout textual.",
+        canvasError
+      );
+      await generatePdfWithTextLayout(
+        input,
+        branding,
+        fileName,
+        logoDataUrl.startsWith("data:") ? logoDataUrl : null
+      );
     }
   } finally {
     document.body.removeChild(iframe);

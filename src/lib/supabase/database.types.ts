@@ -1672,6 +1672,25 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      get_clinic_document_branding: {
+        Args: Record<string, never>;
+        Returns: {
+          nome_clinica: string;
+          trade_name: string | null;
+          cnpj: string | null;
+          endereco_completo: string | null;
+          street: string | null;
+          neighborhood: string | null;
+          city: string | null;
+          state: string | null;
+          zip_code: string | null;
+          address_complement: string | null;
+          phone: string | null;
+          mobile_phone: string | null;
+          email: string | null;
+          logo_url: string | null;
+        }[];
+      };
       get_or_create_direct_conversation: {
         Args: {
           p_other_user_id: string;

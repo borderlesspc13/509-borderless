@@ -17,7 +17,7 @@ export function AvaliacoesPageView({ templates, error }: AvaliacoesPageViewProps
         title="Avaliações"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
-          { label: "Cadastro" },
+          { label: "Evolução" },
           { label: "Avaliações" },
         ]}
       />

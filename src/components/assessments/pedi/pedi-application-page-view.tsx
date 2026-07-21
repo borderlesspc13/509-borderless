@@ -18,6 +18,7 @@ import { PediAnswerGrid } from "@/components/assessments/pedi/pedi-answer-grid";
 import { PediItemMap } from "@/components/assessments/pedi/pedi-item-map";
 import { PediScoreResults } from "@/components/assessments/pedi/pedi-score-results";
 import { PediSuggestedObjectives } from "@/components/assessments/pedi/pedi-suggested-objectives";
+import { DocumentPrintHeader } from "@/components/documents/document-print-header";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -206,6 +207,15 @@ export function PediApplicationPageView({
           }
         />
       </div>
+
+      <DocumentPrintHeader
+        documentTitle="PEDI — Pediatric Evaluation of Disability Inventory"
+        subtitle={
+          selectedPatient
+            ? `${selectedPatient.name} · ${evaluationDate}`
+            : undefined
+        }
+      />
 
       <div className="print:hidden space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
