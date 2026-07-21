@@ -34,7 +34,8 @@ export function PediItemMap({ items, className }: PediItemMapProps) {
             Mapa de itens (Functional Skills)
           </h3>
           <p className="text-xs text-muted-foreground print:text-black">
-            Verde = capaz (1) · Vermelho claro = incapaz (0)
+            Verde = realiza (1) · Vermelho claro = não realiza (0). Mapa Rasch
+            (eixo 0–100 + linha de capacidade) entra na Fase 3.
           </p>
         </div>
         <div className="flex items-center gap-3 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground print:text-black">
@@ -72,7 +73,7 @@ export function PediItemMap({ items, className }: PediItemMapProps) {
                       className="grid gap-1"
                       style={{
                         gridTemplateColumns:
-                          "repeat(auto-fill, minmax(0.85rem, 1fr))",
+                          "repeat(auto-fill, minmax(1.1rem, 1fr))",
                       }}
                       role="list"
                       aria-label={`${PEDI_AREA_LABELS[area]} — ${domain.domainLabel}`}
@@ -84,13 +85,15 @@ export function PediItemMap({ items, className }: PediItemMapProps) {
                           <span
                             key={item.id}
                             role="listitem"
-                            title={`${item.label}: ${value === 1 ? "1" : "0"}`}
-                            aria-label={`${item.label}: ${value === 1 ? "capaz" : "incapaz"}`}
+                            title={`${item.sortOrder}. ${item.text}: ${value === 1 ? "1" : "0"}`}
+                            aria-label={`${item.sortOrder}. ${item.text}: ${value === 1 ? "realiza" : "não realiza"}`}
                             className={cn(
-                              "aspect-square rounded-[2px] border border-black/5 print:border-black/30",
+                              "flex aspect-square items-center justify-center rounded-[2px] border border-black/5 text-[0.5rem] font-semibold tabular-nums text-foreground/80 print:border-black/30",
                               cellClass(value)
                             )}
-                          />
+                          >
+                            {item.sortOrder}
+                          </span>
                         );
                       })}
                     </div>

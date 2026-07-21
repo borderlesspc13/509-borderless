@@ -23,6 +23,7 @@ import {
 } from "@/components/patients/patient-body-map-panel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { encodeNotesWith3D } from "@/lib/body-map-3d/proportions";
 import { emptyPatientFormState } from "@/lib/patient-form";
 
 export function PatientCreatePageView() {
@@ -74,7 +75,32 @@ export function PatientCreatePageView() {
       if (draftBodyMarks.length > 0) {
         const marksResult = await createPatientBodyMarksBatchAction(
           result.data.patient.id,
-          draftBodyMarks.map(({ localId: _localId, ...mark }) => mark)
+          draftBodyMarks.map((mark) => {
+            const {
+              localId: _localId,
+              bodyPart,
+              position3d,
+              modelType,
+              notes,
+              ...rest
+            } = mark;
+
+            const persistedNotes =
+              position3d && bodyPart
+                ? encodeNotesWith3D(notes, {
+                    x: Number(position3d.x.toFixed(4)),
+                    y: Number(position3d.y.toFixed(4)),
+                    z: Number(position3d.z.toFixed(4)),
+                    part: bodyPart,
+                    model: modelType ?? "child",
+                  })
+                : notes;
+
+            return {
+              ...rest,
+              notes: persistedNotes,
+            };
+          })
         );
 
         if (!marksResult.success) {

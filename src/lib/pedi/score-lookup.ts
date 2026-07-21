@@ -87,6 +87,21 @@ export function resolveNormativeDisplay(
   return rawScore <= minRaw ? "< 10" : "> 100";
 }
 
+export function resolveStandardError(
+  lookup: { standard_error?: number | null } | null
+): number | null {
+  if (!lookup || lookup.standard_error == null) {
+    return null;
+  }
+
+  const value = Number(lookup.standard_error);
+  if (Number.isNaN(value)) {
+    return null;
+  }
+
+  return value;
+}
+
 export function findNearestRawScore(
   rawScore: number,
   availableRawScores: number[]

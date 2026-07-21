@@ -1,6 +1,11 @@
 "use client";
 
-import { PEDI_AREA_LABELS, getPediDomainGroups, type PediArea, type PediCapability } from "@/lib/pedi";
+import {
+  PEDI_AREA_LABELS,
+  getPediDomainGroups,
+  type PediArea,
+  type PediCapability,
+} from "@/lib/pedi";
 import { cn } from "@/lib/utils";
 
 type PediAnswerGridProps = {
@@ -9,6 +14,36 @@ type PediAnswerGridProps = {
   onChange: (itemId: string, value: PediCapability) => void;
   disabled?: boolean;
 };
+
+function ScoreButton({
+  value,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  value: PediCapability;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={cn(
+        "flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors",
+        "disabled:cursor-not-allowed disabled:opacity-60",
+        selected
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border/80 bg-background text-muted-foreground hover:bg-muted/50"
+      )}
+    >
+      {value}
+    </button>
+  );
+}
 
 export function PediAnswerGrid({
   area,
@@ -20,42 +55,64 @@ export function PediAnswerGrid({
 
   return (
     <section className="space-y-4" aria-label={`Folha — ${PEDI_AREA_LABELS[area]}`}>
+      <div className="rounded-xl border border-sky-200/80 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-100">
+        <p className="font-medium">
+          <span className="mr-4">0 — Não realiza</span>
+          <span>1 — Realiza</span>
+        </p>
+      </div>
+
       {domains.map((domain) => (
         <div
           key={domain.domainCode}
-          className="rounded-lg border border-border/60 bg-muted/20 p-3"
+          className="overflow-hidden rounded-xl border border-border/70 bg-card"
         >
-          <p className="mb-2 text-xs font-semibold text-foreground">
-            {domain.domainCode}. {domain.domainLabel}
-          </p>
-          <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+          <header className="border-b border-border/60 bg-muted/30 px-4 py-2.5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">
+              {domain.domainCode}: {domain.domainLabel}
+            </h3>
+          </header>
+
+          <ul className="divide-y divide-border/50">
             {domain.items.map((item) => {
               const value = items[item.id] ?? 0;
-              const isCapable = value === 1;
 
               return (
-                <button
+                <li
                   key={item.id}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onChange(item.id, isCapable ? 0 : 1)}
-                  title={`${item.label}: ${isCapable ? "capaz (1)" : "incapaz (0)"}`}
-                  className={cn(
-                    "flex h-9 flex-col items-center justify-center rounded-md border text-[0.6rem] font-semibold transition-colors",
-                    "disabled:cursor-not-allowed disabled:opacity-60",
-                    isCapable
-                      ? "border-clinical-success/40 bg-clinical-success/15 text-[oklch(0.42_0.1_155)]"
-                      : "border-border/70 bg-background text-muted-foreground hover:bg-muted/50"
-                  )}
+                  className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                 >
-                  <span>{item.label.replace(/^[A-Z]+-/, "")}</span>
-                  <span className="text-[0.55rem] opacity-70">
-                    {isCapable ? "1" : "0"}
-                  </span>
-                </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-foreground">
+                      <span className="mr-2 font-semibold tabular-nums text-muted-foreground">
+                        {item.sortOrder}.
+                      </span>
+                      {item.text}
+                    </p>
+                  </div>
+
+                  <div
+                    className="flex shrink-0 items-center gap-2"
+                    role="group"
+                    aria-label={`Pontuação item ${item.sortOrder}`}
+                  >
+                    <ScoreButton
+                      value={0}
+                      selected={value === 0}
+                      disabled={disabled}
+                      onSelect={() => onChange(item.id, 0)}
+                    />
+                    <ScoreButton
+                      value={1}
+                      selected={value === 1}
+                      disabled={disabled}
+                      onSelect={() => onChange(item.id, 1)}
+                    />
+                  </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       ))}
     </section>

@@ -1118,6 +1118,7 @@ export type Database = {
           area: "self_care" | "mobility" | "social_function";
           raw_score: number;
           continuous_score: number;
+          standard_error: number | null;
           created_at: string;
         };
         Insert: {
@@ -1125,6 +1126,7 @@ export type Database = {
           area: "self_care" | "mobility" | "social_function";
           raw_score: number;
           continuous_score: number;
+          standard_error?: number | null;
           created_at?: string;
         };
         Update: {
@@ -1132,6 +1134,7 @@ export type Database = {
           area?: "self_care" | "mobility" | "social_function";
           raw_score?: number;
           continuous_score?: number;
+          standard_error?: number | null;
           created_at?: string;
         };
         Relationships: [];
@@ -1144,6 +1147,7 @@ export type Database = {
           age_months_max: number;
           raw_score: number;
           normative_score: number;
+          standard_error: number | null;
           created_at: string;
         };
         Insert: {
@@ -1153,6 +1157,7 @@ export type Database = {
           age_months_max: number;
           raw_score: number;
           normative_score: number;
+          standard_error?: number | null;
           created_at?: string;
         };
         Update: {
@@ -1162,6 +1167,7 @@ export type Database = {
           age_months_max?: number;
           raw_score?: number;
           normative_score?: number;
+          standard_error?: number | null;
           created_at?: string;
         };
         Relationships: [];

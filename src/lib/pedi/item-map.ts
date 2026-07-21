@@ -3,6 +3,7 @@ import {
   PEDI_AREA_PREFIX,
   PEDI_DOMAIN_DEFS,
 } from "@/lib/pedi/constants";
+import { assertPediCatalogIntegrity, PEDI_ITEM_TEXTS } from "@/lib/pedi/items-catalog";
 import {
   PEDI_AREAS,
   type PediArea,
@@ -10,14 +11,24 @@ import {
   type PediItemDefinition,
 } from "@/lib/pedi/types";
 
+assertPediCatalogIntegrity();
+
 function buildItemsForArea(area: PediArea): PediItemDefinition[] {
   const prefix = PEDI_AREA_PREFIX[area];
   const domains = PEDI_DOMAIN_DEFS[area];
+  const texts = PEDI_ITEM_TEXTS[area];
   const items: PediItemDefinition[] = [];
   let globalIndex = 0;
 
   for (const domain of domains) {
     for (let i = 1; i <= domain.itemCount; i += 1) {
+      const text = texts[globalIndex];
+      if (!text) {
+        throw new Error(
+          `Enunciado PEDI ausente para ${area} índice ${globalIndex + 1}`
+        );
+      }
+
       globalIndex += 1;
       const padded = String(globalIndex).padStart(2, "0");
       items.push({
@@ -27,6 +38,7 @@ function buildItemsForArea(area: PediArea): PediItemDefinition[] {
         domainLabel: domain.label,
         sortOrder: globalIndex,
         label: `${prefix}-${padded}`,
+        text,
       });
     }
   }

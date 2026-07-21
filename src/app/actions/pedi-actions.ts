@@ -3,13 +3,15 @@
 import { requirePermission } from "@/lib/auth-guard";
 import { toDateKey } from "@/lib/calendar-utils";
 import {
-  calculateExactAgeInMonths,
+  calculateExactAgeBreakdown,
   findNearestRawScore,
   PEDI_AREA_MAX_RAW,
   PEDI_AREAS,
   PEDI_INSTRUMENT,
+  PEDI_NORMATIVE_MAX_AGE_MONTHS,
   resolveContinuousDisplay,
   resolveNormativeDisplay,
+  resolveStandardError,
   sumRawScoreForArea,
   type PediAnswerSheet,
   type PediArea,
@@ -62,7 +64,7 @@ async function lookupContinuousScore(
 ) {
   const { data: exact } = await supabase
     .from("pedi_continuous_scores")
-    .select("raw_score, continuous_score")
+    .select("raw_score, continuous_score, standard_error")
     .eq("area", area)
     .eq("raw_score", rawScore)
     .maybeSingle();
@@ -97,7 +99,9 @@ async function lookupNormativeScore(
 ) {
   const { data: bandRows } = await supabase
     .from("pedi_normative_scores")
-    .select("raw_score, normative_score, age_months_min, age_months_max")
+    .select(
+      "raw_score, normative_score, standard_error, age_months_min, age_months_max"
+    )
     .eq("area", area)
     .lte("age_months_min", ageMonths)
     .gte("age_months_max", ageMonths)
@@ -120,7 +124,6 @@ async function lookupNormativeScore(
     return { lookup: null, availableRawScores };
   }
 
-  // Fora da curva amostrada: não usa vizinho — sinaliza piso/teto.
   const minRaw = Math.min(...availableRawScores);
   const maxRaw = Math.max(...availableRawScores);
   if (rawScore < minRaw || rawScore > maxRaw) {
@@ -141,17 +144,16 @@ export async function calculatePediScoreAction(
     return { success: false, error: validationError };
   }
 
-  let ageMonths: number;
+  let age;
   try {
-    ageMonths = calculateExactAgeInMonths(
-      sheet.birthDate,
-      sheet.evaluationDate
-    );
+    age = calculateExactAgeBreakdown(sheet.birthDate, sheet.evaluationDate);
   } catch (error) {
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Não foi possível calcular a idade.",
+        error instanceof Error
+          ? error.message
+          : "Não foi possível calcular a idade.",
     };
   }
 
@@ -160,6 +162,7 @@ export async function calculatePediScoreAction(
     return { success: false, error: "Supabase não configurado." };
   }
 
+  const appliesNormative = age.totalMonths <= PEDI_NORMATIVE_MAX_AGE_MONTHS;
   const areas: PediAreaScoreResult[] = [];
 
   for (const area of PEDI_AREAS) {
@@ -172,31 +175,44 @@ export async function calculatePediScoreAction(
       continuous.lookup,
       continuous.bounds
     );
+    const continuousStandardError = resolveStandardError(continuous.lookup);
 
-    const normative = await lookupNormativeScore(
-      supabase,
-      area,
-      ageMonths,
-      rawScore
-    );
-    const normativeScore = resolveNormativeDisplay(
-      rawScore,
-      normative.lookup,
-      normative.availableRawScores
-    );
+    let normativeScore: PediAreaScoreResult["normativeScore"] = null;
+    let normativeStandardError: number | null = null;
+
+    if (appliesNormative) {
+      const normative = await lookupNormativeScore(
+        supabase,
+        area,
+        age.totalMonths,
+        rawScore
+      );
+      normativeScore = resolveNormativeDisplay(
+        rawScore,
+        normative.lookup,
+        normative.availableRawScores
+      );
+      normativeStandardError = resolveStandardError(normative.lookup);
+    }
 
     areas.push({
       area,
       rawScore,
       continuousScore,
+      continuousStandardError,
       normativeScore,
+      normativeStandardError,
       maxRawScore,
     });
   }
 
   return {
     success: true,
-    data: { ageMonths, areas },
+    data: {
+      age,
+      ageMonths: age.totalMonths,
+      areas,
+    },
   };
 }
 
@@ -248,6 +264,7 @@ export async function savePediEvaluationAction(
     birthDate: input.birthDate,
     evaluationDate: input.evaluationDate,
     ageMonths: input.scores.ageMonths,
+    age: input.scores.age,
     items: input.items,
     scores: input.scores,
   };

@@ -17,6 +17,7 @@ import {
 import { PediAnswerGrid } from "@/components/assessments/pedi/pedi-answer-grid";
 import { PediItemMap } from "@/components/assessments/pedi/pedi-item-map";
 import { PediScoreResults } from "@/components/assessments/pedi/pedi-score-results";
+import { PediSuggestedObjectives } from "@/components/assessments/pedi/pedi-suggested-objectives";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
@@ -185,7 +186,7 @@ export function PediApplicationPageView({
     <PageContainer size="wide" className="space-y-6 print:max-w-none">
       <div className="print:hidden">
         <DashboardPageHeader
-          title="Aplicar PEDI"
+          title={`PEDI — ${PEDI_AREA_LABELS[activeArea]}`}
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Evolução" },
@@ -333,6 +334,14 @@ export function PediApplicationPageView({
       </div>
 
       {scores ? <PediScoreResults scores={scores} /> : null}
+
+      {scores ? (
+        <PediSuggestedObjectives
+          items={items}
+          scores={scores}
+          patientName={selectedPatient?.name}
+        />
+      ) : null}
 
       <AiWritingTrainingWidget trainingContextKey={PEDI_INSTRUMENT} />
 
