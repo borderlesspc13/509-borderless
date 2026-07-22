@@ -3,20 +3,33 @@
 import { requirePermission } from "@/lib/auth-guard";
 import { toDateKey } from "@/lib/calendar-utils";
 import {
+  applyDocumentTemplate,
+  buildDocumentTemplateVariables,
+} from "@/lib/document-template-format";
+import {
   calculateExactAgeBreakdown,
+  createEmptyPediCaregiverAnswers,
   findNearestRawScore,
+  isPediCaregiverLevel,
   PEDI_AREA_MAX_RAW,
   PEDI_AREAS,
+  PEDI_CAREGIVER_MAX_RAW,
+  PEDI_HTML_PLACEHOLDER_KEYS,
   PEDI_INSTRUMENT,
   PEDI_NORMATIVE_MAX_AGE_MONTHS,
+  PEDI_TO_REPORT_TEMPLATE_NAME,
+  provisionalCaregiverContinuous,
   resolveContinuousDisplay,
   resolveNormativeDisplay,
   resolveStandardError,
+  sumCaregiverRawScore,
   sumRawScoreForArea,
+  buildPediToReportVariables,
   type PediAnswerSheet,
   type PediArea,
   type PediAreaScoreResult,
   type PediCapability,
+  type PediCaregiverLevel,
   type PediScoreResult,
 } from "@/lib/pedi";
 import { PERMISSIONS } from "@/lib/rbac";
@@ -51,6 +64,25 @@ function validateAnswerSheet(input: PediAnswerSheet): string | null {
   for (const value of Object.values(input.items)) {
     if (!isCapability(value)) {
       return "Cada item deve ser 0 ou 1.";
+    }
+  }
+
+  return null;
+}
+
+function validateCaregiverItems(
+  caregiverItems: Record<string, PediCaregiverLevel | null> | undefined
+): string | null {
+  if (!caregiverItems) {
+    return null;
+  }
+
+  for (const value of Object.values(caregiverItems)) {
+    if (value === null) {
+      continue;
+    }
+    if (!isPediCaregiverLevel(value)) {
+      return "Itens de assistência do cuidador devem ser 0–5.";
     }
   }
 
@@ -134,14 +166,45 @@ async function lookupNormativeScore(
   return { lookup: nearest, availableRawScores };
 }
 
+function scoreCaregiverAreas(
+  caregiverItems: Record<string, PediCaregiverLevel | null>,
+  appliesNormative: boolean
+): PediAreaScoreResult[] {
+  return PEDI_AREAS.map((area) => {
+    const maxRawScore = PEDI_CAREGIVER_MAX_RAW[area];
+    const rawScore = sumCaregiverRawScore(area, caregiverItems);
+    const continuousScore = provisionalCaregiverContinuous(rawScore, maxRawScore);
+
+    return {
+      area,
+      rawScore,
+      continuousScore,
+      continuousStandardError: null,
+      /** Normativo ASC aguarda tabelas oficiais — proxy linear só até 7 anos. */
+      normativeScore: appliesNormative ? continuousScore : null,
+      normativeStandardError: null,
+      maxRawScore,
+    };
+  });
+}
+
+export type CalculatePediScoreInput = PediAnswerSheet & {
+  caregiverItems?: Record<string, PediCaregiverLevel | null>;
+};
+
 export async function calculatePediScoreAction(
-  sheet: PediAnswerSheet
+  sheet: CalculatePediScoreInput
 ): Promise<ActionResult<PediScoreResult>> {
   await requirePermission(PERMISSIONS.ASSESSMENTS_VIEW);
 
   const validationError = validateAnswerSheet(sheet);
   if (validationError) {
     return { success: false, error: validationError };
+  }
+
+  const caregiverError = validateCaregiverItems(sheet.caregiverItems);
+  if (caregiverError) {
+    return { success: false, error: caregiverError };
   }
 
   let age;
@@ -206,12 +269,21 @@ export async function calculatePediScoreAction(
     });
   }
 
+  const caregiverItems =
+    sheet.caregiverItems ?? createEmptyPediCaregiverAnswers();
+  const hasAnyCaregiver = Object.values(caregiverItems).some(
+    (value) => value !== null
+  );
+
   return {
     success: true,
     data: {
       age,
       ageMonths: age.totalMonths,
       areas,
+      caregiverAreas: hasAnyCaregiver
+        ? scoreCaregiverAreas(caregiverItems, appliesNormative)
+        : undefined,
     },
   };
 }
@@ -222,6 +294,7 @@ export type SavePediEvaluationInput = {
   birthDate: string;
   evaluationDate: string;
   items: Record<string, PediCapability>;
+  caregiverItems?: Record<string, PediCaregiverLevel | null>;
   scores: PediScoreResult;
   professionalName: string;
   professionalRole: string;
@@ -266,6 +339,7 @@ export async function savePediEvaluationAction(
     ageMonths: input.scores.ageMonths,
     age: input.scores.age,
     items: input.items,
+    caregiverItems: input.caregiverItems ?? null,
     scores: input.scores,
   };
 
@@ -295,4 +369,69 @@ export async function savePediEvaluationAction(
   }
 
   return { success: true, data: { evaluation: data } };
+}
+
+export type MergePediToReportInput = {
+  patientName: string;
+  birthDate?: string;
+  evaluationDate: string;
+  items: Record<string, PediCapability>;
+  scores: PediScoreResult;
+  professionalName?: string;
+  professionalRole?: string;
+};
+
+export async function mergePediIntoToReportAction(
+  input: MergePediToReportInput
+): Promise<ActionResult<{ html: string; templateName: string }>> {
+  await requirePermission(PERMISSIONS.ASSESSMENTS_VIEW);
+
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) {
+    return { success: false, error: "Supabase não configurado." };
+  }
+
+  const { data: template, error } = await supabase
+    .from("document_templates")
+    .select("id, name, body_html, status")
+    .eq("name", PEDI_TO_REPORT_TEMPLATE_NAME)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  if (!template?.body_html) {
+    return {
+      success: false,
+      error: `Modelo "${PEDI_TO_REPORT_TEMPLATE_NAME}" não encontrado. Cadastre-o em Modelos.`,
+    };
+  }
+
+  const baseVars = buildDocumentTemplateVariables({
+    patientName: input.patientName,
+    sessionDate: input.evaluationDate,
+    professionalName: input.professionalName,
+    professionalRole: input.professionalRole,
+  });
+
+  const pediVars = buildPediToReportVariables({
+    patientName: input.patientName,
+    birthDate: input.birthDate,
+    evaluationDate: input.evaluationDate,
+    items: input.items,
+    scores: input.scores,
+  });
+
+  const html = applyDocumentTemplate(
+    template.body_html,
+    { ...baseVars, ...pediVars },
+    { htmlKeys: PEDI_HTML_PLACEHOLDER_KEYS }
+  );
+
+  return {
+    success: true,
+    data: { html, templateName: template.name },
+  };
 }

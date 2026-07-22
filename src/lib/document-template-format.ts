@@ -33,9 +33,11 @@ export const documentTemplateVariables = [
 export type DocumentTemplateVariableKey =
   (typeof documentTemplateVariables)[number]["key"];
 
+/** Variáveis tipadas do núcleo + chaves livres (PEDI, TO, etc.). */
 export type DocumentTemplateVariables = Partial<
   Record<DocumentTemplateVariableKey, string>
->;
+> &
+  Record<string, string | undefined>;
 
 function escapeHtml(value: string) {
   return value
@@ -62,15 +64,32 @@ export function formatDocumentTemplateDate(value: string) {
   }).format(new Date(value));
 }
 
+const DEFAULT_HTML_KEYS = new Set([
+  "MAPA_ITENS_AUTOCUIDADO",
+  "MAPA_ITENS_MOBILIDADE",
+  "MAPA_ITENS_FUNCAO_SOCIAL",
+  "QUADRO_PERFIL_SENSORIAL",
+]);
+
+export type ApplyDocumentTemplateOptions = {
+  /** Chaves cujo valor já é HTML confiável (não escapar). */
+  htmlKeys?: ReadonlySet<string> | readonly string[];
+};
+
 export function applyDocumentTemplate(
   bodyHtml: string,
-  variables: DocumentTemplateVariables
+  variables: DocumentTemplateVariables,
+  options?: ApplyDocumentTemplateOptions
 ) {
+  const htmlKeys = options?.htmlKeys
+    ? new Set(options.htmlKeys)
+    : DEFAULT_HTML_KEYS;
+
   return bodyHtml.replace(/\[([A-Z0-9_]+)\]/g, (match, key: string) => {
-    const value = variables[key as DocumentTemplateVariableKey]?.trim();
+    const value = variables[key]?.trim();
 
     if (value) {
-      return escapeHtml(value);
+      return htmlKeys.has(key) ? value : escapeHtml(value);
     }
 
     return `<mark class="rounded bg-amber-100 px-1 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100" data-template-var="${key}">${match}</mark>`;

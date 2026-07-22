@@ -10,7 +10,7 @@ import {
   updatePatientBodyMarkAction,
   type BodyMarkInput,
 } from "@/app/actions/body-map-actions";
-import { BodySilhouette } from "@/components/patients/body-silhouette";
+import { BodyMapCanvas } from "@/components/patients/body-map-3d/body-map-canvas";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -34,30 +33,42 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   BODY_MARK_TYPES,
-  BODY_VIEW_SIDES,
   getBodyMarkTypeColorClass,
   getBodyMarkTypeLabel,
   getBodyViewSideLabel,
   type BodyMarkType,
   type BodyViewSide,
 } from "@/lib/body-map-format";
+import {
+  encodeNotesWith3D,
+  parseNotes3D,
+  type BodyModelType,
+} from "@/lib/body-map-3d/proportions";
 import type { PatientBodyMarkRow } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
-export type DraftBodyMark = BodyMarkInput & { localId: string };
+export type DraftBodyMark = BodyMarkInput & {
+  localId: string;
+  bodyPart?: string | null;
+  position3d?: { x: number; y: number; z: number } | null;
+  modelType?: BodyModelType;
+};
 
 type PatientBodyMapPanelProps = {
-  /** Quando informado, persiste no banco. Sem patientId = modo rascunho no cadastro. */
   patientId?: string;
   draftMarks?: DraftBodyMark[];
   onDraftMarksChange?: (marks: DraftBodyMark[]) => void;
   readOnly?: boolean;
+  /** Default do manequim (adulto/criança). */
+  defaultModelType?: BodyModelType;
 };
 
 type PendingPoint = {
   viewSide: BodyViewSide;
   xPct: number;
   yPct: number;
+  bodyPart: string;
+  position3d: { x: number; y: number; z: number };
 } | null;
 
 const markTypeItems = BODY_MARK_TYPES.map((item) => ({
@@ -65,7 +76,14 @@ const markTypeItems = BODY_MARK_TYPES.map((item) => ({
   value: item.value,
 }));
 
+function severityTone(severity: number) {
+  if (severity <= 3) return "text-amber-600";
+  if (severity <= 6) return "text-orange-600";
+  return "text-red-600";
+}
+
 function rowToDraft(row: PatientBodyMarkRow): DraftBodyMark {
+  const { meta, userNotes } = parseNotes3D(row.notes);
   return {
     localId: row.id,
     viewSide: row.view_side,
@@ -73,9 +91,32 @@ function rowToDraft(row: PatientBodyMarkRow): DraftBodyMark {
     yPct: Number(row.y_pct),
     markType: row.mark_type,
     severity: row.severity,
-    notes: row.notes,
+    notes: userNotes || null,
     isActive: row.is_active,
+    bodyPart: meta?.part ?? null,
+    position3d: meta
+      ? { x: meta.x, y: meta.y, z: meta.z }
+      : null,
+    modelType: meta?.model ?? "child",
   };
+}
+
+function persistNotes(mark: {
+  notes?: string | null;
+  bodyPart?: string | null;
+  position3d?: { x: number; y: number; z: number } | null;
+  modelType?: BodyModelType;
+}) {
+  if (mark.position3d && mark.bodyPart) {
+    return encodeNotesWith3D(mark.notes, {
+      x: Number(mark.position3d.x.toFixed(4)),
+      y: Number(mark.position3d.y.toFixed(4)),
+      z: Number(mark.position3d.z.toFixed(4)),
+      part: mark.bodyPart,
+      model: mark.modelType ?? "child",
+    });
+  }
+  return mark.notes?.trim() || null;
 }
 
 export function PatientBodyMapPanel({
@@ -83,15 +124,16 @@ export function PatientBodyMapPanel({
   draftMarks = [],
   onDraftMarksChange,
   readOnly = false,
+  defaultModelType = "child",
 }: PatientBodyMapPanelProps) {
   const toast = useAppToast();
-  const [activeSide, setActiveSide] = useState<BodyViewSide>("front");
+  const [modelType, setModelType] = useState<BodyModelType>(defaultModelType);
   const [marks, setMarks] = useState<DraftBodyMark[]>(draftMarks);
   const [isLoading, setIsLoading] = useState(Boolean(patientId));
   const [pendingPoint, setPendingPoint] = useState<PendingPoint>(null);
   const [editingMarkId, setEditingMarkId] = useState<string | null>(null);
   const [markType, setMarkType] = useState<BodyMarkType>("pain");
-  const [severity, setSeverity] = useState("5");
+  const [severity, setSeverity] = useState(5);
   const [notes, setNotes] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -143,18 +185,20 @@ export function PatientBodyMapPanel({
         xPct: mark.xPct,
         yPct: mark.yPct,
         markType: mark.markType,
+        severity: mark.severity,
+        position3d: mark.position3d,
       })),
     [marks]
   );
 
   const editingMark = marks.find((mark) => mark.localId === editingMarkId);
 
-  function openCreateDialog(viewSide: BodyViewSide, xPct: number, yPct: number) {
+  function openCreateDialog(payload: NonNullable<PendingPoint>) {
     if (readOnly) return;
-    setPendingPoint({ viewSide, xPct, yPct });
+    setPendingPoint(payload);
     setEditingMarkId(null);
     setMarkType("pain");
-    setSeverity("5");
+    setSeverity(5);
     setNotes("");
   }
 
@@ -165,7 +209,7 @@ export function PatientBodyMapPanel({
     setPendingPoint(null);
     setEditingMarkId(markId);
     setMarkType(mark.markType);
-    setSeverity(mark.severity != null ? String(mark.severity) : "5");
+    setSeverity(mark.severity != null ? mark.severity : 5);
     setNotes(mark.notes ?? "");
   }
 
@@ -180,11 +224,12 @@ export function PatientBodyMapPanel({
   }
 
   function handleSaveMark() {
-    const severityValue =
-      markType === "pain" ? Number.parseInt(severity, 10) || 0 : null;
+    const severityValue = markType === "pain" ? severity : null;
 
     startTransition(async () => {
       if (editingMark) {
+        const nextNotes = notes.trim() || null;
+
         if (isDraftMode) {
           syncDraft(
             marks.map((mark) =>
@@ -193,7 +238,7 @@ export function PatientBodyMapPanel({
                     ...mark,
                     markType,
                     severity: severityValue,
-                    notes: notes.trim() || null,
+                    notes: nextNotes,
                   }
                 : mark
             )
@@ -208,7 +253,12 @@ export function PatientBodyMapPanel({
           {
             markType,
             severity: severityValue,
-            notes: notes.trim() || null,
+            notes: persistNotes({
+              notes: nextNotes,
+              bodyPart: editingMark.bodyPart,
+              position3d: editingMark.position3d,
+              modelType: editingMark.modelType ?? modelType,
+            }),
           }
         );
 
@@ -234,20 +284,23 @@ export function PatientBodyMapPanel({
 
       if (!pendingPoint) return;
 
-      const input: BodyMarkInput = {
+      const inputBase = {
         viewSide: pendingPoint.viewSide,
         xPct: pendingPoint.xPct,
         yPct: pendingPoint.yPct,
         markType,
         severity: severityValue,
         notes: notes.trim() || null,
+        bodyPart: pendingPoint.bodyPart,
+        position3d: pendingPoint.position3d,
+        modelType,
       };
 
       if (isDraftMode) {
         syncDraft([
           ...marks,
           {
-            ...input,
+            ...inputBase,
             localId: crypto.randomUUID(),
           },
         ]);
@@ -255,7 +308,15 @@ export function PatientBodyMapPanel({
         return;
       }
 
-      const result = await createPatientBodyMarkAction(patientId!, input);
+      const result = await createPatientBodyMarkAction(patientId!, {
+        viewSide: inputBase.viewSide,
+        xPct: inputBase.xPct,
+        yPct: inputBase.yPct,
+        markType: inputBase.markType,
+        severity: inputBase.severity,
+        notes: persistNotes(inputBase),
+      });
+
       if (!result.success || !result.data) {
         toast.error({
           title: "Falha ao salvar",
@@ -300,12 +361,12 @@ export function PatientBodyMapPanel({
       <div className="space-y-1">
         <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
           <MapPin className="size-4 text-primary" aria-hidden />
-          Mapa corporal
+          Mapa corporal 3D
         </h3>
         <p className="text-sm text-muted-foreground">
           {readOnly
-            ? "Marcações de dor, lesão e outras informações clínicas do aprendiz."
-            : "Clique na silhueta (frente ou verso) para marcar dor, lesão, ausência de membro ou outras observações."}
+            ? "Marcações clínicas no manequim (dor, lesão e outras observações)."
+            : "Toque no manequim para marcar. Arraste para orbitar; use a lista para editar notas e intensidade."}
         </p>
         {isDraftMode && !readOnly ? (
           <p className="text-xs text-muted-foreground">
@@ -315,17 +376,41 @@ export function PatientBodyMapPanel({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {BODY_VIEW_SIDES.map((side) => (
-          <Button
-            key={side.value}
-            type="button"
-            size="sm"
-            variant={activeSide === side.value ? "default" : "outline"}
-            onClick={() => setActiveSide(side.value)}
+        <Button
+          type="button"
+          size="sm"
+          variant={modelType === "child" ? "default" : "outline"}
+          onClick={() => setModelType("child")}
+        >
+          Criança
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={modelType === "adult" ? "default" : "outline"}
+          onClick={() => setModelType("adult")}
+        >
+          Adulto
+        </Button>
+      </div>
+
+      {/* Legenda de tipos (também no canvas) */}
+      <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-xl border border-border/60 bg-muted/20 px-3 py-2.5">
+        {BODY_MARK_TYPES.map((item) => (
+          <span
+            key={item.value}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
           >
-            {side.label}
-          </Button>
+            <span
+              className={cn("size-2.5 rounded-full", getBodyMarkTypeColorClass(item.value))}
+              aria-hidden
+            />
+            {item.label}
+          </span>
         ))}
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          Dor: intensidade 0–10 (cor do pin)
+        </span>
       </div>
 
       {isLoading ? (
@@ -333,67 +418,68 @@ export function PatientBodyMapPanel({
           Carregando mapa corporal...
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <div className="rounded-xl border border-border/70 bg-muted/10 p-4">
-            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {getBodyViewSideLabel(activeSide)}
-            </p>
-            <BodySilhouette
-              side={activeSide}
-              marks={displayMarks}
-              selectedMarkId={editingMarkId}
-              readOnly={readOnly}
-              onCanvasClick={(xPct, yPct) =>
-                openCreateDialog(activeSide, xPct, yPct)
-              }
-              onMarkClick={openEditDialog}
-            />
-          </div>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <BodyMapCanvas
+            modelType={modelType}
+            marks={displayMarks}
+            selectedMarkId={editingMarkId}
+            readOnly={readOnly}
+            onBodyClick={(payload) => openCreateDialog(payload)}
+            onMarkClick={openEditDialog}
+          />
 
-          <div className="space-y-3">
+          <div className="order-first space-y-3 lg:order-none">
             <p className="text-sm font-medium text-foreground">
               Marcações ({marks.length})
             </p>
             {marks.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
-                Nenhuma marcação registrada.
+                Nenhuma marcação registrada. Toque no manequim para começar.
               </div>
             ) : (
-              <ul className="space-y-2">
-                {marks.map((mark) => (
-                  <li key={mark.localId}>
-                    <button
-                      type="button"
-                      className={cn(
-                        "flex w-full items-start gap-3 rounded-xl border border-border/70 bg-card px-3 py-3 text-left transition-colors hover:bg-muted/30",
-                        editingMarkId === mark.localId && "border-primary/40 bg-primary/5"
-                      )}
-                      onClick={() => {
-                        setActiveSide(mark.viewSide);
-                        openEditDialog(mark.localId);
-                      }}
-                    >
-                      <span
+              <ul className="max-h-[min(50vh,24rem)] space-y-2 overflow-y-auto lg:max-h-[32rem]">
+                {marks.map((mark) => {
+                  const { userNotes } = parseNotes3D(mark.notes);
+                  return (
+                    <li key={mark.localId}>
+                      <button
+                        type="button"
                         className={cn(
-                          "mt-1 size-2.5 shrink-0 rounded-full",
-                          getBodyMarkTypeColorClass(mark.markType)
+                          "flex w-full min-h-11 items-start gap-3 rounded-xl border border-border/70 bg-card px-3 py-3 text-left transition-colors hover:bg-muted/30",
+                          editingMarkId === mark.localId &&
+                            "border-primary/40 bg-primary/5"
                         )}
-                      />
-                      <span className="min-w-0 flex-1 space-y-0.5">
-                        <span className="block text-sm font-medium text-foreground">
-                          {getBodyMarkTypeLabel(mark.markType)}
-                          {mark.markType === "pain" && mark.severity != null
-                            ? ` · intensidade ${mark.severity}/10`
-                            : ""}
+                        onClick={() => openEditDialog(mark.localId)}
+                      >
+                        <span
+                          className={cn(
+                            "mt-1 size-2.5 shrink-0 rounded-full",
+                            getBodyMarkTypeColorClass(mark.markType)
+                          )}
+                        />
+                        <span className="min-w-0 flex-1 space-y-0.5">
+                          <span className="block text-sm font-medium text-foreground">
+                            {getBodyMarkTypeLabel(mark.markType)}
+                            {mark.markType === "pain" && mark.severity != null ? (
+                              <span className={cn("ml-1", severityTone(mark.severity))}>
+                                · {mark.severity}/10
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            {mark.bodyPart
+                              ? `${mark.bodyPart} · `
+                              : ""}
+                            {getBodyViewSideLabel(mark.viewSide)}
+                            {userNotes || mark.notes
+                              ? ` — ${userNotes || mark.notes}`
+                              : ""}
+                          </span>
                         </span>
-                        <span className="block text-xs text-muted-foreground">
-                          {getBodyViewSideLabel(mark.viewSide)}
-                          {mark.notes ? ` — ${mark.notes}` : ""}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -413,9 +499,9 @@ export function PatientBodyMapPanel({
             </DialogTitle>
             <DialogDescription>
               {editingMark
-                ? `${getBodyViewSideLabel(editingMark.viewSide)} — ajuste tipo e observações.`
+                ? `${editingMark.bodyPart ? `${editingMark.bodyPart} · ` : ""}${getBodyViewSideLabel(editingMark.viewSide)}`
                 : pendingPoint
-                  ? `${getBodyViewSideLabel(pendingPoint.viewSide)} — descreva o achado clínico.`
+                  ? `${pendingPoint.bodyPart} · ${getBodyViewSideLabel(pendingPoint.viewSide)}`
                   : "Preencha os dados da marcação."}
             </DialogDescription>
           </DialogHeader>
@@ -430,7 +516,7 @@ export function PatientBodyMapPanel({
                   setMarkType((value as BodyMarkType) ?? "pain")
                 }
               >
-                <SelectTrigger id="body-mark-type" className="h-10">
+                <SelectTrigger id="body-mark-type" className="h-11">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
@@ -447,16 +533,34 @@ export function PatientBodyMapPanel({
 
             {markType === "pain" ? (
               <div className="space-y-2">
-                <Label htmlFor="body-mark-severity">Intensidade (0–10)</Label>
-                <Input
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="body-mark-severity">Intensidade</Label>
+                  <span
+                    className={cn(
+                      "text-sm font-semibold tabular-nums",
+                      severityTone(severity)
+                    )}
+                  >
+                    {severity}/10
+                  </span>
+                </div>
+                <input
                   id="body-mark-severity"
-                  type="number"
+                  type="range"
                   min={0}
                   max={10}
+                  step={1}
                   value={severity}
-                  onChange={(event) => setSeverity(event.target.value)}
-                  className="h-10"
+                  onChange={(event) =>
+                    setSeverity(Number.parseInt(event.target.value, 10) || 0)
+                  }
+                  className="h-11 w-full accent-amber-500"
                 />
+                <div className="flex justify-between text-[0.65rem] text-muted-foreground">
+                  <span>Leve</span>
+                  <span>Moderada</span>
+                  <span>Intensa</span>
+                </div>
               </div>
             ) : null}
 
@@ -466,8 +570,9 @@ export function PatientBodyMapPanel({
                 id="body-mark-notes"
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                placeholder="Ex.: dor ao movimento, cicatriz cirúrgica, amelia parcial..."
+                placeholder="Ex.: dor ao movimento, cicatriz cirúrgica..."
                 rows={3}
+                className="min-h-[5.5rem]"
               />
             </div>
           </div>

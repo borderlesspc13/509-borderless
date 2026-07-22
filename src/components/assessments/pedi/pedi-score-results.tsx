@@ -2,6 +2,7 @@ import {
   formatPediAgeLabel,
   PEDI_AREA_LABELS,
   PEDI_NORMATIVE_MAX_AGE_MONTHS,
+  type PediAreaScoreResult,
   type PediScoreResult,
 } from "@/lib/pedi";
 import { cn } from "@/lib/utils";
@@ -41,36 +42,26 @@ function isOutOfRange(value: number | string | null) {
   return typeof value === "string";
 }
 
-export function PediScoreResults({ scores, className }: PediScoreResultsProps) {
-  const age = scores.age ?? {
-    years: Math.floor(scores.ageMonths / 12),
-    months: scores.ageMonths % 12,
-    days: 0,
-    totalMonths: scores.ageMonths,
-  };
-  const appliesNormative = age.totalMonths <= PEDI_NORMATIVE_MAX_AGE_MONTHS;
-
+function ScoreTable({
+  title,
+  subtitle,
+  rows,
+  appliesNormative,
+  footnote,
+}: {
+  title: string;
+  subtitle?: string;
+  rows: PediAreaScoreResult[];
+  appliesNormative: boolean;
+  footnote?: string;
+}) {
   return (
-    <section
-      className={cn(
-        "overflow-hidden rounded-xl border border-border/70 bg-card print:border-black",
-        className
-      )}
-    >
+    <section className="overflow-hidden rounded-xl border border-border/70 bg-card print:border-black">
       <div className="border-b border-border/60 bg-muted/30 px-4 py-3 print:bg-white">
-        <h3 className="text-sm font-semibold text-foreground">
-          Quadro 1 — Pontuação total (Habilidades Funcionais)
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          Idade na avaliação:{" "}
-          <span className="font-medium text-foreground">
-            {formatPediAgeLabel(age)}
-          </span>
-          <span className="text-muted-foreground">
-            {" "}
-            ({age.totalMonths} meses)
-          </span>
-        </p>
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        {subtitle ? (
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        ) : null}
         {!appliesNormative ? (
           <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
             Idade acima de 7 anos: escore normativo não se aplica — apenas
@@ -92,7 +83,7 @@ export function PediScoreResults({ scores, className }: PediScoreResultsProps) {
             </tr>
           </thead>
           <tbody>
-            {scores.areas.map((area) => (
+            {rows.map((area) => (
               <tr
                 key={area.area}
                 className="border-b border-border/40 last:border-0"
@@ -137,10 +128,40 @@ export function PediScoreResults({ scores, className }: PediScoreResultsProps) {
       </div>
 
       <p className="border-t border-border/60 px-4 py-2 text-[0.7rem] text-muted-foreground print:text-black">
-        EP = erro padrão. Valores com &gt; 100 ou &lt; 10 indicam escore fora da
-        curva da tabela de conversão. Colunas de EP ficam &quot;—&quot; até o
-        seed das tabelas oficiais do manual PEDI.
+        {footnote ??
+          "EP = erro padrão. Valores com > 100 ou < 10 indicam escore fora da curva da tabela de conversão. Colunas de EP ficam \"—\" até o seed das tabelas oficiais do manual PEDI."}
       </p>
     </section>
+  );
+}
+
+export function PediScoreResults({ scores, className }: PediScoreResultsProps) {
+  const age = scores.age ?? {
+    years: Math.floor(scores.ageMonths / 12),
+    months: scores.ageMonths % 12,
+    days: 0,
+    totalMonths: scores.ageMonths,
+  };
+  const appliesNormative = age.totalMonths <= PEDI_NORMATIVE_MAX_AGE_MONTHS;
+
+  return (
+    <div className={cn("space-y-4", className)}>
+      <ScoreTable
+        title="Quadro 1 — Habilidades Funcionais (Parte I)"
+        subtitle={`Idade na avaliação: ${formatPediAgeLabel(age)} (${age.totalMonths} meses)`}
+        rows={scores.areas}
+        appliesNormative={appliesNormative}
+      />
+
+      {scores.caregiverAreas && scores.caregiverAreas.length > 0 ? (
+        <ScoreTable
+          title="Quadro 1 — Assistência do cuidador (Parte II)"
+          subtitle="Escores contínuos provisórios (proxy linear 0–100) até tabelas oficiais ASC."
+          rows={scores.caregiverAreas}
+          appliesNormative={appliesNormative}
+          footnote="Parte II: escala 0–5 por item complexo. Contínuo/normativo provisórios até seed oficial."
+        />
+      ) : null}
+    </div>
   );
 }

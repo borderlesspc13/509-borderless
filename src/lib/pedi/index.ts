@@ -51,3 +51,25 @@ export {
   provisionalItemDifficulty,
   suggestedObjectivesToCsv,
 } from "@/lib/pedi/suggested-objectives";
+
+export {
+  createEmptyPediCaregiverAnswers,
+  isPediCaregiverLevel,
+  PEDI_CAREGIVER_ITEMS,
+  PEDI_CAREGIVER_ITEMS_BY_AREA,
+  PEDI_CAREGIVER_LEVEL_LABELS,
+  PEDI_CAREGIVER_MAX_RAW,
+  provisionalCaregiverContinuous,
+  sumCaregiverRawScore,
+  type PediCaregiverItemDefinition,
+  type PediCaregiverLevel,
+} from "@/lib/pedi/caregiver-catalog";
+
+export {
+  buildPediItemMapHtml,
+  buildPediToReportVariables,
+  PEDI_HTML_PLACEHOLDER_KEYS,
+  PEDI_TO_REPORT_TEMPLATE_NAME,
+  type BuildPediToReportInput,
+  type PediToReportVariables,
+} from "@/lib/pedi/report-merge";

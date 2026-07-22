@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   Calculator,
+  FileText,
   Loader2,
   Printer,
   Save,
@@ -15,9 +16,11 @@ import {
   savePediEvaluationAction,
 } from "@/app/actions/pedi-actions";
 import { PediAnswerGrid } from "@/components/assessments/pedi/pedi-answer-grid";
+import { PediCaregiverGrid } from "@/components/assessments/pedi/pedi-caregiver-grid";
 import { PediItemMap } from "@/components/assessments/pedi/pedi-item-map";
 import { PediScoreResults } from "@/components/assessments/pedi/pedi-score-results";
 import { PediSuggestedObjectives } from "@/components/assessments/pedi/pedi-suggested-objectives";
+import { PediToReportDialog } from "@/components/assessments/pedi/pedi-to-report-dialog";
 import { DocumentPrintHeader } from "@/components/documents/document-print-header";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { PageContainer } from "@/components/layout/page-container";
@@ -32,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useUserRole } from "@/hooks/use-user-role";
 import { toDateKey } from "@/lib/calendar-utils";
@@ -42,11 +46,13 @@ import {
 import { AiWritingTrainingWidget } from "@/components/ai-writing-training/ai-writing-training-widget";
 import {
   createEmptyPediAnswers,
+  createEmptyPediCaregiverAnswers,
   PEDI_AREA_LABELS,
   PEDI_AREAS,
   PEDI_INSTRUMENT,
   type PediArea,
   type PediCapability,
+  type PediCaregiverLevel,
   type PediScoreResult,
 } from "@/lib/pedi";
 import { cn } from "@/lib/utils";
@@ -69,13 +75,20 @@ export function PediApplicationPageView({
 
   const [patientId, setPatientId] = useState(activePatients[0]?.id ?? "");
   const [evaluationDate, setEvaluationDate] = useState(toDateKey(new Date()));
+  const [activePart, setActivePart] = useState<"functional" | "caregiver">(
+    "functional"
+  );
   const [activeArea, setActiveArea] = useState<PediArea>("self_care");
   const [items, setItems] = useState<Record<string, PediCapability>>(
     createEmptyPediAnswers
   );
+  const [caregiverItems, setCaregiverItems] = useState<
+    Record<string, PediCaregiverLevel | null>
+  >(createEmptyPediCaregiverAnswers);
   const [scores, setScores] = useState<PediScoreResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const selectedPatient = getClinicalPatient(activePatients, patientId);
 
@@ -102,6 +115,11 @@ export function PediApplicationPageView({
     setScores(null);
   }
 
+  function handleCaregiverChange(itemId: string, value: PediCaregiverLevel) {
+    setCaregiverItems((current) => ({ ...current, [itemId]: value }));
+    setScores(null);
+  }
+
   async function handleCalculate() {
     if (!selectedPatient?.birthDate) {
       toast.error({
@@ -117,6 +135,7 @@ export function PediApplicationPageView({
         birthDate: selectedPatient.birthDate,
         evaluationDate,
         items,
+        caregiverItems,
       });
 
       if (!result.success || !result.data) {
@@ -158,6 +177,7 @@ export function PediApplicationPageView({
         birthDate: selectedPatient.birthDate,
         evaluationDate,
         items,
+        caregiverItems,
         scores,
         professionalName: userName || "Profissional",
         professionalRole: displayRole || "Clínico",
@@ -263,7 +283,7 @@ export function PediApplicationPageView({
           </div>
 
           <div className="space-y-2">
-            <Label>Resumo bruto</Label>
+            <Label>Resumo bruto (Parte I)</Label>
             <div className="flex h-10 flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border/60 bg-muted/20 px-3 text-xs text-muted-foreground">
               {rawTotals.map(({ area, total }) => (
                 <span key={area}>
@@ -290,13 +310,42 @@ export function PediApplicationPageView({
         </div>
       </div>
 
-      <div className="print:hidden">
-        <PediAnswerGrid
-          area={activeArea}
-          items={items}
-          onChange={handleItemChange}
-        />
-      </div>
+      <Tabs
+        value={activePart}
+        onValueChange={(value) =>
+          setActivePart(value === "caregiver" ? "caregiver" : "functional")
+        }
+        className="print:hidden gap-3"
+      >
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-2 bg-transparent p-0 sm:grid-cols-2">
+          <TabsTrigger
+            value="functional"
+            className="h-auto justify-center rounded-lg border border-border/70 bg-card px-3 py-2.5 data-active:border-primary/40 data-active:bg-primary/5"
+          >
+            Parte I — Habilidades funcionais
+          </TabsTrigger>
+          <TabsTrigger
+            value="caregiver"
+            className="h-auto justify-center rounded-lg border border-border/70 bg-card px-3 py-2.5 data-active:border-primary/40 data-active:bg-primary/5"
+          >
+            Parte II — Assistência do cuidador
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="functional" className="mt-4">
+          <PediAnswerGrid
+            area={activeArea}
+            items={items}
+            onChange={handleItemChange}
+          />
+        </TabsContent>
+        <TabsContent value="caregiver" className="mt-4">
+          <PediCaregiverGrid
+            area={activeArea}
+            items={caregiverItems}
+            onChange={handleCaregiverChange}
+          />
+        </TabsContent>
+      </Tabs>
 
       <div className="print:hidden flex flex-wrap gap-2">
         <Button
@@ -334,6 +383,15 @@ export function PediApplicationPageView({
         </Button>
         <Button
           type="button"
+          variant="outline"
+          onClick={() => setReportOpen(true)}
+          disabled={!scores || !selectedPatient}
+        >
+          <FileText className="size-4" aria-hidden />
+          Relatório TO
+        </Button>
+        <Button
+          type="button"
           variant="ghost"
           onClick={() => window.print()}
           className={cn(!scores && "opacity-60")}
@@ -356,6 +414,20 @@ export function PediApplicationPageView({
       <AiWritingTrainingWidget trainingContextKey={PEDI_INSTRUMENT} />
 
       <PediItemMap items={items} />
+
+      {selectedPatient && scores ? (
+        <PediToReportDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          patientName={selectedPatient.name}
+          birthDate={selectedPatient.birthDate}
+          evaluationDate={evaluationDate}
+          items={items}
+          scores={scores}
+          professionalName={userName || "Profissional"}
+          professionalRole={displayRole || "Clínico"}
+        />
+      ) : null}
     </PageContainer>
   );
 }

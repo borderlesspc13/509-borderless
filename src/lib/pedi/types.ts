@@ -46,6 +46,8 @@ export type PediScoreResult = {
   /** @deprecated Preferir `age.totalMonths`. Mantido para compatibilidade. */
   ageMonths: number;
   areas: PediAreaScoreResult[];
+  /** Parte II — Assistência do Cuidador (opcional até preenchimento). */
+  caregiverAreas?: PediAreaScoreResult[];
 };
 
 export type PediItemDefinition = {
